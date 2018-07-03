@@ -1,6 +1,7 @@
 const Request = require('request');
 
 const pageToken = process.env.ACCESS_TOKEN;
+const flow = require('./flow');
 
 function createGetStarted() {
 	Request.post({
@@ -8,12 +9,12 @@ function createGetStarted() {
 		'content-type': 'application/json',
 		form: {
 			get_started: {
-				payload: 'restart',
+				payload: 'greetings',
 			},
 			greeting: [
 				{
 					locale: 'default',
-					text: 'Olá! Essa é a mensagem de Boas-vindas! Ela só aparece na janela!',
+					text: flow.greetings.getStarted,
 				},
 			],
 		},
@@ -41,7 +42,7 @@ function createPersistentMenu() {
 						{
 							type: 'postback',
 							title: 'Ir para o Início',
-							payload: 'restart',
+							payload: 'greetings',
 						},
 					],
 				},

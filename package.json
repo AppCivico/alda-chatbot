@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js"
+    "dev": "nodemon app/index.js",
+    "start": "node app/index.js"
   },
   "dependencies": {
     "bottender": "0.14.34",
     "dotenv": "^5.0.1",
+    "node-emoji": "^1.8.1",
     "nodemon": "^1.17.4",
     "request": "^2.87.0"
   },
