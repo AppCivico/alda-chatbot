@@ -62,6 +62,24 @@ bot.onEvent(async (context) => {
 				],
 			});
 			break;
+		case 'aboutMe':
+			await context.sendText(flow.aboutMe.firstMessage);
+			await context.sendText(flow.aboutMe.secondMessage);
+			await context.sendText(flow.aboutMe.thirdMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.aboutMe.menuOptions[0],
+						payload: flow.aboutMe.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.aboutMe.menuOptions[1],
+						payload: flow.aboutMe.menuPostback[1],
+					},
+				],
+			});
+			break;
 		case 'mainMenu':
 
 			break;
