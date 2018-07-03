@@ -80,6 +80,30 @@ bot.onEvent(async (context) => {
 				],
 			});
 			break;
+		case 'whichCCS':
+			await context.sendText(flow.whichCCS.firstMessage);
+			await context.sendText(flow.whichCCS.secondMessage);
+			await context.sendImage(flow.whichCCS.CSSImage);
+			await context.sendText(flow.whichCCS.thirdMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.whichCCS.menuOptions[0],
+						payload: flow.whichCCS.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.whichCCS.menuOptions[1],
+						payload: flow.whichCCS.menuPostback[1],
+					},
+					{
+						content_type: 'text',
+						title: flow.whichCCS.menuOptions[2],
+						payload: flow.whichCCS.menuPostback[2],
+					},
+				],
+			});
+			break;
 		case 'mainMenu':
 
 			break;

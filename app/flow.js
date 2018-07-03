@@ -6,7 +6,7 @@ module.exports = {
 	greetings: {
 		getStarted: 'Olá! Sou a Alda, vou te ajudar a acompanhar a segurança da sua região. Clique em começar para falar comigo',
 		welcome: 'Deixa eu me apresentar: eu sou Alda, a primeira robô criada para ser assistente dos Conselhos Comunitários de Segurança Pública (CCS) do RJ e' +
-		`ajudar na construção de uma cidade mais segura. É ótimo contar com você para isso! ${emoji.get('grin')}`,
+		`ajudar na construção de uma cidade mais segura. É ótimo contar com você para isso! ${emoji.get('smiley')}`,
 		greetImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/32c149ee-6180-42f0-8fea-a4952686c188.jpg',
 		firstMessage: 'Quer saber mais sobre mim?',
 		menuOptions: ['Claro, fala mais', 'Agora não'],
@@ -26,7 +26,13 @@ module.exports = {
 		menuPostback: ['whichCCS', 'mainMenu'],
 	},
 	whichCCS: {
-
+		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e soluções para reduzir ' +
+		'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
+		secondMessage: 'Veja os Conselhos que existem no estado:',
+		CSSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
+		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
+		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
+		menuPostback: ['nearestCouncil', 'wantToType', 'mainMenu'],
 	},
 	error: {
 		noText: 'Desculpe. Ainda não entendo texto, use os botões.',
