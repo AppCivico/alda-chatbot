@@ -1,8 +1,7 @@
 require('dotenv').config();
 
-const { MessengerBot } = require('bottender');
+const { MessengerBot, FileSessionStore } = require('bottender');
 const { createServer } = require('bottender/restify');
-const { FileSessionStore } = require('bottender');
 
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
@@ -28,14 +27,37 @@ bot.onEvent(async (context) => {
 			await context.setState({ dialog: 'mainMenu' });
 		} else if (context.event.isPostback) {
 			const { payload } = context.event.postback;
-			await context.setState({ dialog: payload });
+			if (payload === 'notMe') {
+				await context.sendText(flow.aboutMe.notNow);
+				await context.setState({ dialog: 'aboutMeMenu' });
+			} else {
+				await context.setState({ dialog: payload });
+			}
 		} else if (context.event.isQuickReply) {
 			const { payload } = context.event.quickReply;
-			await context.setState({ dialog: payload });
+			if (payload === 'notMe') {
+				await context.sendText(flow.aboutMe.notNow);
+				await context.setState({ dialog: 'aboutMeMenu' });
+			} else if (payload === 'notCCS') {
+				await context.sendText(flow.whichCCS.notNow);
+				await context.setState({ dialog: 'whichCCSMenu' });
+			} else {
+				await context.setState({ dialog: payload });
+			}
 		} else if (context.event.isText) {
-			// const payload = await context.event.message.text;
-			await context.sendText(flow.error.noText);
-			await context.setState({ dialog: 'mainMenu' });
+			if (context.state.dialog === 'wantToType') {
+				await context.setState({ location: context.event.message.text });
+				await context.setState({ dialog: 'foundLocation' });
+			} else if (context.state.dialog === 'wantToChange') {
+				await context.setState({ location: context.event.message.text });
+				await context.setState({ dialog: 'foundLocation' });
+			} else {	// const payload = await context.event.message.text;
+				await context.sendText(flow.error.noText);
+				await context.setState({ dialog: 'mainMenu' });
+			}
+		} else if (context.event.isLocation) {
+			await context.setState({ location: context.event.location.coordinates });
+			await context.setState({ dialog: 'foundLocation' });
 		} else if (context.event.hasAttachment || context.event.isLikeSticker ||
 			context.event.isFile || context.event.isVideo || context.event.isAudio ||
 			context.event.isImage || context.event.isFallback) {
@@ -45,8 +67,10 @@ bot.onEvent(async (context) => {
 
 		switch (context.state.dialog) {
 		case 'greetings':
+			await context.typingOn();
 			// await context.sendImage(flow.greetings.greetImage);
 			await context.sendText(flow.greetings.welcome);
+			await context.typingOff();
 			await context.sendText(flow.greetings.firstMessage, {
 				quick_replies: [
 					{
@@ -65,6 +89,8 @@ bot.onEvent(async (context) => {
 		case 'aboutMe':
 			await context.sendText(flow.aboutMe.firstMessage);
 			await context.sendText(flow.aboutMe.secondMessage);
+			// falls through
+		case 'aboutMeMenu':
 			await context.sendText(flow.aboutMe.thirdMessage, {
 				quick_replies: [
 					{
@@ -83,7 +109,11 @@ bot.onEvent(async (context) => {
 		case 'whichCCS':
 			await context.sendText(flow.whichCCS.firstMessage);
 			await context.sendText(flow.whichCCS.secondMessage);
+			await context.typingOn();
 			await context.sendImage(flow.whichCCS.CSSImage);
+			await context.typingOff();
+			// falls through
+		case 'whichCCSMenu':
 			await context.sendText(flow.whichCCS.thirdMessage, {
 				quick_replies: [
 					{
@@ -100,6 +130,40 @@ bot.onEvent(async (context) => {
 						content_type: 'text',
 						title: flow.whichCCS.menuOptions[2],
 						payload: flow.whichCCS.menuPostback[2],
+					},
+				],
+			});
+			break;
+		case 'sendLocation':
+			await context.sendText(flow.sendLocation.firstMessage);
+			await context.sendText(flow.sendLocation.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'location',
+					},
+				],
+			});
+			break;
+		case 'wantToType':
+			await context.sendText(flow.wantToType.firstMessage);
+			break;
+		case 'wantToChange':
+			await context.sendText(flow.wantToChange.firstMessage);
+			await context.sendText(flow.wantToChange.secondMessage);
+			break;
+		case 'foundLocation':
+			await context.sendText(flow.foundLocation.firstMessage);
+			await context.sendText(flow.foundLocation.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.foundLocation.menuOptions[0],
+						payload: flow.foundLocation.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.foundLocation.menuOptions[1],
+						payload: flow.foundLocation.menuPostback[1],
 					},
 				],
 			});
