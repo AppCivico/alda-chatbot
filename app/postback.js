@@ -44,6 +44,11 @@ function createPersistentMenu() {
 							title: 'Ir para o Início',
 							payload: 'greetings',
 						},
+						{
+							type: 'postback',
+							title: 'councilMenu',
+							payload: 'councilMenu',
+						},
 					],
 				},
 			],

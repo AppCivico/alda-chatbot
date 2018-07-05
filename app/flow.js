@@ -47,16 +47,43 @@ module.exports = {
 		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['mainMenu', 'wantToChange'],
+		menuPostback: ['nearestcouncil', 'wantToChange'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
 		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver',
 	},
+	nearestcouncil: {
+		firstMessage: 'Ótimo! 🎉',
+		secondMessage: 'Então, o Conselho mais próximo de você é o da AISP Y, que engloba os bairros de x, y e z.',
+		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
+		menuOptions: ['Sim', 'Não'],
+		menuPostback: ['wentAlready', 'neverWent'],
+		neverWent: 'Ainda tem tempo! A sua participação é muito importante para que os Conselhos tragam mais resultados.',
+	},
+	wentAlready: {
+		firstMessage: 'Que ótimo! A sua participação é muito importante para que os Conselhos tragam cada vez mais resultados.',
+		secondMessage: 'Antes de mostrar o que você pode fazer por aqui, quer saber quem são os membros da diretoria do seu Conselho?',
+		menuOptions: ['Sim', 'Não'],
+		menuPostback: ['wannaKnowMembers', 'notWannaKnow'],
+	},
+	wannaKnowMembers: {
+		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho X:',
+		secondMessage: 'Bacana né, olha só o que mais você pode fazer por aqui!',
+	},
+	councilMenu: {
+		firstMessage: 'Escolha uma das opções:',
+		menuOptions: ['Calendário', 'Assuntos', 'Resultados'],
+		menuPostback: ['calendar', 'subjects', 'results'],
+		notNow: 'Beleza. 😉 \nEntão, vamos seguir em frente, olha só o que você pode fazer por aqui!',
+	},
+	calendar: {
+		firstMessage: 'A data da próxima reunião do seu CCS é Y e vai acontecer no local Z.',
+	},
 	mainMenu: {
 		firstMessage: 'Veja como eu posso te ajudar por aqui:',
 		menuOptions: ['Meu conselho', 'Fazer parte', 'Sobre a Alda'],
-		menuPostback: ['counsil', 'join', 'aboutMe'],
+		menuPostback: ['whichCCSMenu', 'join', 'aboutMe'],
 		notNow: 'Tudo bem 😉',
 	},
 	error: {
