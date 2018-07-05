@@ -79,6 +79,29 @@ module.exports = {
 	},
 	calendar: {
 		firstMessage: 'A data da próxima reunião do seu CCS é Y e vai acontecer no local Z.',
+		secondMessage: 'Você pode ver o que será discutido na próxima reunião, clicando em "Assuntos" ou ver o que foi discutido na reunião anterior, ' +
+		'clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		menuOptions: ['Assuntos', 'Resultados', 'Fazer parte'],
+		menuPostback: ['subjects', 'results', 'join'],
+	},
+	subjects: {
+		firstMessage: 'Para a próxima reunião as pautas são:',
+		secondMessage: '1- Lorem ipsum 2 - Lorem ipsum se o texto for extenso, sugerimos a pessoa baixar um PDF, colocando um link externo',
+		pdfName: 'Baixar PDF',
+		pdfLink: 'http://www.africau.edu/images/default/sample.pdf',
+		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
+		' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
+		menuPostback: ['calendar', 'results', 'join'],
+	},
+	results: {
+		firstMessage: 'A última reunião ocorreu no dia xx/xx/xx. No link abaixo você pode visualizar o PDF completinho do que rolou:',
+		pdfName: 'Baixar PDF',
+		pdfLink: 'http://www.africau.edu/images/default/sample.pdf',
+		secondMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
+		'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
+		menuPostback: ['calendar', 'subjects', 'join'],
 	},
 	mainMenu: {
 		firstMessage: 'Veja como eu posso te ajudar por aqui:',
@@ -90,6 +113,20 @@ module.exports = {
 		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
 		menuOptions: ['Me manter informado', 'Sequir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
 		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
+	},
+	keepMe: {
+		firstMessage: 'Que legal! 😀\nComo você quer fazer isso: e-mail, WhatsApp ou aqui pelo Face mesmo?',
+		menuOptions: ['E-mail', 'WhatsApp', 'Facebook', 'Voltar para o Menu'],
+		menuPostback: ['eMail', 'whatsApp', 'facebook', 'goBackMenu'],
+	},
+	userData: {
+		eMail: 'Legal! Escreva seu E-Mail abaixo para o conselho te manter informado 😉',
+		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado 😉',
+		phoneExample: 'Exemplo: 944445555',
+		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
+		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
+		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
+		menuPostback: ['join', 'goBackMenu'],
 	},
 	share: {
 		firstMessage: 'Muito bom 😍',

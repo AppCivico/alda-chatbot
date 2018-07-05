@@ -51,20 +51,36 @@ bot.onEvent(async (context) => {
 				await context.sendText(flow.nearestcouncil.neverWent);
 				await context.setState({ dialog: 'wentAlreadyMenu' });
 				break;
+			case 'facebook':
+				await context.sendText(flow.userData.facebook);
+				await context.setState({ dialog: 'userData' });
+				break;
 			default:
 				await context.setState({ dialog: context.event.quickReply.payload });
 				break;
 			}
 		} else if (context.event.isText) {
-			if (context.state.dialog === 'wantToType' || context.state.dialog === 'whichCCSMenu') {
+			switch (context.state.dialog) {
+			case 'wantToType':
+			// falls through
+			case 'whichCCSMenu':
+			// falls through
+			case 'wantToChange':
 				await context.setState({ location: context.event.message.text });
 				await context.setState({ dialog: 'foundLocation' });
-			} else if (context.state.dialog === 'wantToChange') {
-				await context.setState({ location: context.event.message.text });
-				await context.setState({ dialog: 'foundLocation' });
-			} else {	// const payload = await context.event.message.text;
+				break;
+			case 'eMail':
+				await context.setState({ eMail: context.event.message.text });
+				await context.setState({ dialog: 'userData' });
+				break;
+			case 'whatsApp':
+				await context.setState({ phone: context.event.message.text });
+				await context.setState({ dialog: 'userData' });
+				break;
+			default:
 				await context.sendText(flow.error.noText);
 				await context.setState({ dialog: 'mainMenu' });
+				break;
 			}
 		} else if (context.event.isLocation) {
 			await context.setState({ location: context.event.location.coordinates });
@@ -262,6 +278,82 @@ bot.onEvent(async (context) => {
 				],
 			});
 			break;
+		case 'calendar':
+			await context.sendText(flow.calendar.firstMessage);
+			await context.sendText(flow.calendar.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.calendar.menuOptions[0],
+						payload: flow.calendar.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.calendar.menuOptions[1],
+						payload: flow.calendar.menuPostback[1],
+					},
+					{
+						content_type: 'text',
+						title: flow.calendar.menuOptions[2],
+						payload: flow.calendar.menuPostback[2],
+					},
+				],
+			});
+			break;
+		case 'subjects':
+			await context.sendText(flow.subjects.firstMessage);
+
+			await context.sendButtonTemplate(flow.subjects.secondMessage, [{
+				type: 'web_url',
+				url: flow.subjects.pdfLink,
+				title: flow.subjects.pdfName,
+			}]);
+			await context.sendText(flow.subjects.thirdMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.subjects.menuOptions[0],
+						payload: flow.subjects.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.subjects.menuOptions[1],
+						payload: flow.subjects.menuPostback[1],
+					},
+					{
+						content_type: 'text',
+						title: flow.subjects.menuOptions[2],
+						payload: flow.subjects.menuPostback[2],
+					},
+				],
+			});
+			break;
+		case 'results':
+			await context.sendButtonTemplate(flow.results.firstMessage, [{
+				type: 'web_url',
+				url: flow.results.pdfLink,
+				title: flow.results.pdfName,
+			}]);
+			await context.sendText(flow.results.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.results.menuOptions[0],
+						payload: flow.results.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.results.menuOptions[1],
+						payload: flow.results.menuPostback[1],
+					},
+					{
+						content_type: 'text',
+						title: flow.results.menuOptions[2],
+						payload: flow.results.menuPostback[2],
+					},
+				],
+			});
+			break;
 		case 'join':
 			await context.sendText(flow.join.firstMessage, {
 				quick_replies: [
@@ -284,6 +376,32 @@ bot.onEvent(async (context) => {
 						content_type: 'text',
 						title: flow.join.menuOptions[3],
 						payload: flow.join.menuPostback[3],
+					},
+				],
+			});
+			break;
+		case 'keepMe':
+			await context.sendText(flow.keepMe.firstMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.keepMe.menuOptions[0],
+						payload: flow.keepMe.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.keepMe.menuOptions[1],
+						payload: flow.keepMe.menuPostback[1],
+					},
+					{
+						content_type: 'text',
+						title: flow.keepMe.menuOptions[2],
+						payload: flow.keepMe.menuPostback[2],
+					},
+					{
+						content_type: 'text',
+						title: flow.keepMe.menuOptions[3],
+						payload: flow.keepMe.menuPostback[3],
 					},
 				],
 			});
@@ -312,20 +430,29 @@ bot.onEvent(async (context) => {
 				url: flow.followMedia.pageLink,
 				title: flow.followMedia.linkTitle,
 			}]);
-			await context.sendText(flow.followMedia.secondMessage, {
+			// falls through
+		case 'userData':
+			await context.sendText(flow.userData.menuMessage, {
 				quick_replies: [
 					{
 						content_type: 'text',
-						title: flow.followMedia.menuOptions[0],
-						payload: flow.followMedia.menuPostback[0],
+						title: flow.userData.menuOptions[0],
+						payload: flow.userData.menuPostback[0],
 					},
 					{
 						content_type: 'text',
-						title: flow.followMedia.menuOptions[1],
-						payload: flow.followMedia.menuPostback[1],
+						title: flow.userData.menuOptions[1],
+						payload: flow.userData.menuPostback[1],
 					},
 				],
 			});
+			break;
+		case 'eMail':
+			await context.sendText(flow.userData.eMail);
+			break;
+		case 'whatsApp':
+			await context.sendText(flow.userData.whatsApp);
+			await context.sendText(flow.userData.phoneExample);
 			break;
 		}
 	}

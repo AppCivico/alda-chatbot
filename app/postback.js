@@ -46,8 +46,8 @@ function createPersistentMenu() {
 						},
 						{
 							type: 'postback',
-							title: 'Menu',
-							payload: 'mainMenu',
+							title: 'Meu Conselho',
+							payload: 'councilMenu',
 						},
 					],
 				},
