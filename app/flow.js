@@ -69,6 +69,17 @@ module.exports = {
 	},
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho X:',
+		carousel: [
+			{
+				title: 'Nome Sobrenome',
+				subtitle: 'Função',
+				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			},
+			{
+				title: 'Nome Sobrenome',
+				subtitle: 'Função',
+				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
+			}],
 		secondMessage: 'Bacana né, olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
@@ -120,8 +131,8 @@ module.exports = {
 		menuPostback: ['eMail', 'whatsApp', 'facebook', 'goBackMenu'],
 	},
 	userData: {
-		eMail: 'Legal! Escreva seu E-Mail abaixo para o conselho te manter informado 😉',
-		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado 😉',
+		eMail: 'Legal! Escreva seu E-Mail abaixo para o conselho te manter informado. 😉',
+		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
 		phoneExample: 'Exemplo: 944445555',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',

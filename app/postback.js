@@ -47,7 +47,8 @@ function createPersistentMenu() {
 						{
 							type: 'postback',
 							title: 'Meu Conselho',
-							payload: 'councilMenu',
+							// payload: 'councilMenu',
+							payload: 'wannaKnowMembers',
 						},
 					],
 				},

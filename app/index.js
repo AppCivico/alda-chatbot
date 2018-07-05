@@ -6,6 +6,7 @@ const { createServer } = require('bottender/restify');
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');
+const attach = require('./attach');
 
 const bot = new MessengerBot({
 	accessToken: config.accessToken,
@@ -234,6 +235,7 @@ bot.onEvent(async (context) => {
 			break;
 		case 'wannaKnowMembers':
 			await context.sendText(flow.wannaKnowMembers.firstMessage);
+			await attach.sendCarousel(context, flow.wannaKnowMembers.carousel);
 			await context.sendText(flow.wannaKnowMembers.secondMessage);
 			// falls through
 		case 'councilMenu':
