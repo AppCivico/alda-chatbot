@@ -1,6 +1,7 @@
 const Request = require('request');
 
 const pageToken = process.env.ACCESS_TOKEN;
+const flow = require('./flow');
 
 function createGetStarted() {
 	Request.post({
@@ -8,12 +9,12 @@ function createGetStarted() {
 		'content-type': 'application/json',
 		form: {
 			get_started: {
-				payload: 'restart',
+				payload: 'greetings',
 			},
 			greeting: [
 				{
 					locale: 'default',
-					text: 'Olá! Essa é a mensagem de Boas-vindas! Ela só aparece na janela!',
+					text: flow.greetings.getStarted,
 				},
 			],
 		},
@@ -36,12 +37,18 @@ function createPersistentMenu() {
 						{
 							type: 'web_url',
 							title: 'Nosso site',
-							url: 'https://google.com',
+							url: 'http://www.consperj.rj.gov.br/',
 						},
 						{
 							type: 'postback',
 							title: 'Ir para o Início',
-							payload: 'restart',
+							payload: 'greetings',
+						},
+						{
+							type: 'postback',
+							title: 'Meu Conselho',
+							// payload: 'councilMenu',
+							payload: 'wannaKnowMembers',
 						},
 					],
 				},

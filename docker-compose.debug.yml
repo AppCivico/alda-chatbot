@@ -1,0 +1,12 @@
+version: '2.1'
+
+services:
+  alda-chatbot:
+    image: alda-chatbot
+    build: .
+    environment:
+      NODE_ENV: development
+    ports:
+      - 2300:2300
+      - 9229:9229
+    command: node --inspect=0.0.0.0:9229 app/index.js
