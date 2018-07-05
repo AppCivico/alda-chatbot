@@ -86,6 +86,26 @@ module.exports = {
 		menuPostback: ['whichCCSMenu', 'join', 'aboutMe'],
 		notNow: 'Tudo bem 😉',
 	},
+	join: {
+		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
+		menuOptions: ['Me manter informado', 'Sequir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
+	},
+	share: {
+		firstMessage: 'Muito bom 😍',
+		shareButton: '[Botão share]',
+		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
+		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
+		menuPostback: ['join', 'goBackMenu'],
+	},
+	followMedia: {
+		firstMessage: 'Curte a minha página! Sempre tem novidades por aqui!',
+		linkTitle: 'Facebook',
+		pageLink: 'http://www.consperj.rj.gov.br/',
+		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
+		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
+		menuPostback: ['join', 'goBackMenu'],
+	},
 	error: {
 		noText: 'Desculpe. Ainda não entendo texto, use os botões.',
 	},

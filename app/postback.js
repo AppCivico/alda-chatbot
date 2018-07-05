@@ -37,7 +37,7 @@ function createPersistentMenu() {
 						{
 							type: 'web_url',
 							title: 'Nosso site',
-							url: 'https://google.com',
+							url: 'http://www.consperj.rj.gov.br/',
 						},
 						{
 							type: 'postback',
@@ -46,8 +46,8 @@ function createPersistentMenu() {
 						},
 						{
 							type: 'postback',
-							title: 'councilMenu',
-							payload: 'councilMenu',
+							title: 'Menu',
+							payload: 'mainMenu',
 						},
 					],
 				},

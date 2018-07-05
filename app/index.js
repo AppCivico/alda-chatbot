@@ -28,27 +28,35 @@ bot.onEvent(async (context) => {
 		} else if (context.event.isPostback) {
 			await context.setState({ dialog: context.event.postback.payload });
 		} else if (context.event.isQuickReply) {
-			await context.setState({ postPayload: context.event.quickReply.payload });
-			if (context.state.postPayload === 'notMe') {
+			switch (context.event.quickReply.payload) {
+			case 'notMe':
 				await context.sendText(flow.aboutMe.notNow);
 				await context.setState({ dialog: 'aboutMeMenu' });
-			} else if (context.state.postPayload === 'notCCS') {
+				break;
+			case 'notCCS':
 				await context.sendText(flow.whichCCS.notNow);
 				await context.setState({ dialog: 'whichCCSMenu' });
-			} else if (context.state.postPayload === 'noLocation') {
+				break;
+			case 'goBackMenu':
+			// falls through
+			case 'noLocation':
 				await context.sendText(flow.mainMenu.notNow);
 				await context.setState({ dialog: 'mainMenu' });
-			} else if (context.state.postPayload === 'notWannaKnow') {
+				break;
+			case 'notWannaKnow':
 				await context.sendText(flow.councilMenu.notNow);
 				await context.setState({ dialog: 'councilMenu' });
-			} else if (context.state.postPayload === 'neverWent') {
+				break;
+			case 'neverWent':
 				await context.sendText(flow.nearestcouncil.neverWent);
 				await context.setState({ dialog: 'wentAlreadyMenu' });
-			} else {
-				await context.setState({ dialog: context.state.postPayload });
+				break;
+			default:
+				await context.setState({ dialog: context.event.quickReply.payload });
+				break;
 			}
 		} else if (context.event.isText) {
-			if (context.state.dialog === 'wantToType') {
+			if (context.state.dialog === 'wantToType' || context.state.dialog === 'whichCCSMenu') {
 				await context.setState({ location: context.event.message.text });
 				await context.setState({ dialog: 'foundLocation' });
 			} else if (context.state.dialog === 'wantToChange') {
@@ -250,6 +258,71 @@ bot.onEvent(async (context) => {
 						content_type: 'text',
 						title: flow.mainMenu.menuOptions[2],
 						payload: flow.mainMenu.menuPostback[2],
+					},
+				],
+			});
+			break;
+		case 'join':
+			await context.sendText(flow.join.firstMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.join.menuOptions[0],
+						payload: flow.join.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.join.menuOptions[1],
+						payload: flow.join.menuPostback[1],
+					},
+					{
+						content_type: 'text',
+						title: flow.join.menuOptions[2],
+						payload: flow.join.menuPostback[2],
+					},
+					{
+						content_type: 'text',
+						title: flow.join.menuOptions[3],
+						payload: flow.join.menuPostback[3],
+					},
+				],
+			});
+			break;
+		case 'share':
+			await context.sendText(flow.share.firstMessage);
+			await context.sendText(flow.share.shareButton);
+			await context.sendText(flow.share.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.share.menuOptions[0],
+						payload: flow.share.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.share.menuOptions[1],
+						payload: flow.share.menuPostback[1],
+					},
+				],
+			});
+			break;
+		case 'followMedia':
+			await context.sendButtonTemplate(flow.followMedia.firstMessage, [{
+				type: 'web_url',
+				url: flow.followMedia.pageLink,
+				title: flow.followMedia.linkTitle,
+			}]);
+			await context.sendText(flow.followMedia.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.followMedia.menuOptions[0],
+						payload: flow.followMedia.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.followMedia.menuOptions[1],
+						payload: flow.followMedia.menuPostback[1],
 					},
 				],
 			});
