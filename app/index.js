@@ -141,25 +141,43 @@ bot.onEvent(async (context) => {
 			await context.typingOff();
 			// falls through
 		case 'whichCCSMenu':
-			await context.sendText(flow.whichCCS.thirdMessage, {
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: flow.whichCCS.menuOptions[0],
-						payload: flow.whichCCS.menuPostback[0],
-					},
-					{
-						content_type: 'text',
-						title: flow.whichCCS.menuOptions[1],
-						payload: flow.whichCCS.menuPostback[1],
-					},
-					{
-						content_type: 'text',
-						title: flow.whichCCS.menuOptions[2],
-						payload: flow.whichCCS.menuPostback[2],
-					},
-				],
-			});
+			if (!context.state.location) { // if we don't have a location already we ask for it
+				await context.sendText(flow.whichCCS.thirdMessage, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.whichCCS.menuOptions[0],
+							payload: flow.whichCCS.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.whichCCS.menuOptions[1],
+							payload: flow.whichCCS.menuPostback[1],
+						},
+						{
+							content_type: 'text',
+							title: flow.whichCCS.menuOptions[2],
+							payload: flow.whichCCS.menuPostback[2],
+						},
+					],
+				});
+			} else {
+				await context.sendText(flow.whichCCS.remember);
+				await context.sendText(flow.foundLocation.secondMessage, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.foundLocation.menuOptions[0],
+							payload: flow.foundLocation.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.foundLocation.menuOptions[1],
+							payload: flow.foundLocation.menuPostback[1],
+						},
+					],
+				});
+			}
 			break;
 		case 'sendLocation':
 			await context.sendText(flow.sendLocation.firstMessage);
