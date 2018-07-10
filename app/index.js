@@ -74,20 +74,7 @@ bot.onEvent(async (context) => {
 			case 'whichCCSMenu':
 			// falls through
 			case 'wantToChange':
-				googleMapsClient.geocode({ address: `${context.event.message.text}, rio de janeiro, brasil` })
-					.asPromise()
-					.then(async (response) => {
-						// console.log(response.json.results);
-						// console.log(response.json.results[0]);
-						context.setState({ address: response.json.results[0].formatted_address });
-						context.setState({ location: response.json.results[0].geometry.location });
-						context.setState({ dialog: 'confirmLocation' });
-					})
-					.catch((err) => {
-						console.log(err);
-					});
-
-
+				await context.setState({ dialog: 'teste' });
 				break;
 			case 'eMail':
 				await context.setState({ eMail: context.event.message.text });
@@ -217,40 +204,6 @@ bot.onEvent(async (context) => {
 			break;
 		case 'foundLocation':
 			await context.sendText(flow.foundLocation.firstMessage);
-			await context.sendText(flow.foundLocation.secondMessage, {
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: flow.foundLocation.menuOptions[0],
-						payload: flow.foundLocation.menuPostback[0],
-					},
-					{
-						content_type: 'text',
-						title: flow.foundLocation.menuOptions[1],
-						payload: flow.foundLocation.menuPostback[1],
-					},
-				],
-			});
-			break;
-		case 'confirmLocation':
-			await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
-			await context.sendText(flow.foundLocation.secondMessage, {
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: flow.foundLocation.menuOptions[0],
-						payload: flow.foundLocation.menuPostback[0],
-					},
-					{
-						content_type: 'text',
-						title: flow.foundLocation.menuOptions[1],
-						payload: flow.foundLocation.menuPostback[1],
-					},
-				],
-			});
-			break;
-		case 'notAddress':
-			await context.sendText('Desculpe. Você poderia tentar novamente e me dar mais detalhes?');
 			await context.sendText(flow.foundLocation.secondMessage, {
 				quick_replies: [
 					{
@@ -531,6 +484,51 @@ bot.onEvent(async (context) => {
 				title: flow.error.menuOptions[0],
 				payload: flow.error.menuPostback[0],
 			}]);
+			break;
+		case 'confirmLocation':
+			googleMapsClient.geocode({ address: `${context.event.message.text}, rio de janeiro, brasil`, language: 'pt-br' })
+				.asPromise().then(async (response) => {
+					// console.log(response.json.results);
+					// console.log(response.json.results[0]);
+					console.log(response);
+					if (response) {
+						context.setState({ address: response.json.results[0].formatted_address });
+						context.setState({ location: response.json.results[0].geometry.location });
+						await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+						await context.sendText(flow.foundLocation.secondMessage, {
+							quick_replies: [
+								{
+									content_type: 'text',
+									title: flow.foundLocation.menuOptions[0],
+									payload: flow.foundLocation.menuPostback[0],
+								},
+								{
+									content_type: 'text',
+									title: flow.foundLocation.menuOptions[1],
+									payload: flow.foundLocation.menuPostback[1],
+								},
+							],
+						});
+					}
+				}).catch(async (err) => {
+					console.log(`Couldn't get geolocation => ${err}`);
+					await context.sendText(flow.confirmLocation.noFirst);
+					await context.sendText(flow.confirmLocation.noSecond, {
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[0],
+								payload: flow.confirmLocation.noPostback[0],
+							},
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[1],
+								payload: flow.confirmLocation.noPostback[1],
+							},
+						],
+					});
+				});
+
 			break;
 		}
 	}

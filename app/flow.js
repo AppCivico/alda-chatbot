@@ -10,7 +10,7 @@ module.exports = {
 		greetImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/32c149ee-6180-42f0-8fea-a4952686c188.jpg',
 		firstMessage: 'Quer saber mais sobre mim?',
 		menuOptions: ['Claro, fala mais', 'Agora não'],
-		menuPostback: ['aboutMe', 'notMe'],
+		menuPostback: ['aboutMe', 'wantToChange'],
 		comeBack: 'Que bom te ver novamente!',
 		likeImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/a5e8ffa7-c0c6-412e-82ba-b9e127ca2f91.png',
 	},
@@ -56,6 +56,11 @@ module.exports = {
 		secondMessage: 'É esse o endereço certo?',
 		menuOptions: ['É esse mesmo', 'Não é esse'],
 		menuPostback: ['nearestcouncil', 'notAddress'],
+		noFirst: 'Não consegui encontrar nenhum endereço com isso',
+		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
+		noOptions: ['É esse mesmo', 'Não é esse'],
+		noPostback: ['nearestcouncil', 'notAddress'],
+
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
