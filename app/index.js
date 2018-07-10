@@ -2,11 +2,18 @@ require('dotenv').config();
 
 const { MessengerBot, FileSessionStore } = require('bottender');
 const { createServer } = require('bottender/restify');
+const googleMapsClient = require('@google/maps').createClient({
+	key: process.env.GOOGLE_MAPS_API_KEY,
+	Promise,
+});
+
+// console.log(googleMapsClient);
 
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');
 const attach = require('./attach');
+
 
 const bot = new MessengerBot({
 	accessToken: config.accessToken,
@@ -16,7 +23,7 @@ const bot = new MessengerBot({
 });
 
 const timeLimit = 1000 * 60 * 60; // 60 minutes
-
+// context.state.location => the geolocation coordinates from the user
 bot.onEvent(async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
 		if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
@@ -67,8 +74,20 @@ bot.onEvent(async (context) => {
 			case 'whichCCSMenu':
 			// falls through
 			case 'wantToChange':
-				await context.setState({ location: context.event.message.text });
-				await context.setState({ dialog: 'foundLocation' });
+				googleMapsClient.geocode({ address: `${context.event.message.text}, rio de janeiro, brasil` })
+					.asPromise()
+					.then(async (response) => {
+						// console.log(response.json.results);
+						// console.log(response.json.results[0]);
+						context.setState({ address: response.json.results[0].formatted_address });
+						context.setState({ location: response.json.results[0].geometry.location });
+						context.setState({ dialog: 'confirmLocation' });
+					})
+					.catch((err) => {
+						console.log(err);
+					});
+
+
 				break;
 			case 'eMail':
 				await context.setState({ eMail: context.event.message.text });
@@ -213,6 +232,40 @@ bot.onEvent(async (context) => {
 				],
 			});
 			break;
+		case 'confirmLocation':
+			await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+			await context.sendText(flow.foundLocation.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.foundLocation.menuOptions[0],
+						payload: flow.foundLocation.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.foundLocation.menuOptions[1],
+						payload: flow.foundLocation.menuPostback[1],
+					},
+				],
+			});
+			break;
+		case 'notAddress':
+			await context.sendText('Desculpe. Você poderia tentar novamente e me dar mais detalhes?');
+			await context.sendText(flow.foundLocation.secondMessage, {
+				quick_replies: [
+					{
+						content_type: 'text',
+						title: flow.foundLocation.menuOptions[0],
+						payload: flow.foundLocation.menuPostback[0],
+					},
+					{
+						content_type: 'text',
+						title: flow.foundLocation.menuOptions[1],
+						payload: flow.foundLocation.menuPostback[1],
+					},
+				],
+			});
+			break;
 		case 'nearestcouncil':
 			await context.sendText(flow.nearestcouncil.firstMessage);
 			await context.sendText(flow.nearestcouncil.secondMessage);
@@ -321,7 +374,6 @@ bot.onEvent(async (context) => {
 			break;
 		case 'subjects':
 			await context.sendText(flow.subjects.firstMessage);
-
 			await context.sendButtonTemplate(flow.subjects.secondMessage, [{
 				type: 'web_url',
 				url: flow.subjects.pdfLink,

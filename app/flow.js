@@ -51,9 +51,15 @@ module.exports = {
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		menuPostback: ['nearestcouncil', 'wantToChange'],
 	},
+	confirmLocation: {
+		firstMessage: 'Encontrei o seguinte endereço:',
+		secondMessage: 'É esse o endereço certo?',
+		menuOptions: ['É esse mesmo', 'Não é esse'],
+		menuPostback: ['nearestcouncil', 'notAddress'],
+	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver',
+		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
 	},
 	nearestcouncil: {
 		firstMessage: 'Ótimo! 🎉',

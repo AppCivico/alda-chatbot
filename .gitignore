@@ -64,3 +64,8 @@ typings/
 
 .eslintrc.json
 .sessions
+
+run-container.sh
+
+
+secret-geolocation-api.json
