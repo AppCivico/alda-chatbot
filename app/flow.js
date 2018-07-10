@@ -147,7 +147,7 @@ module.exports = {
 		menuPostback: ['join', 'goBackMenu'],
 	},
 	followMedia: {
-		firstMessage: 'Curte a minha página! Sempre tem novidades por aqui!',
+		firstMessage: 'Curta a minha página! Sempre tem novidades por aqui!',
 		linkTitle: 'Facebook',
 		pageLink: 'http://www.consperj.rj.gov.br/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
@@ -155,7 +155,12 @@ module.exports = {
 		menuPostback: ['join', 'goBackMenu'],
 	},
 	error: {
-		noText: 'Desculpe. Ainda não entendo texto, use os botões.',
+		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). Além disso,' +
+		'eu estou nesse ambiente de teste, não funciono perfeitamente.Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
+		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
+		menuOptions: ['Iniciar'],
+		menuPostback: ['greetings'],
+
 	},
 
 };
