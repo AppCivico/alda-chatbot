@@ -56,11 +56,10 @@ module.exports = {
 		secondMessage: 'É esse o endereço certo?',
 		menuOptions: ['É esse mesmo', 'Não é esse'],
 		menuPostback: ['nearestcouncil', 'notAddress'],
-		noFirst: 'Não consegui encontrar nenhum endereço com isso',
+		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
-		noOptions: ['É esse mesmo', 'Não é esse'],
-		noPostback: ['nearestcouncil', 'notAddress'],
-
+		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
+		noPostback: ['sendLocation', 'wantToType', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',

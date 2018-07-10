@@ -23,7 +23,10 @@ const bot = new MessengerBot({
 });
 
 const timeLimit = 1000 * 60 * 60; // 60 minutes
+const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
+const defaultAddress = process.env.DEFAULT_ADDRESS;
 // context.state.location => the geolocation coordinates from the user
+
 bot.onEvent(async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
 		if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
@@ -69,12 +72,15 @@ bot.onEvent(async (context) => {
 			}
 		} else if (context.event.isText) {
 			switch (context.state.dialog) {
+			case 'confirmLocation':
+			// falls through
 			case 'wantToType':
 			// falls through
 			case 'whichCCSMenu':
 			// falls through
 			case 'wantToChange':
-				await context.setState({ dialog: 'teste' });
+				await context.setState({ address: context.event.message.text });
+				await context.setState({ dialog: 'confirmLocation' });
 				break;
 			case 'eMail':
 				await context.setState({ eMail: context.event.message.text });
@@ -486,33 +492,32 @@ bot.onEvent(async (context) => {
 			}]);
 			break;
 		case 'confirmLocation':
-			googleMapsClient.geocode({ address: `${context.event.message.text}, rio de janeiro, brasil`, language: 'pt-br' })
-				.asPromise().then(async (response) => {
-					// console.log(response.json.results);
-					// console.log(response.json.results[0]);
-					console.log(response);
-					if (response) {
-						context.setState({ address: response.json.results[0].formatted_address });
-						context.setState({ location: response.json.results[0].geometry.location });
-						await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
-						await context.sendText(flow.foundLocation.secondMessage, {
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: flow.foundLocation.menuOptions[0],
-									payload: flow.foundLocation.menuPostback[0],
-								},
-								{
-									content_type: 'text',
-									title: flow.foundLocation.menuOptions[1],
-									payload: flow.foundLocation.menuPostback[1],
-								},
-							],
-						});
-					}
-				}).catch(async (err) => {
-					console.log(`Couldn't get geolocation => ${err}`);
-					await context.sendText(flow.confirmLocation.noFirst);
+			googleMapsClient.geocode({
+				address: `${context.state.address}, ${addressComplement}`,
+				region: 'BR',
+				language: 'pt-br',
+			}).asPromise().then(async (response) => {
+				// console.log(response.json.results[0]);
+				if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
+					context.setState({ address: response.json.results[0].formatted_address });
+					context.setState({ location: response.json.results[0].geometry.location });
+					await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+					await context.sendText(flow.foundLocation.secondMessage, {
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: flow.foundLocation.menuOptions[0],
+								payload: flow.foundLocation.menuPostback[0],
+							},
+							{
+								content_type: 'text',
+								title: flow.foundLocation.menuOptions[1],
+								payload: flow.foundLocation.menuPostback[1],
+							},
+						],
+					});
+				} else { // empty => falls into the default adress
+					await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
 					await context.sendText(flow.confirmLocation.noSecond, {
 						quick_replies: [
 							{
@@ -525,10 +530,37 @@ bot.onEvent(async (context) => {
 								title: flow.confirmLocation.noOptions[1],
 								payload: flow.confirmLocation.noPostback[1],
 							},
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[2],
+								payload: flow.confirmLocation.noPostback[2],
+							},
 						],
 					});
+				}
+			}).catch(async (err) => {
+				console.log(`Couldn't get geolocation => ${err}`);
+				await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
+				await context.sendText(flow.confirmLocation.noSecond, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[0],
+							payload: flow.confirmLocation.noPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[1],
+							payload: flow.confirmLocation.noPostback[1],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[2],
+							payload: flow.confirmLocation.noPostback[2],
+						},
+					],
 				});
-
+			});
 			break;
 		}
 	}
