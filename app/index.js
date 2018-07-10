@@ -78,9 +78,8 @@ bot.onEvent(async (context) => {
 				await context.setState({ phone: context.event.message.text });
 				await context.setState({ dialog: 'userData' });
 				break;
-			default:
-				await context.sendText(flow.error.noText);
-				await context.setState({ dialog: 'mainMenu' });
+			default: // regular text message
+				await context.setState({ dialog: 'errorText' });
 				break;
 			}
 		} else if (context.event.isLocation) {
@@ -455,6 +454,13 @@ bot.onEvent(async (context) => {
 		case 'whatsApp':
 			await context.sendText(flow.userData.whatsApp);
 			await context.sendText(flow.userData.phoneExample);
+			break;
+		case 'errorText':
+			await context.sendButtonTemplate(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
+				type: 'postback',
+				title: flow.error.menuOptions[0],
+				payload: flow.error.menuPostback[0],
+			}]);
 			break;
 		}
 	}
