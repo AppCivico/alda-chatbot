@@ -10,7 +10,7 @@ module.exports = {
 		greetImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/32c149ee-6180-42f0-8fea-a4952686c188.jpg',
 		firstMessage: 'Quer saber mais sobre mim?',
 		menuOptions: ['Claro, fala mais', 'Agora não'],
-		menuPostback: ['aboutMe', 'wantToChange'],
+		menuPostback: ['aboutMe', 'notMe'],
 		comeBack: 'Que bom te ver novamente!',
 		likeImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/a5e8ffa7-c0c6-412e-82ba-b9e127ca2f91.png',
 	},
@@ -30,12 +30,12 @@ module.exports = {
 		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e soluções para reduzir ' +
 		'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
-		CSSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
+		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType', 'noLocation'],
 		notNow: 'Entendo! 😉',
-		remember: 'Pelo que me lembro você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
+		remember: 'Pelo que me lembro você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) $nearest.',
 		// the rest of the dialog comes from foundLocation
 	},
 	sendLocation: {
@@ -49,13 +49,13 @@ module.exports = {
 		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['nearestcouncil', 'wantToChange'],
+		menuPostback: ['nearestCouncil', 'wantToChange'],
 	},
 	confirmLocation: {
 		firstMessage: 'Encontrei o seguinte endereço:',
 		secondMessage: 'É esse o endereço certo?',
 		menuOptions: ['É esse mesmo', 'Não é esse'],
-		menuPostback: ['nearestcouncil', 'notAddress'],
+		menuPostback: ['nearestCouncil', 'notAddress'],
 		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
@@ -65,9 +65,9 @@ module.exports = {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
 		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
 	},
-	nearestcouncil: {
+	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
-		secondMessage: 'Então, o Conselho mais próximo de você é o da AISP Y, que engloba os bairros de x, y e z.',
+		secondMessage: 'Então, o Conselho mais próximo de você é o da AISP $nearest, que engloba os bairros de x, y e z.',
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
 		menuOptions: ['Sim', 'Não'],
 		menuPostback: ['wentAlready', 'neverWent'],

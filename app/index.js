@@ -7,13 +7,18 @@ const googleMapsClient = require('@google/maps').createClient({
 	Promise,
 });
 
-// console.log(googleMapsClient);
-
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');
 const attach = require('./attach');
+const location = require('./closest-location');
 
+const cities = [
+	['Sydney', -33.867487, 151.206990],
+	['Brisbane', -27.471011, 153.023449],
+	['Adelaide', -34.928621, 138.599959],
+	['Eokoe', 23.572118, -46.644147],
+];
 
 const bot = new MessengerBot({
 	accessToken: config.accessToken,
@@ -59,7 +64,7 @@ bot.onEvent(async (context) => {
 				await context.setState({ dialog: 'councilMenu' });
 				break;
 			case 'neverWent':
-				await context.sendText(flow.nearestcouncil.neverWent);
+				await context.sendText(flow.nearestCouncil.neverWent);
 				await context.setState({ dialog: 'wentAlreadyMenu' });
 				break;
 			case 'facebook':
@@ -103,7 +108,6 @@ bot.onEvent(async (context) => {
 			await context.sendImage(flow.greetings.likeImage);
 			await context.setState({ dialog: 'mainMenu' });
 		}
-
 		switch (context.state.dialog) {
 		case 'greetings':
 			await context.typingOn();
@@ -149,7 +153,7 @@ bot.onEvent(async (context) => {
 			await context.sendText(flow.whichCCS.firstMessage);
 			await context.sendText(flow.whichCCS.secondMessage);
 			await context.typingOn();
-			await context.sendImage(flow.whichCCS.CSSImage);
+			await context.sendImage(flow.whichCCS.CCSImage);
 			await context.typingOff();
 			// falls through
 		case 'whichCCSMenu':
@@ -174,7 +178,7 @@ bot.onEvent(async (context) => {
 					],
 				});
 			} else {
-				await context.sendText(flow.whichCCS.remember);
+				await context.sendText(flow.whichCCS.remember.replace('$nearest', context.state.address[0]));
 				await context.sendText(flow.foundLocation.secondMessage, {
 					quick_replies: [
 						{
@@ -225,20 +229,26 @@ bot.onEvent(async (context) => {
 				],
 			});
 			break;
-		case 'nearestcouncil':
-			await context.sendText(flow.nearestcouncil.firstMessage);
-			await context.sendText(flow.nearestcouncil.secondMessage);
-			await context.sendText(flow.nearestcouncil.thirdMessage, {
+		case 'nearestCouncil':
+			await context.setState({
+				address: location.findClosest(
+					context.state.location.lat,
+					context.state.location.lng, cities,
+				),
+			});
+			await context.sendText(flow.nearestCouncil.firstMessage);
+			await context.sendText(flow.nearestCouncil.secondMessage.replace('$nearest', context.state.address[0]));
+			await context.sendText(flow.nearestCouncil.thirdMessage, {
 				quick_replies: [
 					{
 						content_type: 'text',
-						title: flow.nearestcouncil.menuOptions[0],
-						payload: flow.nearestcouncil.menuPostback[0],
+						title: flow.nearestCouncil.menuOptions[0],
+						payload: flow.nearestCouncil.menuPostback[0],
 					},
 					{
 						content_type: 'text',
-						title: flow.nearestcouncil.menuOptions[1],
-						payload: flow.nearestcouncil.menuPostback[1],
+						title: flow.nearestCouncil.menuOptions[1],
+						payload: flow.nearestCouncil.menuPostback[1],
 					},
 				],
 			});
@@ -492,6 +502,7 @@ bot.onEvent(async (context) => {
 			}]);
 			break;
 		case 'confirmLocation':
+			await context.typingOn();
 			googleMapsClient.geocode({
 				address: `${context.state.address}, ${addressComplement}`,
 				region: 'BR',
@@ -499,9 +510,10 @@ bot.onEvent(async (context) => {
 			}).asPromise().then(async (response) => {
 				// console.log(response.json.results[0]);
 				if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
-					context.setState({ address: response.json.results[0].formatted_address });
-					context.setState({ location: response.json.results[0].geometry.location });
+					await context.setState({ address: response.json.results[0].formatted_address });
+					await context.setState({ location: response.json.results[0].geometry.location });
 					await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+					await context.typingOff();
 					await context.sendText(flow.foundLocation.secondMessage, {
 						quick_replies: [
 							{
@@ -539,6 +551,7 @@ bot.onEvent(async (context) => {
 					});
 				}
 			}).catch(async (err) => {
+				await context.typingOff();
 				console.log(`Couldn't get geolocation => ${err}`);
 				await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
 				await context.sendText(flow.confirmLocation.noSecond, {
