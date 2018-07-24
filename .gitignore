@@ -77,6 +77,7 @@ secret-geolocation-api.json
 # Documents for consultation
 *.pdf
 *.ods
+*.csv
 
 
 
