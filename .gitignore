@@ -62,10 +62,19 @@ typings/
 # dotenv environment variables file
 .env
 
+# eslint config
 .eslintrc.json
+
+# file session storage
 .sessions
 
+# for prod container
 run-container.sh
 
-
+# google map api 
 secret-geolocation-api.json
+
+# pdfs
+*.pdf
+
+

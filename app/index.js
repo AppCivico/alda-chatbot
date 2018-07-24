@@ -76,28 +76,32 @@ bot.onEvent(async (context) => {
 				break;
 			}
 		} else if (context.event.isText) {
-			switch (context.state.dialog) {
-			case 'confirmLocation':
-			// falls through
-			case 'wantToType':
-			// falls through
-			case 'whichCCSMenu':
-			// falls through
-			case 'wantToChange':
-				await context.setState({ address: context.event.message.text });
-				await context.setState({ dialog: 'confirmLocation' });
-				break;
-			case 'eMail':
-				await context.setState({ eMail: context.event.message.text });
-				await context.setState({ dialog: 'userData' });
-				break;
-			case 'whatsApp':
-				await context.setState({ phone: context.event.message.text });
-				await context.setState({ dialog: 'userData' });
-				break;
-			default: // regular text message
-				await context.setState({ dialog: 'errorText' });
-				break;
+			if (context.event.message.text === process.env.RESTART) {
+				await context.setState({ dialog: 'greetings' });
+			} else {
+				switch (context.state.dialog) {
+				case 'confirmLocation':
+					// falls through
+				case 'wantToType':
+					// falls through
+				case 'whichCCSMenu':
+					// falls through
+				case 'wantToChange':
+					await context.setState({ address: context.event.message.text });
+					await context.setState({ dialog: 'confirmLocation' });
+					break;
+				case 'eMail':
+					await context.setState({ eMail: context.event.message.text });
+					await context.setState({ dialog: 'userData' });
+					break;
+				case 'whatsApp':
+					await context.setState({ phone: context.event.message.text });
+					await context.setState({ dialog: 'userData' });
+					break;
+				default: // regular text message
+					await context.setState({ dialog: 'errorText' });
+					break;
+				}
 			}
 		} else if (context.event.isLocation) {
 			await context.setState({ location: context.event.location.coordinates });
@@ -585,3 +589,5 @@ server.listen(process.env.API_PORT, () => {
 	console.log(`Server is running on ${process.env.API_PORT} port...`);
 	console.log(`App: ${process.env.APP} & Page: ${process.env.PAGE}`);
 });
+
+process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });
