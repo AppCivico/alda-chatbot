@@ -19,9 +19,10 @@ function createGetStarted() {
 			],
 		},
 	}, (error, response, body) => {
+		console.log('\nMensagem de boas-vindas:');
 		console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
 		console.log('body:', body);
+		console.log('statusCode:', response && response.statusCode);
 	});
 }
 
@@ -55,6 +56,7 @@ function createPersistentMenu() {
 			],
 		},
 	}, (error, response, body) => {
+		console.log('\nMenu lateral:');
 		console.log('error:', error);
 		console.log('statusCode:', response && response.statusCode);
 		console.log('body:', body);

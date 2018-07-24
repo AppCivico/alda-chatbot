@@ -15,7 +15,7 @@ module.exports = {
 		likeImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/a5e8ffa7-c0c6-412e-82ba-b9e127ca2f91.png',
 	},
 	aboutMe: {
-		firstMessage: 'Oba 😀\n' +
+		firstMessage: 'Oba. 😀\n' +
 		'Então, eu fui desenvolvida pelo Instituto de Segurança Pública (ISP), em parceria com o Instituto de Tecnologia e Sociedade do Rio (ITS Rio) ' +
 		'e o Centro de Estudos de Segurança e Cidadania (Cesec). \nEu tô aqui para te ajudar a conhecer melhor o seu Conselho Comunitário de Segurança: ' +
 		'data, local e pautas das reuniões, mostrar os problemas que estão sendo resolvidos e também fazer com que as suas sugestões sejam ouvidas.',
@@ -130,7 +130,7 @@ module.exports = {
 		firstMessage: 'Veja como eu posso te ajudar por aqui:',
 		menuOptions: ['Meu conselho', 'Fazer parte', 'Sobre a Alda'],
 		menuPostback: ['whichCCSMenu', 'join', 'aboutMe'],
-		notNow: 'Tudo bem 😉',
+		notNow: 'Tudo bem. 😉',
 	},
 	join: {
 		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
@@ -152,7 +152,7 @@ module.exports = {
 		menuPostback: ['join', 'goBackMenu'],
 	},
 	share: {
-		firstMessage: 'Muito bom 😍',
+		firstMessage: 'Muito bom! 😍',
 		shareButton: '[Botão share]',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
