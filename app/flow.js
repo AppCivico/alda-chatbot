@@ -43,7 +43,7 @@ module.exports = {
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver',
+		firstMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
 	},
 	foundLocation: {
 		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
@@ -59,11 +59,14 @@ module.exports = {
 		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
-		noPostback: ['sendLocation', 'wantToType', 'noLocation'],
+		noPostback: ['sendLocation', 'retryType', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
 		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
+		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
+		menuOptions: ['Enviar localização', 'Cancelar'],
+		menuPostback: ['sendLocation', 'noLocation'],
 	},
 	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
@@ -143,7 +146,7 @@ module.exports = {
 		menuPostback: ['eMail', 'whatsApp', 'facebook', 'goBackMenu'],
 	},
 	userData: {
-		eMail: 'Legal! Escreva seu E-Mail abaixo para o conselho te manter informado. 😉',
+		eMail: 'Legal! Escreva seu e-mail abaixo para o conselho te manter informado. 😉',
 		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
 		phoneExample: 'Exemplo: 944445555',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
