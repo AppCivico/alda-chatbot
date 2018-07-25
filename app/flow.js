@@ -15,7 +15,7 @@ module.exports = {
 		likeImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/a5e8ffa7-c0c6-412e-82ba-b9e127ca2f91.png',
 	},
 	aboutMe: {
-		firstMessage: 'Oba 😀\n' +
+		firstMessage: 'Oba. 😀\n' +
 		'Então, eu fui desenvolvida pelo Instituto de Segurança Pública (ISP), em parceria com o Instituto de Tecnologia e Sociedade do Rio (ITS Rio) ' +
 		'e o Centro de Estudos de Segurança e Cidadania (Cesec). \nEu tô aqui para te ajudar a conhecer melhor o seu Conselho Comunitário de Segurança: ' +
 		'data, local e pautas das reuniões, mostrar os problemas que estão sendo resolvidos e também fazer com que as suas sugestões sejam ouvidas.',
@@ -30,32 +30,47 @@ module.exports = {
 		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e soluções para reduzir ' +
 		'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
-		CSSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
+		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType', 'noLocation'],
 		notNow: 'Entendo! 😉',
+		remember: 'Pelo que me lembro você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) $nearest.',
+		// the rest of the dialog comes from foundLocation
 	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver',
+		firstMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
 	},
 	foundLocation: {
 		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['nearestcouncil', 'wantToChange'],
+		menuPostback: ['nearestCouncil', 'wantToChange'],
+	},
+	confirmLocation: {
+		firstMessage: 'Encontrei o seguinte endereço:',
+		secondMessage: 'É esse o endereço certo?',
+		menuOptions: ['É esse mesmo', 'Não é esse'],
+		menuPostback: ['nearestCouncil', 'notAddress'],
+		noFirst: 'Não consegui encontrar nenhum endereço com',
+		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
+		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
+		noPostback: ['sendLocation', 'retryType', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver',
+		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
+		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
+		menuOptions: ['Enviar localização', 'Cancelar'],
+		menuPostback: ['sendLocation', 'noLocation'],
 	},
-	nearestcouncil: {
+	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
-		secondMessage: 'Então, o Conselho mais próximo de você é o da AISP Y, que engloba os bairros de x, y e z.',
+		secondMessage: 'Então, o Conselho mais próximo de você é o da AISP $nearest, que engloba os bairros de x, y e z.',
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
 		menuOptions: ['Sim', 'Não'],
 		menuPostback: ['wentAlready', 'neverWent'],
@@ -118,7 +133,7 @@ module.exports = {
 		firstMessage: 'Veja como eu posso te ajudar por aqui:',
 		menuOptions: ['Meu conselho', 'Fazer parte', 'Sobre a Alda'],
 		menuPostback: ['whichCCSMenu', 'join', 'aboutMe'],
-		notNow: 'Tudo bem 😉',
+		notNow: 'Tudo bem. 😉',
 	},
 	join: {
 		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
@@ -131,7 +146,7 @@ module.exports = {
 		menuPostback: ['eMail', 'whatsApp', 'facebook', 'goBackMenu'],
 	},
 	userData: {
-		eMail: 'Legal! Escreva seu E-Mail abaixo para o conselho te manter informado. 😉',
+		eMail: 'Legal! Escreva seu e-mail abaixo para o conselho te manter informado. 😉',
 		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
 		phoneExample: 'Exemplo: 944445555',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
@@ -140,7 +155,7 @@ module.exports = {
 		menuPostback: ['join', 'goBackMenu'],
 	},
 	share: {
-		firstMessage: 'Muito bom 😍',
+		firstMessage: 'Muito bom! 😍',
 		shareButton: '[Botão share]',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
@@ -155,8 +170,8 @@ module.exports = {
 		menuPostback: ['join', 'goBackMenu'],
 	},
 	error: {
-		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). Além disso,' +
-		'eu estou nesse ambiente de teste, não funciono perfeitamente.Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
+		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). Além disso, ' +
+		'eu estou nesse ambiente de teste, não funciono perfeitamente. Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
 		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Iniciar'],
 		menuPostback: ['greetings'],

@@ -2,11 +2,23 @@ require('dotenv').config();
 
 const { MessengerBot, FileSessionStore } = require('bottender');
 const { createServer } = require('bottender/restify');
+const googleMapsClient = require('@google/maps').createClient({
+	key: process.env.GOOGLE_MAPS_API_KEY,
+	Promise,
+});
 
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');
 const attach = require('./attach');
+const location = require('./closest-location');
+
+const cities = [
+	['Sydney', -33.867487, 151.206990],
+	['Brisbane', -27.471011, 153.023449],
+	['Adelaide', -34.928621, 138.599959],
+	['Eokoe', 23.572118, -46.644147],
+];
 
 const bot = new MessengerBot({
 	accessToken: config.accessToken,
@@ -16,6 +28,10 @@ const bot = new MessengerBot({
 });
 
 const timeLimit = 1000 * 60 * 60; // 60 minutes
+const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
+const defaultAddress = process.env.DEFAULT_ADDRESS;
+// context.state.location => the geolocation coordinates from the user
+// context.state.address => the address the user types
 
 bot.onEvent(async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
@@ -39,7 +55,7 @@ bot.onEvent(async (context) => {
 				await context.setState({ dialog: 'whichCCSMenu' });
 				break;
 			case 'goBackMenu':
-			// falls through
+				// falls through
 			case 'noLocation':
 				await context.sendText(flow.mainMenu.notNow);
 				await context.setState({ dialog: 'mainMenu' });
@@ -49,7 +65,7 @@ bot.onEvent(async (context) => {
 				await context.setState({ dialog: 'councilMenu' });
 				break;
 			case 'neverWent':
-				await context.sendText(flow.nearestcouncil.neverWent);
+				await context.sendText(flow.nearestCouncil.neverWent);
 				await context.setState({ dialog: 'wentAlreadyMenu' });
 				break;
 			case 'facebook':
@@ -61,26 +77,36 @@ bot.onEvent(async (context) => {
 				break;
 			}
 		} else if (context.event.isText) {
-			switch (context.state.dialog) {
-			case 'wantToType':
-			// falls through
-			case 'whichCCSMenu':
-			// falls through
-			case 'wantToChange':
-				await context.setState({ location: context.event.message.text });
-				await context.setState({ dialog: 'foundLocation' });
-				break;
-			case 'eMail':
-				await context.setState({ eMail: context.event.message.text });
-				await context.setState({ dialog: 'userData' });
-				break;
-			case 'whatsApp':
-				await context.setState({ phone: context.event.message.text });
-				await context.setState({ dialog: 'userData' });
-				break;
-			default: // regular text message
-				await context.setState({ dialog: 'errorText' });
-				break;
+			if (context.event.message.text === process.env.RESTART) {
+				await context.resetState();
+				// await context.setState({ dialog: 'greetings' });
+				await context.setState({ dialog: 'whichCCSMenu' });
+			} else {
+				switch (context.state.dialog) {
+				case 'retryType':
+					// falls through
+				case 'confirmLocation':
+					// falls through
+				case 'wantToType':
+					// falls through
+				case 'whichCCSMenu':
+					// falls through
+				case 'wantToChange':
+					await context.setState({ address: context.event.message.text });
+					await context.setState({ dialog: 'confirmLocation' });
+					break;
+				case 'eMail':
+					await context.setState({ eMail: context.event.message.text });
+					await context.setState({ dialog: 'userData' });
+					break;
+				case 'whatsApp':
+					await context.setState({ phone: context.event.message.text });
+					await context.setState({ dialog: 'userData' });
+					break;
+				default: // regular text message
+					await context.setState({ dialog: 'errorText' });
+					break;
+				}
 			}
 		} else if (context.event.isLocation) {
 			await context.setState({ location: context.event.location.coordinates });
@@ -91,7 +117,6 @@ bot.onEvent(async (context) => {
 			await context.sendImage(flow.greetings.likeImage);
 			await context.setState({ dialog: 'mainMenu' });
 		}
-
 		switch (context.state.dialog) {
 		case 'greetings':
 			await context.typingOn();
@@ -137,29 +162,48 @@ bot.onEvent(async (context) => {
 			await context.sendText(flow.whichCCS.firstMessage);
 			await context.sendText(flow.whichCCS.secondMessage);
 			await context.typingOn();
-			await context.sendImage(flow.whichCCS.CSSImage);
+			await context.sendImage(flow.whichCCS.CCSImage);
 			await context.typingOff();
 			// falls through
 		case 'whichCCSMenu':
-			await context.sendText(flow.whichCCS.thirdMessage, {
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: flow.whichCCS.menuOptions[0],
-						payload: flow.whichCCS.menuPostback[0],
-					},
-					{
-						content_type: 'text',
-						title: flow.whichCCS.menuOptions[1],
-						payload: flow.whichCCS.menuPostback[1],
-					},
-					{
-						content_type: 'text',
-						title: flow.whichCCS.menuOptions[2],
-						payload: flow.whichCCS.menuPostback[2],
-					},
-				],
-			});
+			await context.setState({ retryCount: 0 });
+			if (!context.state.location) { // if we don't have a location already we ask for it
+				await context.sendText(flow.whichCCS.thirdMessage, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.whichCCS.menuOptions[0],
+							payload: flow.whichCCS.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.whichCCS.menuOptions[1],
+							payload: flow.whichCCS.menuPostback[1],
+						},
+						{
+							content_type: 'text',
+							title: flow.whichCCS.menuOptions[2],
+							payload: flow.whichCCS.menuPostback[2],
+						},
+					],
+				});
+			} else {
+				await context.sendText(flow.whichCCS.remember.replace('$nearest', context.state.address[0]));
+				await context.sendText(flow.foundLocation.secondMessage, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.foundLocation.menuOptions[0],
+							payload: flow.foundLocation.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.foundLocation.menuOptions[1],
+							payload: flow.foundLocation.menuPostback[1],
+						},
+					],
+				});
+			}
 			break;
 		case 'sendLocation':
 			await context.sendText(flow.sendLocation.firstMessage);
@@ -174,9 +218,31 @@ bot.onEvent(async (context) => {
 		case 'wantToType':
 			await context.sendText(flow.wantToType.firstMessage);
 			break;
-		case 'wantToChange':
+		case 'retryType':
 			await context.sendText(flow.wantToChange.firstMessage);
-			await context.sendText(flow.wantToChange.secondMessage);
+			// falls through
+		case 'wantToChange':
+			await context.setState({ retryCount: context.state.retryCount + 1 });
+			// On the users 3rd try we offer him to either give up or send his location directly
+			if (context.state.retryCount >= 3) {
+				await context.setState({ retryCount: 0 });
+				await context.sendText(`${flow.wantToChange.secondMessage.slice(0, -1)}\n${flow.wantToChange.helpMessage}`, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.wantToChange.menuOptions[0],
+							payload: flow.wantToChange.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.wantToChange.menuOptions[1],
+							payload: flow.wantToChange.menuPostback[1],
+						},
+					],
+				});
+			} else {
+				await context.sendText(flow.wantToChange.secondMessage);
+			}
 			break;
 		case 'foundLocation':
 			await context.sendText(flow.foundLocation.firstMessage);
@@ -195,20 +261,26 @@ bot.onEvent(async (context) => {
 				],
 			});
 			break;
-		case 'nearestcouncil':
-			await context.sendText(flow.nearestcouncil.firstMessage);
-			await context.sendText(flow.nearestcouncil.secondMessage);
-			await context.sendText(flow.nearestcouncil.thirdMessage, {
+		case 'nearestCouncil':
+			await context.setState({
+				address: location.findClosest(
+					context.state.location.lat,
+					context.state.location.lng, cities,
+				),
+			});
+			await context.sendText(flow.nearestCouncil.firstMessage);
+			await context.sendText(flow.nearestCouncil.secondMessage.replace('$nearest', context.state.address[0]));
+			await context.sendText(flow.nearestCouncil.thirdMessage, {
 				quick_replies: [
 					{
 						content_type: 'text',
-						title: flow.nearestcouncil.menuOptions[0],
-						payload: flow.nearestcouncil.menuPostback[0],
+						title: flow.nearestCouncil.menuOptions[0],
+						payload: flow.nearestCouncil.menuPostback[0],
 					},
 					{
 						content_type: 'text',
-						title: flow.nearestcouncil.menuOptions[1],
-						payload: flow.nearestcouncil.menuPostback[1],
+						title: flow.nearestCouncil.menuOptions[1],
+						payload: flow.nearestCouncil.menuPostback[1],
 					},
 				],
 			});
@@ -303,7 +375,6 @@ bot.onEvent(async (context) => {
 			break;
 		case 'subjects':
 			await context.sendText(flow.subjects.firstMessage);
-
 			await context.sendButtonTemplate(flow.subjects.secondMessage, [{
 				type: 'web_url',
 				url: flow.subjects.pdfLink,
@@ -462,6 +533,80 @@ bot.onEvent(async (context) => {
 				payload: flow.error.menuPostback[0],
 			}]);
 			break;
+		case 'confirmLocation':
+			await context.typingOn();
+			googleMapsClient.geocode({
+				address: `${context.state.address}, ${addressComplement}`,
+				region: 'BR',
+				language: 'pt-br',
+			}).asPromise().then(async (response) => {
+				console.log(response.json.results);
+				if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
+					await context.setState({ address: response.json.results[0].formatted_address });
+					await context.setState({ location: response.json.results[0].geometry.location });
+					await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+					await context.typingOff();
+					await context.sendText(flow.foundLocation.secondMessage, {
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: flow.foundLocation.menuOptions[0],
+								payload: flow.foundLocation.menuPostback[0],
+							},
+							{
+								content_type: 'text',
+								title: flow.foundLocation.menuOptions[1],
+								payload: flow.foundLocation.menuPostback[1],
+							},
+						],
+					});
+				} else { // empty => falls into the default adress
+					await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
+					await context.sendText(flow.confirmLocation.noSecond, {
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[0],
+								payload: flow.confirmLocation.noPostback[0],
+							},
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[1],
+								payload: flow.confirmLocation.noPostback[1],
+							},
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[2],
+								payload: flow.confirmLocation.noPostback[2],
+							},
+						],
+					});
+				}
+			}).catch(async (err) => {
+				await context.typingOff();
+				console.log(`Couldn't get geolocation => ${err}`);
+				await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
+				await context.sendText(flow.confirmLocation.noSecond, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[0],
+							payload: flow.confirmLocation.noPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[1],
+							payload: flow.confirmLocation.noPostback[1],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[2],
+							payload: flow.confirmLocation.noPostback[2],
+						},
+					],
+				});
+			});
+			break;
 		}
 	}
 });
@@ -472,3 +617,5 @@ server.listen(process.env.API_PORT, () => {
 	console.log(`Server is running on ${process.env.API_PORT} port...`);
 	console.log(`App: ${process.env.APP} & Page: ${process.env.PAGE}`);
 });
+
+process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });
