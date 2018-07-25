@@ -11,7 +11,7 @@ export DOCKER_LAN_IP=$(ifconfig docker0 | grep 'inet addr:' | awk '{ split($2,a,
 # porta que será feito o bind
 export LISTEN_PORT=2300
 
-docker run --name renova \
+docker run --name alda-chatbot \
  -v $SOURCE_DIR:/src -v $DATA_DIR:/data \
  -p $DOCKER_LAN_IP:$LISTEN_PORT:2049 \
  --cpu-shares=512 \
