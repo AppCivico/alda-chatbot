@@ -14,5 +14,5 @@ docker run --name alda-chatbot \
  -v $SOURCE_DIR:/src -v $DATA_DIR:/data \
  -p $DOCKER_LAN_IP:$LISTEN_PORT:2049 \
  --cpu-shares=512 \
- --memory 1800m -dit --restart unless-stopped appcivico/renova
+ --memory 1800m -dit --restart unless-stopped appcivico/alda-chatbot
 
