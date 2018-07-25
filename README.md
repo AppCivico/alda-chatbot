@@ -43,9 +43,9 @@ Caso o Usuário não esteja de acordo com o exigido, não deverá prosseguir com
 
 A Alda do Conselho de Segurança Pública do Rio de Janeiro se reserva ao direito de incluir e retirar novas (ou já existentes) funcionalidades e ferramentas da Plataforma segundo sua conveniência, sempre que entender necessário para oferecer os melhores serviços ao Usuário.
 
-## Isenções e limitações de responsabilidade do Renova
+## Isenções e limitações de responsabilidade do Conselho de Segurança Pública do Rio de Janeiro
 
-Renova e AppCívico não se responsabilizam por/pela:
+Conselho de Segurança Pública do Rio de Janeiro e AppCívico não se responsabilizam por/pela:
 
     Efetivo cumprimento das obrigações assumidas pelos Usuários;
     Quaisquer vícios, defeitos técnicos e/ou operacionais (problemas, bugs e glitches) ou funcionamentos indevidos que ocorrerem nos dispositivos e equipamentos dos Usuários ou de terceiros e sejam resultantes do uso regulardA Alda do Conselho de Segurança Pública do Rio de Janeiro
@@ -54,12 +54,12 @@ Renova e AppCívico não se responsabilizam por/pela:
 
 Os Usuários não possuem qualquer direito para exigir a disponibilidade dA Alda do Conselho de Segurança Pública do Rio de Janeiro conforme melhor lhes convêm, tampouco poderão pleitear indenização ou reparação de danos em caso dA Alda do Conselho de Segurança Pública do Rio de Janeiro permanecer fora do ar, independentemente da motivação.
 
-Renova se reserva o direito de auxiliar e cooperar com qualquer autoridade judicial ou órgão governamental, podendo enviar informações cadastrais de seus Usuários, quando considerar que seu auxílio ou cooperação sejam necessários para proteger seus Usuários, funcionários, colaboradores, administradores, sócios ou qualquer pessoa que possa ser prejudicada pela ação ou omissão combatida.
+Conselho de Segurança Pública do Rio de Janeiro se reserva o direito de auxiliar e cooperar com qualquer autoridade judicial ou órgão governamental, podendo enviar informações cadastrais de seus Usuários, quando considerar que seu auxílio ou cooperação sejam necessários para proteger seus Usuários, funcionários, colaboradores, administradores, sócios ou qualquer pessoa que possa ser prejudicada pela ação ou omissão combatida.
 Privacidade de Dados Pessoais e Informação
 
 Os dados pessoais e informações dos Usuários são coletados quando inseridos ou submetidos voluntariamente pelos Usuários ao utilizar A Alda do Conselho de Segurança Pública do Rio de Janeiro, plataforma disponibilizada pela AppCívico.
 
-O Renova poderá coletar as informações e dados pessoais de seus Usuários, se tais permitirem, tais como, mas não se limitando a, nome, e-mail, fluxo dentro do chatbot e questões perguntadas.
+O Conselho de Segurança Pública do Rio de Janeiro poderá coletar as informações e dados pessoais de seus Usuários, se tais permitirem, tais como, mas não se limitando a, nome, e-mail, fluxo dentro do chatbot e questões perguntadas.
 
 Os dados coletados serão utilizados pela Conselho de Segurança Pública do Rio de Janeiro para melhorar seus processos de identificação nA Alda, apresentação de Serviços e contato com os Usuários.
 
@@ -79,7 +79,7 @@ Os Usuários não poderão:
 
 ## Violação ou Tentativa de Burla
 
-Qualquer intromissão, tentativa de burla, ou atividade que viole ou contrarie as leis de direito de propriedade intelectual e as proibições estipuladas nestes Termos tornará o responsável passível de sofrer os efeitos das ações legais pertinentes, bem como das sanções aqui previstas, sendo ainda responsável por indenizar Renova Brasil ou seus Usuários por eventuais danos causados.
+Qualquer intromissão, tentativa de burla, ou atividade que viole ou contrarie as leis de direito de propriedade intelectual e as proibições estipuladas nestes Termos tornará o responsável passível de sofrer os efeitos das ações legais pertinentes, bem como das sanções aqui previstas, sendo ainda responsável por indenizar Conselho de Segurança Pública do Rio de Janeiro Brasil ou seus Usuários por eventuais danos causados.
 
 Todos os itens destes Termos são regidos pelas leis vigentes na República Federativa do Brasil. Para todos os assuntos referentes à interpretação, ao cumprimento ou a qualquer outro questionamento relacionado a estes Termos, as partes concordam em se submeter ao Foro da Comarca de São Paulo.
 Definições
