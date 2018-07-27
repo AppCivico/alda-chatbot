@@ -273,11 +273,11 @@ bot.onEvent(async (context) => {
 			});
 			break;
 		case 'nearestCouncil':
-			if (!context.state.userLocation.neighborhood.long_name) {
+			if (!context.state.userLocation) {
 				await context.setState({ userLocation: userDataArray.find(obj => obj.userId === context.session.user.id) });
-				console.log(context.state.userLocation.neighborhood.long_name);
+				// console.log(context.state.userLocation.neighborhood.long_name);
 			}
-			if (context.state.userLocation.neighborhood.long_name) {
+			if (context.state.userLocation) {
 				userDataArray = await userDataArray.filter(obj => obj.userId !== context.session.user.id);
 				await context.setState({
 					CCS: conselhos.find(obj => obj.neighborhoods.includes(context.state.userLocation.neighborhood.long_name)),
