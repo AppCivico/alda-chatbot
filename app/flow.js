@@ -56,7 +56,7 @@ module.exports = {
 		firstMessage: 'Encontrei o seguinte endereço:',
 		secondMessage: 'É esse o endereço certo?',
 		menuOptions: ['É esse mesmo', 'Não é esse'],
-		menuPostback: ['nearestCouncil', 'notAddress'],
+		menuPostback: ['nearestCouncil', 'wantToChange'],
 		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 		noCouncil: 'Desculpe, não consegui encontrar o conselho que cobre essa região!',
