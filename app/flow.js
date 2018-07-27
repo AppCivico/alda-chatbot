@@ -6,7 +6,7 @@ module.exports = {
 	greetings: {
 		getStarted: 'Olá! Sou a Alda, vou te ajudar a acompanhar a segurança da sua região. Clique em começar para falar comigo',
 		welcome: 'Deixa eu me apresentar: eu sou Alda, a primeira robô criada para ser assistente dos Conselhos Comunitários de Segurança Pública (CCS) do RJ e ' +
-		'ajudar na construção de uma cidade mais segura. É ótimo contar com você para isso! 🙂',
+			'ajudar na construção de uma cidade mais segura. É ótimo contar com você para isso! 🙂',
 		greetImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/32c149ee-6180-42f0-8fea-a4952686c188.jpg',
 		firstMessage: 'Quer saber mais sobre mim?',
 		menuOptions: ['Claro, fala mais', 'Agora não'],
@@ -16,11 +16,11 @@ module.exports = {
 	},
 	aboutMe: {
 		firstMessage: 'Oba. 😀\n' +
-		'Então, eu fui desenvolvida pelo Instituto de Segurança Pública (ISP), em parceria com o Instituto de Tecnologia e Sociedade do Rio (ITS Rio) ' +
-		'e o Centro de Estudos de Segurança e Cidadania (Cesec). \nEu tô aqui para te ajudar a conhecer melhor o seu Conselho Comunitário de Segurança: ' +
-		'data, local e pautas das reuniões, mostrar os problemas que estão sendo resolvidos e também fazer com que as suas sugestões sejam ouvidas.',
+			'Então, eu fui desenvolvida pelo Instituto de Segurança Pública (ISP), em parceria com o Instituto de Tecnologia e Sociedade do Rio (ITS Rio) ' +
+			'e o Centro de Estudos de Segurança e Cidadania (Cesec). \nEu tô aqui para te ajudar a conhecer melhor o seu Conselho Comunitário de Segurança: ' +
+			'data, local e pautas das reuniões, mostrar os problemas que estão sendo resolvidos e também fazer com que as suas sugestões sejam ouvidas.',
 		secondMessage: 'Ah, importante falar que as suas respostas são totalmente seguras e serão vistas apenas pelo ISP, ITS Rio e Cesec para que a sua ' +
-		'opinião seja ouvida. 😉 \nÉ um enorme prazer poder conversar com você!',
+			'opinião seja ouvida. 😉 \nÉ um enorme prazer poder conversar com você!',
 		thirdMessage: 'Quer saber o que são os Conselhos Comunitários de Segurança?',
 		menuOptions: ['Claro, me conta!', 'Agora não'],
 		menuPostback: ['whichCCS', 'notCCS'],
@@ -28,7 +28,7 @@ module.exports = {
 	},
 	whichCCS: {
 		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e soluções para reduzir ' +
-		'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
+			'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
 		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
@@ -58,6 +58,7 @@ module.exports = {
 		menuPostback: ['nearestCouncil', 'notAddress'],
 		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
+		noCouncil: 'Desculpe, não consegui encontrar o conselho que cobre essa região!',
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
 		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
 		noPostback: ['sendLocation', 'retryType', 'noLocation'],
@@ -71,7 +72,8 @@ module.exports = {
 	},
 	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
-		secondMessage: 'Então, o Conselho mais próximo de você é o da AISP $nearest, que engloba os bairros de x, y e z.',
+		secondMessage: 'Então, o Conselho mais próximo de você é o da', // will be completed
+		secondMessage2: 'que engloba os bairros', // will be completed
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
 		menuOptions: ['Sim', 'Não'],
 		menuPostback: ['wentAlready', 'neverWent'],
@@ -107,7 +109,7 @@ module.exports = {
 	calendar: {
 		firstMessage: 'A data da próxima reunião do seu CCS é Y e vai acontecer no local Z.',
 		secondMessage: 'Você pode ver o que será discutido na próxima reunião, clicando em "Assuntos" ou ver o que foi discutido na reunião anterior, ' +
-		'clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			'clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Assuntos', 'Resultados', 'Fazer parte'],
 		menuPostback: ['subjects', 'results', 'join'],
 	},
@@ -117,7 +119,7 @@ module.exports = {
 		pdfName: 'Baixar PDF',
 		pdfLink: 'http://www.africau.edu/images/default/sample.pdf',
 		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
-		' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
 		menuPostback: ['calendar', 'results', 'join'],
 	},
@@ -126,7 +128,7 @@ module.exports = {
 		pdfName: 'Baixar PDF',
 		pdfLink: 'http://www.africau.edu/images/default/sample.pdf',
 		secondMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
-		'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
 	},
@@ -172,8 +174,8 @@ module.exports = {
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). Além disso, ' +
-		'eu estou nesse ambiente de teste, não funciono perfeitamente. Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
-		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
+			'eu estou nesse ambiente de teste, não funciono perfeitamente. Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
+			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Iniciar'],
 		menuPostback: ['greetings'],
 

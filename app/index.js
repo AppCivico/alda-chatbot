@@ -4,21 +4,24 @@ const { MessengerBot, FileSessionStore } = require('bottender');
 const { createServer } = require('bottender/restify');
 const googleMapsClient = require('@google/maps').createClient({
 	key: process.env.GOOGLE_MAPS_API_KEY,
-	// Promise,
+	Promise,
 });
 
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');
 const attach = require('./attach');
-const location = require('./closest-location');
+// const location = require('./closest-location');
 
 const conselhos = [
-	['CCS São Cristóvão', 'Caju, Mangueira, São Cristóvão e Vasco da Gama'],
-	['CCS Barra do Piraí', 'Barra do Piraí, Dorandia, Ipiabas, São José do Turvo e Vargem Alegre'],
-	['CCS Engenheiro Paulo de Frontin', 'Engenheiro Paulo de Frontin e Sacra Família do Tinguá'],
-	['CCS Rio das Flores', 'Rio das Flores, Manuel Duarte, Abarracamento e Taboas'],
+	{ council: 'CCS São Cristóvão', neighborhoods: 'Caju, Mangueira, São Cristóvão e Vasco da Gama' },
+	{ council: 'CCS Barra do Piraí', neighborhoods: 'Barra do Piraí, Dorandia, Ipiabas, São José do Turvo e Vargem Alegre' },
+	{ council: 'CCS Engenheiro Paulo de Frontin', neighborhoods: 'Engenheiro Paulo de Frontin e Sacra Família do Tinguá' },
+	{ council: 'CCS Rio das Flores', neighborhoods: 'Rio das Flores, Manuel Duarte, Abarracamento e Taboas' },
+	{ council: 'CCS Eokoe', neighborhoods: 'Paraíso, Ana Rosa, Brigadeiro e Vergueiro' },
 ];
+
+let userDataArray = [];
 
 function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('political'));
@@ -268,31 +271,75 @@ bot.onEvent(async (context) => {
 			});
 			break;
 		case 'nearestCouncil':
-			console.log('olha o bairro aí minha geeente');
-			console.log(context.state.neighborhood);
-
-			await context.setState({
-				address: location.findClosest(
-					context.state.geoLocation.lat,
-					context.state.geoLocation.long, conselhos,
-				),
-			});
-			await context.sendText(flow.nearestCouncil.firstMessage);
-			await context.sendText(flow.nearestCouncil.secondMessage.replace('$nearest', context.state.address[0]));
-			await context.sendText(flow.nearestCouncil.thirdMessage, {
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: flow.nearestCouncil.menuOptions[0],
-						payload: flow.nearestCouncil.menuPostback[0],
-					},
-					{
-						content_type: 'text',
-						title: flow.nearestCouncil.menuOptions[1],
-						payload: flow.nearestCouncil.menuPostback[1],
-					},
-				],
-			});
+			await context.setState({ userLocation: userDataArray.find(obj => obj.userId === context.session.user.id) });
+			console.log(context.state.userLocation.neighborhood.long_name);
+			if (context.state.userLocation.neighborhood.long_name) {
+				userDataArray = await userDataArray.filter(obj => obj.userId !== context.session.user.id);
+				await context.setState({
+					CCS: conselhos.find(obj => obj.neighborhoods.includes(context.state.userLocation.neighborhood.long_name)),
+				});
+				if (context.state.CCS) {
+					await context.sendText(flow.nearestCouncil.firstMessage);
+					await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.council} ` +
+					`${flow.nearestCouncil.secondMessage2} ${context.state.CCS.neighborhoods}.`);
+					await context.sendText(flow.nearestCouncil.thirdMessage, {
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: flow.nearestCouncil.menuOptions[0],
+								payload: flow.nearestCouncil.menuPostback[0],
+							},
+							{
+								content_type: 'text',
+								title: flow.nearestCouncil.menuOptions[1],
+								payload: flow.nearestCouncil.menuPostback[1],
+							},
+						],
+					});
+				} else {
+					await context.sendText(`${flow.confirmLocation.noCouncil}.`);
+					await context.sendText(flow.confirmLocation.noSecond, {
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[0],
+								payload: flow.confirmLocation.noPostback[0],
+							},
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[1],
+								payload: flow.confirmLocation.noPostback[1],
+							},
+							{
+								content_type: 'text',
+								title: flow.confirmLocation.noOptions[2],
+								payload: flow.confirmLocation.noPostback[2],
+							},
+						],
+					});
+				}
+			} else {
+				await context.sendText(flow.confirmLocation.noFindGeo);
+				await context.sendText(flow.confirmLocation.noSecond, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[0],
+							payload: flow.confirmLocation.noPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[1],
+							payload: flow.confirmLocation.noPostback[1],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[2],
+							payload: flow.confirmLocation.noPostback[2],
+						},
+					],
+				});
+			}
 			break;
 		case 'wentAlready':
 			await context.sendText(flow.wentAlready.firstMessage);
@@ -542,16 +589,23 @@ bot.onEvent(async (context) => {
 				payload: flow.error.menuPostback[0],
 			}]);
 			break;
-		case 'findLocation':
+		case 'findLocation': {
 			await context.typingOn();
 			googleMapsClient.reverseGeocode({
 				latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
 				language: 'pt-BR',
-			}).then(async (response) => {
-				await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
-				await context.setState({ address: response.json.results[0].formatted_address });
-				await context.setState({ geoLocation: response.json.results[0].geometry.location });
-				await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+			}).asPromise().then(async (response) => {
+				await userDataArray.push({
+					userId: context.session.user.id,
+					neighborhood: await getNeighborhood(response.json.results[0].address_components),
+					address: response.json.results[0].formatted_address,
+					geoLocation: response.json.results[0].geometry.location,
+				});
+				// await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
+				// await context.setState({ address: response.json.results[0].formatted_address });
+				// await context.setState({ geoLocation: response.json.results[0].geometry.location });
+				// await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+				await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 				await context.typingOff();
 				await context.sendText(flow.foundLocation.secondMessage, {
 					quick_replies: [
@@ -591,24 +645,28 @@ bot.onEvent(async (context) => {
 					],
 				});
 			});
-			break;
+			break; }
 		case 'confirmLocation':
 			await context.typingOn();
 			googleMapsClient.geocode({
-				address: `${context.state.address}`,
-				// address: `${context.state.address}, ${addressComplement}`,
+				address: `${context.state.address}, ${addressComplement}`,
 				region: 'BR',
 				language: 'pt-BR',
-			}).then(async (response) => {
-				console.log('results:');
-
-				console.dir(response.json.results[0].address_components);
+			}).asPromise().then(async (response) => {
+				// console.log('results:');
+				// console.dir(response.json.results[0].address_components);
 				if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
-					await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
-					console.log(context.state.neighborhood);
-					await context.setState({ address: response.json.results[0].formatted_address });
-					await context.setState({ geoLocation: response.json.results[0].geometry.location });
-					await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+					await userDataArray.push({
+						userId: context.session.user.id,
+						neighborhood: await getNeighborhood(response.json.results[0].address_components),
+						address: response.json.results[0].formatted_address,
+						geoLocation: response.json.results[0].geometry.location,
+					});
+					// await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
+					// await context.setState({ address: response.json.results[0].formatted_address });
+					// await context.setState({ geoLocation: response.json.results[0].geometry.location });
+					// await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+					await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 					await context.typingOff();
 					await context.sendText(flow.foundLocation.secondMessage, {
 						quick_replies: [
