@@ -4,7 +4,7 @@ const { MessengerBot, FileSessionStore } = require('bottender');
 const { createServer } = require('bottender/restify');
 const googleMapsClient = require('@google/maps').createClient({
 	key: process.env.GOOGLE_MAPS_API_KEY,
-	Promise,
+	// Promise,
 });
 
 // const postbacks = require('./postback');
@@ -13,13 +13,19 @@ const flow = require('./flow');
 const attach = require('./attach');
 const location = require('./closest-location');
 
-const cities = [
-	['Sydney', -33.867487, 151.206990],
-	['Brisbane', -27.471011, 153.023449],
-	['Adelaide', -34.928621, 138.599959],
-	['Eokoe', 23.572118, -46.644147],
+const conselhos = [
+	['CCS São Cristóvão', 'Caju, Mangueira, São Cristóvão e Vasco da Gama'],
+	['CCS Barra do Piraí', 'Barra do Piraí, Dorandia, Ipiabas, São José do Turvo e Vargem Alegre'],
+	['CCS Engenheiro Paulo de Frontin', 'Engenheiro Paulo de Frontin e Sacra Família do Tinguá'],
+	['CCS Rio das Flores', 'Rio das Flores, Manuel Duarte, Abarracamento e Taboas'],
 ];
 
+function getNeighborhood(results) {
+	let neighborhood = results.find(x => x.types.includes('political'));
+	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality')); }
+	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
+	return neighborhood;
+}
 const bot = new MessengerBot({
 	accessToken: config.accessToken,
 	appSecret: config.appSecret,
@@ -30,7 +36,7 @@ const bot = new MessengerBot({
 const timeLimit = 1000 * 60 * 60; // 60 minutes
 const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
 const defaultAddress = process.env.DEFAULT_ADDRESS;
-// context.state.location => the geolocation coordinates from the user
+// context.state.geoLocation => the geolocation coordinates from the user
 // context.state.address => the address the user types
 
 bot.onEvent(async (context) => {
@@ -109,8 +115,8 @@ bot.onEvent(async (context) => {
 				}
 			}
 		} else if (context.event.isLocation) {
-			await context.setState({ location: context.event.location.coordinates });
-			await context.setState({ dialog: 'foundLocation' });
+			await context.setState({ geoLocation: context.event.location.coordinates });
+			await context.setState({ dialog: 'findLocation' });
 		} else if (context.event.hasAttachment || context.event.isLikeSticker ||
 			context.event.isFile || context.event.isVideo || context.event.isAudio ||
 			context.event.isImage || context.event.isFallback) {
@@ -167,7 +173,7 @@ bot.onEvent(async (context) => {
 			// falls through
 		case 'whichCCSMenu':
 			await context.setState({ retryCount: 0 });
-			if (!context.state.location) { // if we don't have a location already we ask for it
+			if (!context.state.geoLocation) { // if we don't have a location already we ask for it
 				await context.sendText(flow.whichCCS.thirdMessage, {
 					quick_replies: [
 						{
@@ -262,10 +268,13 @@ bot.onEvent(async (context) => {
 			});
 			break;
 		case 'nearestCouncil':
+			console.log('olha o bairro aí minha geeente');
+			console.log(context.state.neighborhood);
+
 			await context.setState({
 				address: location.findClosest(
-					context.state.location.lat,
-					context.state.location.lng, cities,
+					context.state.geoLocation.lat,
+					context.state.geoLocation.long, conselhos,
 				),
 			});
 			await context.sendText(flow.nearestCouncil.firstMessage);
@@ -533,17 +542,72 @@ bot.onEvent(async (context) => {
 				payload: flow.error.menuPostback[0],
 			}]);
 			break;
+		case 'findLocation':
+			await context.typingOn();
+			googleMapsClient.reverseGeocode({
+				latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
+				language: 'pt-BR',
+			}).then(async (response) => {
+				await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
+				await context.setState({ address: response.json.results[0].formatted_address });
+				await context.setState({ geoLocation: response.json.results[0].geometry.location });
+				await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+				await context.typingOff();
+				await context.sendText(flow.foundLocation.secondMessage, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.foundLocation.menuOptions[0],
+							payload: flow.foundLocation.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.foundLocation.menuOptions[1],
+							payload: flow.foundLocation.menuPostback[1],
+						},
+					],
+				});
+			}).catch(async (err) => {
+				await context.typingOff();
+				console.log('Couldn\'t get geolocation => ', err);
+				await context.sendText(flow.confirmLocation.noFindGeo);
+				await context.sendText(flow.confirmLocation.noSecond, {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[0],
+							payload: flow.confirmLocation.noPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[1],
+							payload: flow.confirmLocation.noPostback[1],
+						},
+						{
+							content_type: 'text',
+							title: flow.confirmLocation.noOptions[2],
+							payload: flow.confirmLocation.noPostback[2],
+						},
+					],
+				});
+			});
+			break;
 		case 'confirmLocation':
 			await context.typingOn();
 			googleMapsClient.geocode({
-				address: `${context.state.address}, ${addressComplement}`,
+				address: `${context.state.address}`,
+				// address: `${context.state.address}, ${addressComplement}`,
 				region: 'BR',
-				language: 'pt-br',
-			}).asPromise().then(async (response) => {
-				console.log(response.json.results);
+				language: 'pt-BR',
+			}).then(async (response) => {
+				console.log('results:');
+
+				console.dir(response.json.results[0].address_components);
 				if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
+					await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
+					console.log(context.state.neighborhood);
 					await context.setState({ address: response.json.results[0].formatted_address });
-					await context.setState({ location: response.json.results[0].geometry.location });
+					await context.setState({ geoLocation: response.json.results[0].geometry.location });
 					await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
 					await context.typingOff();
 					await context.sendText(flow.foundLocation.secondMessage, {
