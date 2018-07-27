@@ -35,7 +35,8 @@ module.exports = {
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType', 'noLocation'],
 		notNow: 'Entendo! 😉',
-		remember: 'Pelo que me lembro você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) $nearest.',
+		remember: 'Pelo que me lembro você quer saber sobre a região', // will be completed
+		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
 		// the rest of the dialog comes from foundLocation
 	},
 	sendLocation: {

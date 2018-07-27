@@ -176,7 +176,8 @@ bot.onEvent(async (context) => {
 			// falls through
 		case 'whichCCSMenu':
 			await context.setState({ retryCount: 0 });
-			if (!context.state.geoLocation) { // if we don't have a location already we ask for it
+			// if we don't have a CCS linked to a user already we ask for it
+			if (!context.state.CCS || !context.state.userLocation.neighborhood.long_name) {
 				await context.sendText(flow.whichCCS.thirdMessage, {
 					quick_replies: [
 						{
@@ -197,7 +198,8 @@ bot.onEvent(async (context) => {
 					],
 				});
 			} else {
-				await context.sendText(flow.whichCCS.remember.replace('$nearest', context.state.address[0]));
+				await context.sendText(`${flow.whichCCS.remember} ${context.state.userLocation.neighborhood.long_name} ` +
+				`${flow.whichCCS.remember2} ${context.state.CCS.council}.`);
 				await context.sendText(flow.foundLocation.secondMessage, {
 					quick_replies: [
 						{
@@ -216,13 +218,7 @@ bot.onEvent(async (context) => {
 			break;
 		case 'sendLocation':
 			await context.sendText(flow.sendLocation.firstMessage);
-			await context.sendText(flow.sendLocation.secondMessage, {
-				quick_replies: [
-					{
-						content_type: 'location',
-					},
-				],
-			});
+			await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 			break;
 		case 'wantToType':
 			await context.sendText(flow.wantToType.firstMessage);
