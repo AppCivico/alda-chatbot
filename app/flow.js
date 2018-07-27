@@ -58,6 +58,7 @@ module.exports = {
 		menuPostback: ['nearestCouncil', 'notAddress'],
 		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
+		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
 		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
 		noPostback: ['sendLocation', 'retryType', 'noLocation'],
 	},
