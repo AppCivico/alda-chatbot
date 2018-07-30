@@ -233,6 +233,7 @@ bot.onEvent(async (context) => {
 			// falls through
 		case 'wantToChange':
 			await context.setState({ geoLocation: undefined });
+			await context.setState({ userLocation: undefined });
 			await context.setState({ retryCount: context.state.retryCount + 1 });
 			// On the users 3rd try we offer him to either give up or send his location directly
 			if (context.state.retryCount >= 3) {
