@@ -1,4 +1,4 @@
 #!/bin/bash
-export USER=app
+export USER=node
 
-su - app -c 'cd /src; npm start'
+su - node -c 'cd /src; npm start'
