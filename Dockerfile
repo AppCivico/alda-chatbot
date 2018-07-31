@@ -13,17 +13,17 @@ ENV NPM_CONFIG_LOGLEVEL warn
 EXPOSE 2300
 
 USER root
-RUN useradd -ms /bin/bash app
+# RUN useradd -ms /bin/bash node
 
 RUN apt-get update
 RUN apt-get install -y runit
 
 COPY . /src
-RUN chown -R app:app /src
+RUN chown -R node:node /src
 
 WORKDIR /src
 
-USER app
+USER node
 RUN npm install
 RUN npm install dotenv
 
