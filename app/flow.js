@@ -174,8 +174,7 @@ module.exports = {
 		menuPostback: ['join', 'goBackMenu'],
 	},
 	error: {
-		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). Além disso, ' +
-			'eu estou nesse ambiente de teste, não funciono perfeitamente. Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
+		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
 			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Iniciar'],
 		menuPostback: ['greetings'],

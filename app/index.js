@@ -18,7 +18,7 @@ const conselhos = [
 	{ council: 'CCS Barra do Piraí', neighborhoods: 'Barra do Piraí, Dorandia, Ipiabas, São José do Turvo e Vargem Alegre' },
 	{ council: 'CCS Engenheiro Paulo de Frontin', neighborhoods: 'Engenheiro Paulo de Frontin e Sacra Família do Tinguá' },
 	{ council: 'CCS Rio das Flores', neighborhoods: 'Rio das Flores, Manuel Duarte, Abarracamento e Taboas' },
-	{ council: 'CCS Eokoe', neighborhoods: 'Paraíso, Ana Rosa, Brigadeiro e Vergueiro' },
+	{ council: 'CCS AppCívico', neighborhoods: 'Paraíso, Ana Rosa, Brigadeiro e Vergueiro' },
 ];
 
 let userDataArray = [];
@@ -134,7 +134,7 @@ bot.onEvent(async (context) => {
 		switch (context.state.dialog) {
 		case 'greetings':
 			await context.typingOn();
-			// await context.sendImage(flow.greetings.greetImage);
+			await context.sendImage(flow.greetings.greetImage);
 			await context.sendText(flow.greetings.welcome);
 			await context.typingOff();
 			await context.sendText(flow.greetings.firstMessage, {
@@ -204,7 +204,7 @@ bot.onEvent(async (context) => {
 				});
 			} else {
 				await context.sendText(`${flow.whichCCS.remember} ${context.state.userLocation.neighborhood.long_name} ` +
-						`${flow.whichCCS.remember2} ${context.state.CCS.council}.`);
+				`${flow.whichCCS.remember2} ${context.state.CCS.council}.`);
 				await context.sendText(flow.foundLocation.secondMessage, {
 					quick_replies: [
 						{
