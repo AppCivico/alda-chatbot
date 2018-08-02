@@ -39,30 +39,6 @@
 
 // module.exports.sendMenu = sendMenu;
 
-
-// async function send(context, links) {
-// 	await context.sendAttachment({
-// 		type: 'template',
-// 		payload: {
-// 			template_type: 'generic',
-// 			elements: [
-// 				{
-// 					title: links.siteTitle,
-// 					image_url: links.imageURL,
-// 					default_action: {
-// 						type: 'web_url',
-// 						url: links.siteURL,
-// 						messenger_extensions: 'false',
-// 						webview_height_ratio: 'full',
-// 					},
-// 				},
-// 			],
-// 		},
-// 	});
-// }
-
-// module.exports.send = send;
-
 async function sendCarousel(context, links) {
 	await context.sendAttachment({
 		type: 'template',
@@ -74,3 +50,29 @@ async function sendCarousel(context, links) {
 }
 
 module.exports.sendCarousel = sendCarousel;
+
+// sends one card with an image
+async function sendCard(context, links) {
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements: [
+				{
+					title: links.title,
+					subtitle: links.sub,
+					image_url: links.imageLink,
+					default_action: {
+						type: 'web_url',
+						url: links.link,
+						messenger_extensions: 'false',
+						webview_height_ratio: 'full',
+					},
+				},
+			],
+		},
+	});
+}
+
+
+module.exports.sendCard = sendCard;

@@ -117,21 +117,26 @@ module.exports = {
 	subjects: {
 		firstMessage: 'Para a próxima reunião as pautas são:',
 		secondMessage: '1- Lorem ipsum 2 - Lorem ipsum se o texto for extenso, sugerimos a pessoa baixar um PDF, colocando um link externo',
-		pdfName: 'Baixar PDF',
-		pdfLink: 'http://www.africau.edu/images/default/sample.pdf',
+		title: 'Baixar PDF',
+		sub: 'Baixe para ficar por dentro dos assuntos tratatos.',
+		link: 'http://www.africau.edu/images/default/sample.pdf',
 		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
 			' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
 		menuPostback: ['calendar', 'results', 'join'],
+		imageLink: 'https://cdn2.iconfinder.com/data/icons/business-office-icons/256/To-do_List-512.png',
 	},
 	results: {
 		firstMessage: 'A última reunião ocorreu no dia xx/xx/xx. No link abaixo você pode visualizar o PDF completinho do que rolou:',
-		pdfName: 'Baixar PDF',
-		pdfLink: 'http://www.africau.edu/images/default/sample.pdf',
+		title: 'Baixar PDF',
+		sub: 'Veja os resultados de nossos esforços.',
+		link: 'http://www.africau.edu/images/default/sample.pdf',
 		secondMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
 			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
+		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
+
 	},
 	mainMenu: {
 		firstMessage: 'Veja como eu posso te ajudar por aqui:',
@@ -167,15 +172,16 @@ module.exports = {
 	},
 	followMedia: {
 		firstMessage: 'Curta a minha página! Sempre tem novidades por aqui!',
-		linkTitle: 'Facebook',
-		pageLink: 'http://www.consperj.rj.gov.br/',
+		title: 'Facebook',
+		sub: 'Junte-se a nós.',
+		link: 'http://www.consperj.rj.gov.br/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
+		imageLink: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Facebook_logo_%28square%29.png/600px-Facebook_logo_%28square%29.png',
 	},
 	error: {
-		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). Além disso, ' +
-			'eu estou nesse ambiente de teste, não funciono perfeitamente. Me perdoa, mas robôs também podem decepcionar como os humanos ¯\\_(ツ)_/¯' +
+		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
 			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Iniciar'],
 		menuPostback: ['greetings'],
