@@ -436,11 +436,7 @@ bot.onEvent(async (context) => {
 			break;
 		case 'subjects':
 			await context.sendText(flow.subjects.firstMessage);
-			await context.sendButtonTemplate(flow.subjects.secondMessage, [{
-				type: 'web_url',
-				url: flow.subjects.pdfLink,
-				title: flow.subjects.pdfName,
-			}]);
+			await attach.sendCard(context, flow.subjects);
 			await context.sendText(flow.subjects.thirdMessage, {
 				quick_replies: [
 					{
@@ -462,11 +458,7 @@ bot.onEvent(async (context) => {
 			});
 			break;
 		case 'results':
-			await context.sendButtonTemplate(flow.results.firstMessage, [{
-				type: 'web_url',
-				url: flow.results.pdfLink,
-				title: flow.results.pdfName,
-			}]);
+			await attach.sendCard(context, flow.results);
 			await context.sendText(flow.results.secondMessage, {
 				quick_replies: [
 					{
@@ -558,11 +550,7 @@ bot.onEvent(async (context) => {
 			});
 			break;
 		case 'followMedia':
-			await context.sendButtonTemplate(flow.followMedia.firstMessage, [{
-				type: 'web_url',
-				url: flow.followMedia.pageLink,
-				title: flow.followMedia.linkTitle,
-			}]);
+			await attach.sendCard(context, flow.followMedia);
 			// falls through
 		case 'userData':
 			await context.sendText(flow.userData.menuMessage, {
