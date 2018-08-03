@@ -9,8 +9,24 @@ const googleMapsClient = require('@google/maps').createClient({
 	Promise,
 });
 
-// const sequelize = require('./server/index.js');
+const { sequelize } = require('./server/index.js');
 
+console.log('Test');
+
+sequelize
+	.authenticate()
+	.then(() => {
+		console.log('Connection has been established successfully.');
+	})
+	.catch((err) => {
+		console.error('Unable to connect to the database:', err);
+	});
+
+// sequelize.query('SELECT * FROM pg_catalog.pg_tables;').then((results) => {
+// 	console.log(results);
+// }).catch((err) => {
+// 	console.log(err);
+// });
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');

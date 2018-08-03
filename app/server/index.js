@@ -11,6 +11,8 @@ const config = require('./config/config');
 
 const db = {};
 
+console.log(config);
+
 const sequelize = new Sequelize(config.dbName, config.username, config.password, {
 	host: config.host,
 	port: config.port,
