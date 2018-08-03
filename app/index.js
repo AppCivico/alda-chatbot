@@ -732,7 +732,7 @@ const handler = new MessengerHandler()
 	.onError(async (context, err) => {
 		const date = new Date();
 		console.log('\n');
-		console.log(`Parece que aconteceu um erro ás ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
+		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 		console.log(err);
 		console.log('\n');
 
