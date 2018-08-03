@@ -11,7 +11,6 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const { sequelize } = require('./server/index.js');
 
-console.log('Test');
 
 sequelize
 	.authenticate()
@@ -203,7 +202,8 @@ const handler = new MessengerHandler()
 			case 'whichCCSMenu':
 				await context.setState({ retryCount: 0 });
 				// if we don't have a CCS linked to a user already we ask for it
-				if (!context.state.CCS || !context.state.userLocation.neighborhood.long_name) {
+				if (!context.state.CCS || !context.state.userLocation || !context.state.userLocation.neighborhood
+					|| !context.state.userLocation.neighborhood.long_name) {
 					await context.sendText(flow.whichCCS.thirdMessage, {
 						quick_replies: [
 							{
@@ -298,7 +298,8 @@ const handler = new MessengerHandler()
 				if (!context.state.userLocation) {
 					await context.setState({ userLocation: userDataArray.find(obj => obj.userId === context.session.user.id) });
 					// console.log(context.state.userLocation.neighborhood.long_name);
-				}
+				} // -----
+
 				if (context.state.userLocation) {
 					userDataArray = await userDataArray.filter(obj => obj.userId !== context.session.user.id);
 					await context.setState({

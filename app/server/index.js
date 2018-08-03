@@ -17,6 +17,12 @@ const sequelize = new Sequelize(config.dbName, config.username, config.password,
 	host: config.host,
 	port: config.port,
 	dialect: 'postgres',
+	// native: true,
+	// ssl: true,
+	// dialectOptions: {
+	// ssl: 'Amazon RDS',
+	// },
+	// language: 'en',
 });
 
 // if (config.use_env_variable) {
