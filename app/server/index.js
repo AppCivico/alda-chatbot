@@ -3,16 +3,23 @@ const path = require('path');
 const Sequelize = require('sequelize');
 
 const basename = path.basename(module.filename);
-const env = process.env.NODE_ENV || 'development';
 
-const config = require(`${__dirname}/config/config.json`)[env]; // eslint-disable-line import/no-dynamic-require
+// const env = process.env.NODE_ENV || 'development';
+// const config = require(`${__dirname}/config/config.json`)[env]; // eslint-disable-line import/no-dynamic-require
+
+const config = require('./config/config');
+
 const db = {};
-console.log(config);
-let sequelize = new Sequelize(config.database, config.username, config.password, config);
 
-if (config.use_env_variable) {
-	sequelize = new Sequelize(process.env[config.use_env_variable]);
-}
+const sequelize = new Sequelize(config.dbName, config.username, config.password, {
+	host: config.host,
+	port: config.port,
+	dialect: 'postgres',
+});
+
+// if (config.use_env_variable) {
+// 	sequelize = new Sequelize(process.env[config.use_env_variable]);
+// }
 
 fs
 	.readdirSync(__dirname)
