@@ -9,6 +9,8 @@ const googleMapsClient = require('@google/maps').createClient({
 	Promise,
 });
 
+// const sequelize = require('./server/index.js');
+
 // const postbacks = require('./postback');
 const config = require('./bottender.config').messenger;
 const flow = require('./flow');

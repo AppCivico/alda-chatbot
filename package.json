@@ -12,7 +12,11 @@
     "dotenv": "^5.0.1",
     "node-emoji": "^1.8.1",
     "nodemon": "^1.17.4",
-    "request": "^2.87.0"
+    "pg": "^7.4.3",
+    "pg-hstore": "^2.3.2",
+    "request": "^2.87.0",
+    "sequelize": "^4.38.0",
+    "sequelize-cli": "^4.0.0"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

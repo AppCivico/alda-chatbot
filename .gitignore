@@ -79,5 +79,6 @@ secret-geolocation-api.json
 *.ods
 *.csv
 
-
+# db config
+./app/server/config/config.json
 
