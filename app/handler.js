@@ -120,6 +120,7 @@ module.exports = new MessengerHandler()
 						await context.setState({ dialog: 'userData' });
 						break;
 					default: // regular text message
+						await context.sendText('Não, sou do rio');
 						await context.setState({ dialog: 'errorText' });
 						break;
 					}
