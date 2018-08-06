@@ -5,7 +5,7 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const flow = require('./flow');
 const attach = require('./attach');
-
+const qr = require('./quick_replies');
 
 // const { sequelize } = require('./server/index.js');
 
@@ -90,8 +90,8 @@ module.exports = async (context) => { // eslint-disable-line
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) {
 					await context.resetState();
-					// await context.setState({ dialog: 'greetings' });
-					await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'greetings' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -138,20 +138,21 @@ module.exports = async (context) => { // eslint-disable-line
 				await context.sendImage(flow.greetings.greetImage);
 				await context.sendText(flow.greetings.welcome);
 				await context.typingOff();
-				await context.sendText(flow.greetings.firstMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.greetings.menuOptions[0],
-							payload: flow.greetings.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.greetings.menuOptions[1],
-							payload: flow.greetings.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText(flow.greetings.firstMessage, qr.get(flow.greetings));
+				// await context.sendText(flow.greetings.firstMessage, {
+				// 	quick_replies: [
+				// 		{
+				// 			content_type: 'text',
+				// 			title: flow.greetings.menuOptions[0],
+				// 			payload: flow.greetings.menuPostback[0],
+				// 		},
+				// 		{
+				// 			content_type: 'text',
+				// 			title: flow.greetings.menuOptions[1],
+				// 			payload: flow.greetings.menuPostback[1],
+				// 		},
+				// 	],
+				// });
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
