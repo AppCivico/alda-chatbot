@@ -19,6 +19,9 @@ const handler = require('../app/handler');
 
 it('should work', async () => {
 	const context = {
+		state: {
+			dialog: 'greetings',
+		},
 		event: {
 			isMessage: true,
 			isText: true,
@@ -32,5 +35,5 @@ it('should work', async () => {
 
 	await handler.on('event', context);
 
-	expect(context.sendText).toBeCalledWith('Não, sou do rio');
+	expect(await context.sendText).toBeCalledWith('Não, sou do rio');
 });

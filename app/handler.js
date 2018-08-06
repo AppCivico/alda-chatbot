@@ -6,24 +6,17 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const flow = require('./flow');
 const attach = require('./attach');
+const { sequelize } = require('./server/index.js');
 // const location = require('./closest-location');
 
-// const { sequelize } = require('./server/index.js');
-
-// sequelize
-// 	.authenticate()
-// 	.then(() => {
-// 		console.log('Connection has been established successfully.');
-// 	})
-// 	.catch((err) => {
-// 		console.error('Unable to connect to the database:', err);
-// 	});
-
-// sequelize.query('SELECT * FROM pg_catalog.pg_tables;').then((results) => {
-// 	console.log(results);
-// }).catch((err) => {
-// 	console.log(err);
-// });
+sequelize
+	.authenticate()
+	.then(() => {
+		console.log('Connection has been established successfully.');
+	})
+	.catch((err) => {
+		console.error('Unable to connect to the database:', err);
+	});
 
 const conselhos = [
 	{ council: 'CCS São Cristóvão', neighborhoods: 'Caju, Mangueira, São Cristóvão e Vasco da Gama' },
@@ -120,7 +113,7 @@ module.exports = new MessengerHandler()
 						await context.setState({ dialog: 'userData' });
 						break;
 					default: // regular text message
-						await context.sendText('Não, sou do rio');
+						// await context.sendText('Não, sou do rio');
 						await context.setState({ dialog: 'errorText' });
 						break;
 					}
