@@ -62,6 +62,7 @@ it('Free text after time limit', async () => {
 	const context = textContext('Vocês são de são paulo?', 'test', new Date() - (1000 * 60 * 60));
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
+	await expect(context.setState).toBeCalledWith({ dialog: 'mainMenu' });
 });
 
 it('Free text to restart', async () => {
