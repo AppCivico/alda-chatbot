@@ -5,6 +5,8 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const flow = require('./flow');
 const attach = require('./attach');
+
+
 // const { sequelize } = require('./server/index.js');
 
 // sequelize
@@ -25,6 +27,7 @@ const conselhos = [
 ];
 
 let userDataArray = [];
+const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
 function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('political'));
@@ -42,6 +45,7 @@ const defaultAddress = process.env.DEFAULT_ADDRESS;
 module.exports = async (context) => { // eslint-disable-line
 	try {
 		if (!context.event.isDelivery && !context.event.isEcho) {
+			// console.log(context.event);
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
 					await context.sendText(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
@@ -107,8 +111,12 @@ module.exports = async (context) => { // eslint-disable-line
 						await context.setState({ dialog: 'userData' });
 						break;
 					case 'whatsApp':
-						await context.setState({ phone: context.event.message.text });
-						await context.setState({ dialog: 'userData' });
+						await context.setState({ phone: `+55${context.event.message.text.replace(/[- .)(]/g, '')}` });
+						if (phoneRegex.test(context.state.phone)) { // valid phone
+							await context.setState({ dialog: 'gotPhone' });
+						} else { // invalid phone
+							await context.setState({ phone: '', dialog: 'reAskPhone' });
+						}
 						break;
 					default: // regular text message
 						await context.setState({ dialog: 'errorText' });
@@ -566,9 +574,42 @@ module.exports = async (context) => { // eslint-disable-line
 			case 'eMail':
 				await context.sendText(flow.userData.eMail);
 				break;
+			case 'reAskPhone':
+				await context.sendText('Esse número não é válido! Quer tentar novamente?', {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: 'Tentar Novamente',
+							payload: 'whatsApp',
+						},
+						{
+							content_type: 'text',
+							title: 'Voltar',
+							payload: 'keepMe',
+						},
+					],
+				});
+
+				break;
 			case 'whatsApp':
 				await context.sendText(flow.userData.whatsApp);
 				await context.sendText(flow.userData.phoneExample);
+				break;
+			case 'gotPhone':
+				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', {
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: flow.userData.menuOptions[0],
+							payload: flow.userData.menuPostback[0],
+						},
+						{
+							content_type: 'text',
+							title: flow.userData.menuOptions[1],
+							payload: flow.userData.menuPostback[1],
+						},
+					],
+				});
 				break;
 			case 'errorText':
 				await context.sendButtonTemplate(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
