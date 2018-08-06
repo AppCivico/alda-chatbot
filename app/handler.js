@@ -8,6 +8,23 @@ const flow = require('./flow');
 const attach = require('./attach');
 // const location = require('./closest-location');
 
+// const { sequelize } = require('./server/index.js');
+
+// sequelize
+// 	.authenticate()
+// 	.then(() => {
+// 		console.log('Connection has been established successfully.');
+// 	})
+// 	.catch((err) => {
+// 		console.error('Unable to connect to the database:', err);
+// 	});
+
+// sequelize.query('SELECT * FROM pg_catalog.pg_tables;').then((results) => {
+// 	console.log(results);
+// }).catch((err) => {
+// 	console.log(err);
+// });
+
 const conselhos = [
 	{ council: 'CCS São Cristóvão', neighborhoods: 'Caju, Mangueira, São Cristóvão e Vasco da Gama' },
 	{ council: 'CCS Barra do Piraí', neighborhoods: 'Barra do Piraí, Dorandia, Ipiabas, São José do Turvo e Vargem Alegre' },
