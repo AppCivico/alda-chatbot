@@ -1,5 +1,7 @@
 /* eslint-disable no-param-reassign */
 
+// const location = require('./closest-location');
+
 // Convert Degress to Radians
 function Deg2Rad(deg) {
 	return (deg * Math.PI) / 180;

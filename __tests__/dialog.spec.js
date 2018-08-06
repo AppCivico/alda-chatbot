@@ -1,39 +1,30 @@
-// const { ContextSimulator } = require('bottender/test-utils');
-
-// const flow = require('../app/flow');
-// const handler = require('../app/handler');
-
-// const simulator = new ContextSimulator({
-// 	platform: 'messenger',
-// });
-
-// console.log(handler);
-// it('should work', async () => {
-// 	const context = simulator.createTextContext('Vocês são de são paulo?');
-
-// 	await handler.on('event', context);
-// 	expect(context.sendText).toBeCalledWith('Não, sou do rio');
-// });
+require('dotenv').config();
 
 const handler = require('../app/handler');
 
-it('should work', async () => {
-	const context = {
+function textContext(text, dialog, timestamp) {
+	return {
 		state: {
-			dialog: 'greetings',
+			dialog,
 		},
+		session: '',
 		event: {
 			isMessage: true,
 			isText: true,
-			text: 'Vocês são de são paulo?',
+			text,
 			message: {
-				text: 'Vocês são de são paulo?',
+				text,
 			},
+			rawEvent: { timestamp },
 		},
 		sendText: jest.fn(),
+		setState: jest.fn(),
+		typingOn: jest.fn(),
 	};
+}
 
-	await handler.on('event', context);
-
-	expect(await context.sendText).toBeCalledWith('Não, sou do rio');
+it('Free text on non-specified dialog', async () => {
+	const context = textContext('Vocês são de são paulo ?', 'aaa', new Date());
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ dialog: 'errorText' });
 });

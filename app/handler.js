@@ -1,4 +1,3 @@
-const { MessengerHandler } = require('bottender');
 const googleMapsClient = require('@google/maps').createClient({
 	key: process.env.GOOGLE_MAPS_API_KEY,
 	Promise,
@@ -6,17 +5,16 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const flow = require('./flow');
 const attach = require('./attach');
-const { sequelize } = require('./server/index.js');
-// const location = require('./closest-location');
+// const { sequelize } = require('./server/index.js');
 
-sequelize
-	.authenticate()
-	.then(() => {
-		console.log('Connection has been established successfully.');
-	})
-	.catch((err) => {
-		console.error('Unable to connect to the database:', err);
-	});
+// sequelize
+// 	.authenticate()
+// 	.then(() => {
+// 		console.log('Connection has been established successfully.');
+// 	})
+// 	.catch((err) => {
+// 		console.error('Unable to connect to the database:', err);
+// 	});
 
 const conselhos = [
 	{ council: 'CCS São Cristóvão', neighborhoods: 'Caju, Mangueira, São Cristóvão e Vasco da Gama' },
@@ -41,8 +39,8 @@ const defaultAddress = process.env.DEFAULT_ADDRESS;
 // context.state.address => the address the user types
 
 
-module.exports = new MessengerHandler()
-    .onEvent(async (context) => { // eslint-disable-line
+module.exports = async (context) => { // eslint-disable-line
+	try {
 		if (!context.event.isDelivery && !context.event.isEcho) {
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
@@ -113,7 +111,6 @@ module.exports = new MessengerHandler()
 						await context.setState({ dialog: 'userData' });
 						break;
 					default: // regular text message
-						// await context.sendText('Não, sou do rio');
 						await context.setState({ dialog: 'errorText' });
 						break;
 					}
@@ -723,10 +720,8 @@ module.exports = new MessengerHandler()
 				break;
 			}
 		}
-	})
-	.onError(async (context, err) => {
+	} catch (err) {
 		const date = new Date();
-		console.log('\n');
 		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 		console.log(err);
 		console.log('\n');
@@ -751,5 +746,5 @@ module.exports = new MessengerHandler()
 				},
 			],
 		});
-	});
-
+	}
+};
