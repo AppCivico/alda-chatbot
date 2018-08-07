@@ -100,6 +100,8 @@ module.exports = async (context) => {
 						// falls through
 					case 'wantToType':
 						// falls through
+					case 'sendLocation':
+						// falls through
 					case 'whichCCSMenu':
 						// falls through
 					case 'wantToChange':
