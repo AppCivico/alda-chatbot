@@ -120,3 +120,16 @@ function getLocation(dialog, lastActivity = new Date()) {
 }
 
 module.exports.getLocation = getLocation;
+
+// mockup functions
+
+function fakeGeo(opt) {
+	return new Promise((resolve, reject) => {
+		const json = {};
+		json.results[0].formatted_address = 'Paraíso, São Paulo';
+		if (opt.language !== 'pt-BR') reject(json);
+		else resolve('There was an error');
+	});
+}
+
+module.exports.fakeGeo = fakeGeo;

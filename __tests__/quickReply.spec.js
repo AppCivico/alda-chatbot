@@ -5,21 +5,6 @@ const handler = require('../app/handler');
 const attach = require('../app/attach');
 const cont = require('./context');
 
-// const googleMapsClient = require('@google/maps').createClient({
-// 	key: process.env.GOOGLE_MAPS_API_KEY,
-// 	Promise,
-// });
-
-// const userDataArray = [];
-
-// function getNeighborhood(results) {
-// 	let neighborhood = results.find(x => x.types.includes('political'));
-// 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality')); }
-// 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
-// 	return neighborhood;
-// }
-
-
 it('aboutMe-Claro', async () => {
 	const context = cont.quickReplyContext(flow.greetings.menuPostback[0], 'aboutMe');
 	await handler(context);
@@ -102,31 +87,30 @@ it('wantToType-send free text', async () => {
 	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
 });
 
-// TODO review this
-// it('findLocation-Success', async () => {
-// 	const context = cont.quickReplyContext(flow.foundLocation.menuPostback[0], 'findLocation');
-// 	await handler(context);
-// 	await expect(context.typingOn).toBeCalledWith();
-// 	// expect.assertions(2);
-// 	googleMapsClient.reverseGeocode({
-// 		latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
-// 		language: 'pt-BR',
-// 	}).asPromise().then(async (response) => {
-// 		await expect(context.typingOff).toBeCalledWith();
-// 		await expect(context.sendText).toBeCalledWith(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
-// 		await expect(context.sendText).toBeCalledWith(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
-// 	});
-// });
+it('findLocation-Success', async () => {
+	const context = cont.quickReplyContext(flow.foundLocation.menuPostback[0], 'findLocation');
+	await handler(context);
+	await expect(context.typingOn).toBeCalledWith();
+	// expect.assertions(2);
+	cont.fakeGeo({
+		latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
+		language: 'pt-BR',
+	}).then(async (response) => {
+		await expect(context.typingOff).toBeCalledWith();
+		await expect(context.sendText).toBeCalledWith(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
+		await expect(context.sendText).toBeCalledWith(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+	}).catch(() => {});
+});
 
 // it('findLocation-Failure', async () => {
 // 	const context = cont.quickReplyContext(flow.foundLocation.menuPostback[0], 'findLocation');
 // 	await handler(context);
 // 	await expect(context.typingOn).toBeCalledWith();
 
-// 	googleMapsClient.reverseGeocode({
+// 	cont.fakeGeo({
 // 		latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
-// 		language: 'pt-BR',
-// 	}).asPromise().then(() => {
+// 		language: 'pt-PT', // <- forced error
+// 	// }).then(() => {
 // 	}).catch(async (err) => {
 // 		await expect(context.typingOff).toBeCalledWith();
 // 		expect(console.log).toBeCalledWith('Couldn\'t get geolocation => ');
