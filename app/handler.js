@@ -5,7 +5,6 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const flow = require('./flow');
 const attach = require('./attach');
-const qr = require('./quick_replies');
 
 // const { sequelize } = require('./server/index.js');
 
@@ -42,7 +41,7 @@ const defaultAddress = process.env.DEFAULT_ADDRESS;
 // context.state.address => the address the user types
 
 
-module.exports = async (context) => { // eslint-disable-line
+module.exports = async (context) => {
 	try {
 		if (!context.event.isDelivery && !context.event.isEcho) {
 			// console.log(context.event);
@@ -138,41 +137,14 @@ module.exports = async (context) => { // eslint-disable-line
 				await context.sendImage(flow.greetings.greetImage);
 				await context.sendText(flow.greetings.welcome);
 				await context.typingOff();
-				await context.sendText(flow.greetings.firstMessage, qr.get(flow.greetings));
-				// await context.sendText(flow.greetings.firstMessage, {
-				// 	quick_replies: [
-				// 		{
-				// 			content_type: 'text',
-				// 			title: flow.greetings.menuOptions[0],
-				// 			payload: flow.greetings.menuPostback[0],
-				// 		},
-				// 		{
-				// 			content_type: 'text',
-				// 			title: flow.greetings.menuOptions[1],
-				// 			payload: flow.greetings.menuPostback[1],
-				// 		},
-				// 	],
-				// });
+				await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
 				await context.sendText(flow.aboutMe.secondMessage);
 				// falls through
 			case 'aboutMeMenu':
-				await context.sendText(flow.aboutMe.thirdMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.aboutMe.menuOptions[0],
-							payload: flow.aboutMe.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.aboutMe.menuOptions[1],
-							payload: flow.aboutMe.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText(flow.aboutMe.thirdMessage, await attach.getQR(flow.aboutMe));
 				break;
 			case 'whichCCS':
 				await context.sendText(flow.whichCCS.firstMessage);
@@ -186,42 +158,11 @@ module.exports = async (context) => { // eslint-disable-line
 				// if we don't have a CCS linked to a user already we ask for it
 				if (!context.state.CCS || !context.state.userLocation || !context.state.userLocation.neighborhood
                         || !context.state.userLocation.neighborhood.long_name) {
-					await context.sendText(flow.whichCCS.thirdMessage, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.whichCCS.menuOptions[0],
-								payload: flow.whichCCS.menuPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.whichCCS.menuOptions[1],
-								payload: flow.whichCCS.menuPostback[1],
-							},
-							{
-								content_type: 'text',
-								title: flow.whichCCS.menuOptions[2],
-								payload: flow.whichCCS.menuPostback[2],
-							},
-						],
-					});
+					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
 					await context.sendText(`${flow.whichCCS.remember} ${context.state.userLocation.neighborhood.long_name} ` +
                             `${flow.whichCCS.remember2} ${context.state.CCS.council}.`);
-					await context.sendText(flow.foundLocation.secondMessage, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.foundLocation.menuOptions[0],
-								payload: flow.foundLocation.menuPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.foundLocation.menuOptions[1],
-								payload: flow.foundLocation.menuPostback[1],
-							},
-						],
-					});
+					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}
 				break;
 			case 'sendLocation':
@@ -241,40 +182,14 @@ module.exports = async (context) => { // eslint-disable-line
 				// On the users 3rd try we offer him to either give up or send his location directly
 				if (context.state.retryCount >= 3) {
 					await context.setState({ retryCount: 0 });
-					await context.sendText(`${flow.wantToChange.secondMessage.slice(0, -1)}\n${flow.wantToChange.helpMessage}`, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.wantToChange.menuOptions[0],
-								payload: flow.wantToChange.menuPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.wantToChange.menuOptions[1],
-								payload: flow.wantToChange.menuPostback[1],
-							},
-						],
-					});
+					await context.sendText(`${flow.wantToChange.secondMessage.slice(0, -1)}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
 				} else {
 					await context.sendText(flow.wantToChange.secondMessage);
 				}
 				break;
 			case 'foundLocation':
 				await context.sendText(flow.foundLocation.firstMessage);
-				await context.sendText(flow.foundLocation.secondMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.foundLocation.menuOptions[0],
-							payload: flow.foundLocation.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.foundLocation.menuOptions[1],
-							payload: flow.foundLocation.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				break;
 			case 'nearestCouncil':
 				if (!context.state.userLocation) {
@@ -291,83 +206,21 @@ module.exports = async (context) => { // eslint-disable-line
 						await context.sendText(flow.nearestCouncil.firstMessage);
 						await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.council} ` +
                                 `${flow.nearestCouncil.secondMessage2} ${context.state.CCS.neighborhoods}.`);
-						await context.sendText(flow.nearestCouncil.thirdMessage, {
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: flow.nearestCouncil.menuOptions[0],
-									payload: flow.nearestCouncil.menuPostback[0],
-								},
-								{
-									content_type: 'text',
-									title: flow.nearestCouncil.menuOptions[1],
-									payload: flow.nearestCouncil.menuPostback[1],
-								},
-							],
-						});
+						await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 					} else {
 						await context.sendText(`${flow.confirmLocation.noCouncil}.`);
-						await context.sendText(flow.confirmLocation.noSecond, {
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: flow.confirmLocation.noOptions[0],
-									payload: flow.confirmLocation.noPostback[0],
-								},
-								{
-									content_type: 'text',
-									title: flow.confirmLocation.noOptions[1],
-									payload: flow.confirmLocation.noPostback[1],
-								},
-								{
-									content_type: 'text',
-									title: flow.confirmLocation.noOptions[2],
-									payload: flow.confirmLocation.noPostback[2],
-								},
-							],
-						});
+						await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 					}
 				} else {
 					await context.sendText(flow.confirmLocation.noFindGeo);
-					await context.sendText(flow.confirmLocation.noSecond, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[0],
-								payload: flow.confirmLocation.noPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[1],
-								payload: flow.confirmLocation.noPostback[1],
-							},
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[2],
-								payload: flow.confirmLocation.noPostback[2],
-							},
-						],
-					});
+					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 				}
 				break;
 			case 'wentAlready':
 				await context.sendText(flow.wentAlready.firstMessage);
 				// falls through
 			case 'wentAlreadyMenu':
-				await context.sendText(flow.wentAlready.secondMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.wentAlready.menuOptions[0],
-							payload: flow.wentAlready.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.wentAlready.menuOptions[1],
-							payload: flow.wentAlready.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
 				break;
 			case 'wannaKnowMembers':
 				await context.sendText(flow.wannaKnowMembers.firstMessage);
@@ -375,242 +228,53 @@ module.exports = async (context) => { // eslint-disable-line
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
 			case 'councilMenu':
-				await context.sendText(flow.councilMenu.firstMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.councilMenu.menuOptions[0],
-							payload: flow.councilMenu.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.councilMenu.menuOptions[1],
-							payload: flow.councilMenu.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.councilMenu.menuOptions[2],
-							payload: flow.councilMenu.menuPostback[2],
-						},
-					],
-				});
+				await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
 				break;
 			case 'mainMenu':
-				await context.sendText(flow.mainMenu.firstMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.mainMenu.menuOptions[0],
-							payload: flow.mainMenu.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.mainMenu.menuOptions[1],
-							payload: flow.mainMenu.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.mainMenu.menuOptions[2],
-							payload: flow.mainMenu.menuPostback[2],
-						},
-					],
-				});
+				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar':
 				await context.sendText(flow.calendar.firstMessage);
-				await context.sendText(flow.calendar.secondMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.calendar.menuOptions[0],
-							payload: flow.calendar.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.calendar.menuOptions[1],
-							payload: flow.calendar.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.calendar.menuOptions[2],
-							payload: flow.calendar.menuPostback[2],
-						},
-					],
-				});
+				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				break;
 			case 'subjects':
 				await context.sendText(flow.subjects.firstMessage);
 				await attach.sendCard(context, flow.subjects);
-				await context.sendText(flow.subjects.thirdMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.subjects.menuOptions[0],
-							payload: flow.subjects.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.subjects.menuOptions[1],
-							payload: flow.subjects.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.subjects.menuOptions[2],
-							payload: flow.subjects.menuPostback[2],
-						},
-					],
-				});
+				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
 				break;
 			case 'results':
 				await attach.sendCard(context, flow.results);
-				await context.sendText(flow.results.secondMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.results.menuOptions[0],
-							payload: flow.results.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.results.menuOptions[1],
-							payload: flow.results.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.results.menuOptions[2],
-							payload: flow.results.menuPostback[2],
-						},
-					],
-				});
+				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
 			case 'join':
-				await context.sendText(flow.join.firstMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.join.menuOptions[0],
-							payload: flow.join.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.join.menuOptions[1],
-							payload: flow.join.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.join.menuOptions[2],
-							payload: flow.join.menuPostback[2],
-						},
-						{
-							content_type: 'text',
-							title: flow.join.menuOptions[3],
-							payload: flow.join.menuPostback[3],
-						},
-					],
-				});
+				await context.sendText(flow.join.firstMessage, await attach.getQR(flow.join));
 				break;
 			case 'keepMe':
-				await context.sendText(flow.keepMe.firstMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.keepMe.menuOptions[0],
-							payload: flow.keepMe.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.keepMe.menuOptions[1],
-							payload: flow.keepMe.menuPostback[1],
-						},
-						{
-							content_type: 'text',
-							title: flow.keepMe.menuOptions[2],
-							payload: flow.keepMe.menuPostback[2],
-						},
-						{
-							content_type: 'text',
-							title: flow.keepMe.menuOptions[3],
-							payload: flow.keepMe.menuPostback[3],
-						},
-					],
-				});
+				await context.sendText(flow.keepMe.firstMessage, await attach.getQR(flow.keepMe));
 				break;
 			case 'share':
 				await context.sendText(flow.share.firstMessage);
 				await context.sendText(flow.share.shareButton);
-				await context.sendText(flow.share.secondMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.share.menuOptions[0],
-							payload: flow.share.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.share.menuOptions[1],
-							payload: flow.share.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText(flow.share.secondMessage, await attach.getQR(flow.share));
 				break;
 			case 'followMedia':
 				await attach.sendCard(context, flow.followMedia);
 				// falls through
 			case 'userData':
-				await context.sendText(flow.userData.menuMessage, {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.userData.menuOptions[0],
-							payload: flow.userData.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.userData.menuOptions[1],
-							payload: flow.userData.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText(flow.userData.menuMessage, await attach.getQR(flow.userData));
 				break;
 			case 'eMail':
 				await context.sendText(flow.userData.eMail);
 				break;
 			case 'reAskPhone':
-				await context.sendText('Esse número não é válido! Quer tentar novamente?', {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: 'Tentar Novamente',
-							payload: 'whatsApp',
-						},
-						{
-							content_type: 'text',
-							title: 'Voltar',
-							payload: 'keepMe',
-						},
-					],
-				});
-
+				await context.sendText(flow.phone.firstMessage, await attach.getQR(flow.phone));
 				break;
 			case 'whatsApp':
 				await context.sendText(flow.userData.whatsApp);
 				await context.sendText(flow.userData.phoneExample);
 				break;
 			case 'gotPhone':
-				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', {
-					quick_replies: [
-						{
-							content_type: 'text',
-							title: flow.userData.menuOptions[0],
-							payload: flow.userData.menuPostback[0],
-						},
-						{
-							content_type: 'text',
-							title: flow.userData.menuOptions[1],
-							payload: flow.userData.menuPostback[1],
-						},
-					],
-				});
+				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', await attach.getQR(flow.userData));
 				break;
 			case 'errorText':
 				await context.sendButtonTemplate(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
@@ -637,43 +301,12 @@ module.exports = async (context) => { // eslint-disable-line
 					// await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
 					await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 					await context.typingOff();
-					await context.sendText(flow.foundLocation.secondMessage, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.foundLocation.menuOptions[0],
-								payload: flow.foundLocation.menuPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.foundLocation.menuOptions[1],
-								payload: flow.foundLocation.menuPostback[1],
-							},
-						],
-					});
+					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}).catch(async (err) => {
 					await context.typingOff();
 					console.log('Couldn\'t get geolocation => ', err);
 					await context.sendText(flow.confirmLocation.noFindGeo);
-					await context.sendText(flow.confirmLocation.noSecond, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[0],
-								payload: flow.confirmLocation.noPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[1],
-								payload: flow.confirmLocation.noPostback[1],
-							},
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[2],
-								payload: flow.confirmLocation.noPostback[2],
-							},
-						],
-					});
+					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 				});
 				break;
 			}
@@ -699,65 +332,16 @@ module.exports = async (context) => { // eslint-disable-line
 						// await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
 						await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 						await context.typingOff();
-						await context.sendText(flow.foundLocation.secondMessage, {
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: flow.foundLocation.menuOptions[0],
-									payload: flow.foundLocation.menuPostback[0],
-								},
-								{
-									content_type: 'text',
-									title: flow.foundLocation.menuOptions[1],
-									payload: flow.foundLocation.menuPostback[1],
-								},
-							],
-						});
+						await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.confirmLocation));
 					} else { // empty => falls into the default adress
 						await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
-						await context.sendText(flow.confirmLocation.noSecond, {
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: flow.confirmLocation.noOptions[0],
-									payload: flow.confirmLocation.noPostback[0],
-								},
-								{
-									content_type: 'text',
-									title: flow.confirmLocation.noOptions[1],
-									payload: flow.confirmLocation.noPostback[1],
-								},
-								{
-									content_type: 'text',
-									title: flow.confirmLocation.noOptions[2],
-									payload: flow.confirmLocation.noPostback[2],
-								},
-							],
-						});
+						await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 					}
 				}).catch(async (err) => {
 					await context.typingOff();
 					console.log(`Couldn't get geolocation => ${err}`);
 					await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
-					await context.sendText(flow.confirmLocation.noSecond, {
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[0],
-								payload: flow.confirmLocation.noPostback[0],
-							},
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[1],
-								payload: flow.confirmLocation.noPostback[1],
-							},
-							{
-								content_type: 'text',
-								title: flow.confirmLocation.noOptions[2],
-								payload: flow.confirmLocation.noPostback[2],
-							},
-						],
-					});
+					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 				});
 				break;
 			}
@@ -769,24 +353,6 @@ module.exports = async (context) => { // eslint-disable-line
 		console.log('\n');
 
 		// await context.sendText('Parece que aconteceu um erro');
-		await context.sendText(flow.whichCCS.thirdMessage, {
-			quick_replies: [
-				{
-					content_type: 'text',
-					title: flow.whichCCS.menuOptions[0],
-					payload: flow.whichCCS.menuPostback[0],
-				},
-				{
-					content_type: 'text',
-					title: flow.whichCCS.menuOptions[1],
-					payload: flow.whichCCS.menuPostback[1],
-				},
-				{
-					content_type: 'text',
-					title: flow.whichCCS.menuOptions[2],
-					payload: flow.whichCCS.menuPostback[2],
-				},
-			],
-		});
+		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 	}
 };

@@ -76,3 +76,23 @@ async function sendCard(context, links) {
 
 
 module.exports.sendCard = sendCard;
+
+// get quick_replies opject with elements array
+// supossed to be used with menuOptions and menuPostback for each dialog on flow.js
+async function getQR(opt) {
+	const elements = [];
+	const firstArray = opt.menuOptions;
+
+	firstArray.forEach((element, index) => {
+		elements.push({
+			content_type: 'text',
+			title: element,
+			payload: opt.menuPostback[index],
+		});
+	});
+
+	return { quick_replies: elements };
+}
+
+module.exports.getQR = getQR;
+

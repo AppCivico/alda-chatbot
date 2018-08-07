@@ -61,8 +61,10 @@ module.exports = {
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 		noCouncil: 'Desculpe, não consegui encontrar o conselho que cobre essa região!',
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
-		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
-		noPostback: ['sendLocation', 'retryType', 'noLocation'],
+	},
+	notFound: {
+		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
+		menuPostback: ['sendLocation', 'retryType', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
@@ -185,7 +187,11 @@ module.exports = {
 			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Iniciar'],
 		menuPostback: ['greetings'],
-
+	},
+	phone: {
+		firstMessage: 'Esse número não é válido! Quer tentar novamente?',
+		menuOptions: ['Tentar Novamente', 'Voltar'],
+		menuPostback: ['whatsApp', 'join'],
 	},
 
 };
