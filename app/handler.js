@@ -44,7 +44,8 @@ const defaultAddress = process.env.DEFAULT_ADDRESS;
 module.exports = async (context) => {
 	try {
 		if (!context.event.isDelivery && !context.event.isEcho) {
-			// console.log(context.event);
+			// console.dir(context.event);
+			// console.dir(context.state);
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
 					await context.sendText(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
@@ -353,6 +354,6 @@ module.exports = async (context) => {
 		console.log('\n');
 
 		// await context.sendText('Parece que aconteceu um erro');
-		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+		await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
 	}
 };

@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const flow = require('../app/flow');
 const handler = require('../app/handler');
+// const attach = require('../app/attach');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
@@ -51,7 +52,7 @@ function getAttachments(dialog, lastActivity = new Date()) {
 			hasAttachment: true,
 			rawEvent: { timestamp: new Date() },
 		},
-		// sendText: jest.fn(),
+		sendText: jest.fn(),
 		setState: jest.fn(),
 		// resetState: jest.fn(),
 		sendImage: jest.fn(),
@@ -105,7 +106,7 @@ it('Enter invalid phone', async () => {
 	const aux = `+55${context.event.message.text.replace(/[- .)(]/g, '')}`;
 	await expect(context.setState).toBeCalledWith({ phone: aux });
 	await expect(aux).not.toMatch(phoneRegex);
-	await expect(await context.setState).toBeCalledWith({ phone: '', dialog: 'reAskPhone' });
+	await expect(context.setState).toBeCalledWith({ phone: '', dialog: 'reAskPhone' });
 });
 
 it('Enter valid phone', async () => {
@@ -122,9 +123,6 @@ it('Enter valid phone', async () => {
 it('check attachment', async () => {
 	const context = getAttachments('test');
 	await handler(context);
-
-	await context.sendImage(flow.greetings.likeImage);
-	await context.setState({ dialog: 'mainMenu' });
 
 	await expect(context.sendImage).toBeCalledWith(flow.greetings.likeImage);
 	await expect(context.setState).toBeCalledWith({ dialog: 'mainMenu' });
