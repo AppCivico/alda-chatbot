@@ -6,6 +6,7 @@ function quickReplyContext(payload, dialog, CCS = undefined, long_name = undefin
 			CCS,
 			userLocation: { neighborhood: { long_name } },
 			adress,
+			geoLocation: { lat: -23.5733, long: -46.6417 },
 		},
 		session: {
 			lastActivity,
@@ -91,3 +92,31 @@ function getAttachments(dialog, lastActivity = new Date()) {
 }
 
 module.exports.getAttachments = getAttachments;
+
+function getLocation(dialog, lastActivity = new Date()) {
+	return {
+		state: {
+			dialog,
+		},
+		session: {
+			lastActivity,
+			user: {
+				first_name: 'Userton',
+				last_name: 'McTest',
+			},
+		},
+		event: {
+			isLocation: true,
+			location: {
+				coordinates: { lat: -23.5733, long: -46.6417 },
+			},
+			rawEvent: { timestamp: new Date() },
+		},
+		sendText: jest.fn(),
+		setState: jest.fn(),
+		// resetState: jest.fn(),
+		sendImage: jest.fn(),
+	};
+}
+
+module.exports.getLocation = getLocation;

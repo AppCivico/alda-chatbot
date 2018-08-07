@@ -90,8 +90,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) {
 					await context.resetState();
-					await context.setState({ dialog: 'greetings' });
-					// await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'greetings' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -179,8 +179,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.firstMessage);
 				// falls through
 			case 'wantToChange':
-				await context.setState({ geoLocation: undefined });
-				await context.setState({ userLocation: undefined });
+				await context.setState({ CCS: undefined, geoLocation: undefined, userLocation: undefined });
 				await context.setState({ retryCount: context.state.retryCount + 1 });
 				// On the users 3rd try we offer him to either give up or send his location directly
 				if (context.state.retryCount >= 3) {
@@ -298,16 +297,13 @@ module.exports = async (context) => {
 						address: response.json.results[0].formatted_address,
 						geoLocation: response.json.results[0].geometry.location,
 					});
-					// await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
-					// await context.setState({ address: response.json.results[0].formatted_address });
-					// await context.setState({ geoLocation: response.json.results[0].geometry.location });
-					// await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
-					await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 					await context.typingOff();
+					await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}).catch(async (err) => {
 					await context.typingOff();
-					console.log('Couldn\'t get geolocation => ', err);
+					await console.log('Couldn\'t get geolocation => ');
+					await console.log(err);
 					await context.sendText(flow.confirmLocation.noFindGeo);
 					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 				});

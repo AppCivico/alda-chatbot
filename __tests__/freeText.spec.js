@@ -6,7 +6,6 @@ const cont = require('./context');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
-
 it('Free text after time limit', async () => {
 	const context = cont.textContext('Vocês são de são paulo?', 'test', new Date() - (1000 * 60 * 60));
 	await handler(context);
@@ -51,19 +50,19 @@ it('Enter invalid phone', async () => {
 	const context = cont.textContext('119999aa-8888', 'whatsApp');
 	await handler(context);
 
-	const aux = `+55${context.event.message.text.replace(/[- .)(]/g, '')}`;
-	await expect(context.setState).toBeCalledWith({ phone: aux });
-	await expect(aux).not.toMatch(phoneRegex);
+	context.state.phone = `+55${'119999aa-8888'.replace(/[- .)(]/g, '')}`;
+	await expect(context.setState).toBeCalledWith({ phone: context.state.phone });
+	await expect(context.state.phone).not.toMatch(phoneRegex);
 	await expect(context.setState).toBeCalledWith({ phone: '', dialog: 'reAskPhone' });
 });
 
 it('Enter valid phone', async () => {
-	const context = cont.textContext('1199999-8888', 'whatsApp');
+	const context = cont.textContext('11999998888', 'whatsApp');
 	await handler(context);
+	context.state.phone = `+55${'11999998888'.replace(/[- .)(]/g, '')}`;
 
-	const aux = `+55${context.event.message.text.replace(/[- .)(]/g, '')}`;
-	await expect(context.setState).toBeCalledWith({ phone: aux });
-	await expect(aux).toMatch(phoneRegex);
+	await expect(context.setState).toBeCalledWith({ phone: context.state.phone });
+	await expect(phoneRegex.test(context.state.phone)).toBeTruthy();
 	// await expect(context.setState).toBeCalledWith({ dialog: 'gotPhone' });
 	// TODO: figure out how to regex.test
 });

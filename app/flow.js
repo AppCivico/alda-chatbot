@@ -159,7 +159,7 @@ module.exports = {
 	userData: {
 		eMail: 'Legal! Escreva seu e-mail abaixo para o conselho te manter informado. 😉',
 		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
-		phoneExample: 'Exemplo: 1199999-8888',
+		phoneExample: 'Exemplo: 2299999-8888',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
