@@ -5,28 +5,37 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const flow = require('./flow');
 const attach = require('./attach');
+const db = require('./DB_helper');
 
-// const { sequelize } = require('./server/index.js');
+let CCSBairros;
+db.sequelize
+	.authenticate()
+	.then(async () => {
+		console.log('Connection has been established successfully.');
+		CCSBairros = await db.getCCS();
+		// console.log(JSON.stringify(CCSBairros));
+	}).catch((err) => {
+		console.error('Unable to connect to the database:', err);
+	});
 
-// sequelize
-// 	.authenticate()
-// 	.then(() => {
-// 		console.log('Connection has been established successfully.');
-// 	})
-// 	.catch((err) => {
-// 		console.error('Unable to connect to the database:', err);
-// 	});
-
-const conselhos = [
-	{ council: 'CCS São Cristóvão', neighborhoods: 'Caju, Mangueira, São Cristóvão e Vasco da Gama' },
-	{ council: 'CCS Barra do Piraí', neighborhoods: 'Barra do Piraí, Dorandia, Ipiabas, São José do Turvo e Vargem Alegre' },
-	{ council: 'CCS Engenheiro Paulo de Frontin', neighborhoods: 'Engenheiro Paulo de Frontin e Sacra Família do Tinguá' },
-	{ council: 'CCS Rio das Flores', neighborhoods: 'Rio das Flores, Manuel Duarte, Abarracamento e Taboas' },
-	{ council: 'CCS AppCívico', neighborhoods: 'Paraíso, Ana Rosa, Brigadeiro e Vergueiro' },
-];
 
 let userDataArray = [];
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
+
+function findCCS(CCSList, place) {
+	const result = CCSList.find(obj => (obj.bairro.includes(place)));
+
+	if (result) {
+		result.neighborhoods = [];
+		CCSList.forEach((element) => {
+			if (element.cod_ccs === result.cod_ccs) {
+				result.neighborhoods.push(element.bairro);
+			}
+		});
+		return result;
+	}
+	return undefined;
+}
 
 function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('political'));
@@ -65,6 +74,8 @@ module.exports = async (context) => {
 					await context.sendText(flow.whichCCS.notNow);
 					await context.setState({ dialog: 'whichCCSMenu' });
 					break;
+				case 'whichCCSMenu':
+					// falls through
 				case 'goBackMenu':
 					// falls through
 				case 'noLocation':
@@ -164,7 +175,7 @@ module.exports = async (context) => {
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
 					await context.sendText(`${flow.whichCCS.remember} ${context.state.userLocation.neighborhood.long_name} ` +
-                            `${flow.whichCCS.remember2} ${context.state.CCS.council}.`);
+                            `${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}
 				break;
@@ -202,15 +213,20 @@ module.exports = async (context) => {
 				if (context.state.userLocation) {
 					userDataArray = await userDataArray.filter(obj => obj.userId !== context.session.user.id);
 					await context.setState({
-						CCS: conselhos.find(obj => obj.neighborhoods.includes(context.state.userLocation.neighborhood.long_name)),
+						CCS: findCCS(CCSBairros, context.state.userLocation.neighborhood.long_name),
 					});
 					if (context.state.CCS) {
 						await context.sendText(flow.nearestCouncil.firstMessage);
-						await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.council} ` +
-                                `${flow.nearestCouncil.secondMessage2} ${context.state.CCS.neighborhoods}.`);
+						if (context.state.CCS.neighborhoods.length === 1) {
+							await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
+								`${flow.nearestCouncil.secondMessage3} ${context.state.CCS.neighborhoods}.`);
+						} else {
+							await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
+							`${flow.nearestCouncil.secondMessage2} ${context.state.CCS.neighborhoods.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
+						}
 						await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 					} else {
-						await context.sendText(`${flow.confirmLocation.noCouncil}.`);
+						await context.sendText(`${flow.confirmLocation.noCouncil}`);
 						await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
 					}
 				} else {
