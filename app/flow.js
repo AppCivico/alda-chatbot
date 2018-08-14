@@ -90,7 +90,7 @@ module.exports = {
 		menuPostback: ['wannaKnowMembers', 'notWannaKnow'],
 	},
 	wannaKnowMembers: {
-		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho X:',
+		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
 		carousel: [
 			{
 				title: 'Nome Sobrenome',

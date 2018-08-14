@@ -39,12 +39,33 @@
 
 // module.exports.sendMenu = sendMenu;
 
-async function sendCarousel(context, links) {
+// async function sendCarousel(context, links) {
+// 	await context.sendAttachment({
+// 		type: 'template',
+// 		payload: {
+// 			template_type: 'generic',
+// 			elements: links,
+// 		},
+// 	});
+// }
+
+// module.exports.sendCarousel = sendCarousel;
+
+async function sendCarousel(context, items) {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: element.nome,
+			subtitle: element.cargo,
+			image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+		});
+	});
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
 			template_type: 'generic',
-			elements: links,
+			elements,
 		},
 	});
 }

@@ -32,6 +32,7 @@ function findCCS(CCSList, place) {
 				result.neighborhoods.push(element.bairro);
 			}
 		});
+		console.log(result);
 		return result;
 	}
 	return undefined;
@@ -55,13 +56,16 @@ module.exports = async (context) => {
 		if (!context.event.isDelivery && !context.event.isEcho) {
 			// console.dir(context.event);
 			// console.dir(context.state);
+
+
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
 					await context.sendText(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
+					await context.setState({ dialog: 'mainMenu' });
 				} else {
 					await context.sendText(`Olá! ${flow.greetings.comeBack}`);
+					await context.setState({ dialog: 'mainMenu' });
 				}
-				await context.setState({ dialog: 'mainMenu' });
 			} else if (context.event.isPostback) {
 				await context.setState({ dialog: context.event.postback.payload });
 			} else if (context.event.isQuickReply) {
@@ -100,9 +104,10 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) {
-					await context.resetState();
+					// await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
-					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'wannaKnowMembers' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -241,18 +246,23 @@ module.exports = async (context) => {
 				await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
 				break;
 			case 'wannaKnowMembers':
-				await context.sendText(flow.wannaKnowMembers.firstMessage);
-				await attach.sendCarousel(context, flow.wannaKnowMembers.carousel);
+				await context.typingOn();
+				await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.cod_ccs) });
+				await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs}`);
+				await attach.sendCarousel(context, context.state.diretoria);
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
+
 				// falls through
 			case 'councilMenu':
 				await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+				await context.typingOff();
 				break;
 			case 'mainMenu':
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar':
-				await context.sendText(flow.calendar.firstMessage);
+				// await context.sendText(flow.calendar.firstMessage);
+				await context.sendText(`A data da próxima reunião do ${context.state.CCS.css} é Y e vai acontecer no local Z.`);
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				break;
 			case 'subjects':
