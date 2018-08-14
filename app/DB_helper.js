@@ -63,7 +63,7 @@ module.exports.getDiretoria = getDiretoria;
 
 async function getCalendario(CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT id, data_hora, endereco, id_ccs_cod_ccs
+	SELECT data_hora, endereco
 	FROM agenda
 	WHERE id_ccs_cod_ccs = ${CCS_ID}
 	ORDER BY data_hora DESC
@@ -75,11 +75,34 @@ async function getCalendario(CCS_ID) {
 	}).catch((err) => {
 		console.error('Error on getCalendario => ', err);
 	});
-	console.log(result);
+	// console.log(result);
 	return result;
 }
 
 module.exports.getCalendario = getCalendario;
+
+async function getAssuntos(CCS_ID) {
+	const result = await sequelize.query(`
+	SELECT assunto
+	FROM assunto_ata
+	WHERE id_ccs_cod_ccs = ${CCS_ID}
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		// console.log(metadata);
+		// console.log(results);
+		const assuntos = [];
+		results.forEach((element) => {
+			assuntos.push(element.assunto.toLowerCase());
+		});
+		console.log(`Loaded assuntos ${CCS_ID} successfully!`);
+		return assuntos;
+	}).catch((err) => {
+		console.error('Error on getAssuntos => ', err);
+	});
+	console.log(result);
+	return result;
+}
+
+module.exports.getAssuntos = getAssuntos;
 
 // SELECT nome, cargo
 // FROM diretoria

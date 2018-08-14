@@ -114,8 +114,7 @@ module.exports = async (context) => {
 					// await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					// await context.setState({ dialog: 'wannaKnowMembers' });
-					await context.setState({ dialog: 'calendar' });
+					await context.setState({ dialog: 'subjects' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -269,20 +268,26 @@ module.exports = async (context) => {
 				break;
 			case 'calendar':
 				await context.typingOn();
-				console.log(moment(context.state.calendario[0].data_hora).format('LLLL'));
-				console.log(formatDate(context.state.calendario[0].data_hora));
-
 				await context.setState({ calendario: await db.getCalendario(context.state.CCS.cod_ccs) });
 				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
-					`${formatDate(context.state.calendario[0].data_hora)} e vai acontecer no local` +
+					`${formatDate(context.state.calendario[0].data_hora)} e vai acontecer no local ` +
 					`${context.state.calendario[0].endereco}`); // TODO: review endereço
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				await context.typingOff();
 				break;
 			case 'subjects':
-				await context.sendText(flow.subjects.firstMessage);
-				await attach.sendCard(context, flow.subjects);
+				await context.typingOn();
+				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.cod_ccs) }); // TODO review this
+				if (context.state.assuntos.length === 0) {
+					await context.sendText('Ops, parece que essa reunião ainda não tem nenhuma pauta definida! ' +
+					'Mas com certeza estaremos discutindo questões relevantes para toda a população!');
+				} else {
+					await context.sendText(`${flow.subjects.firstMessage} ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+				}
+				// await context.sendText(flow.subjects.firstMessage);
+				// await attach.sendCard(context, flow.subjects);
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
+				await context.typingOff();
 				break;
 			case 'results':
 				await attach.sendCard(context, flow.results);
