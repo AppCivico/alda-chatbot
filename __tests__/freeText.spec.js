@@ -13,11 +13,11 @@ it('Free text after time limit', async () => {
 	await expect(context.setState).toBeCalledWith({ dialog: 'mainMenu' });
 });
 
-it('Free text to restart', async () => {
-	const context = cont.textContext(process.env.RESTART, 'test');
-	await handler(context);
-	await expect(context.resetState).toBeCalledWith();
-});
+// it('Free text to restart', async () => {
+// 	const context = cont.textContext(process.env.RESTART, 'test');
+// 	await handler(context);
+// 	await expect(context.resetState).toBeCalledWith();
+// });
 
 it('Free text on non-specified dialog', async () => {
 	const context = cont.textContext('Vocês são de são paulo?', 'test');

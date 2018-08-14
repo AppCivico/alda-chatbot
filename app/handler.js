@@ -51,6 +51,7 @@ function getNeighborhood(results) {
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
 	return neighborhood;
 }
+
 const timeLimit = 1000 * 60 * 60; // 60 minutes
 const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
 const defaultAddress = process.env.DEFAULT_ADDRESS;
@@ -63,7 +64,6 @@ module.exports = async (context) => {
 		if (!context.event.isDelivery && !context.event.isEcho) {
 			// console.dir(context.event);
 			// console.dir(context.state);
-
 
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
