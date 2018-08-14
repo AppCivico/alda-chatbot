@@ -3,6 +3,10 @@ const googleMapsClient = require('@google/maps').createClient({
 	Promise,
 });
 
+const moment = require('moment');
+
+moment.locale('pt-BR');
+
 const flow = require('./flow');
 const attach = require('./attach');
 const db = require('./DB_helper');
@@ -22,6 +26,9 @@ db.sequelize
 let userDataArray = [];
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
+function formatDate(date) {
+	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
+}
 function findCCS(CCSList, place) {
 	const result = CCSList.find(obj => (obj.bairro.includes(place)));
 
@@ -107,7 +114,8 @@ module.exports = async (context) => {
 					// await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'wannaKnowMembers' });
+					// await context.setState({ dialog: 'wannaKnowMembers' });
+					await context.setState({ dialog: 'calendar' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -251,7 +259,6 @@ module.exports = async (context) => {
 				await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs}`);
 				await attach.sendCarousel(context, context.state.diretoria);
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
-
 				// falls through
 			case 'councilMenu':
 				await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
@@ -261,9 +268,16 @@ module.exports = async (context) => {
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar':
-				// await context.sendText(flow.calendar.firstMessage);
-				await context.sendText(`A data da próxima reunião do ${context.state.CCS.css} é Y e vai acontecer no local Z.`);
+				await context.typingOn();
+				console.log(moment(context.state.calendario[0].data_hora).format('LLLL'));
+				console.log(formatDate(context.state.calendario[0].data_hora));
+
+				await context.setState({ calendario: await db.getCalendario(context.state.CCS.cod_ccs) });
+				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
+					`${formatDate(context.state.calendario[0].data_hora)} e vai acontecer no local` +
+					`${context.state.calendario[0].endereco}`); // TODO: review endereço
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
+				await context.typingOff();
 				break;
 			case 'subjects':
 				await context.sendText(flow.subjects.firstMessage);
