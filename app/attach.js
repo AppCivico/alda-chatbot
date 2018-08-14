@@ -117,3 +117,25 @@ async function getQR(opt) {
 
 module.exports.getQR = getQR;
 
+async function sendShare(context, links) {
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements: [
+				{
+					title: links.siteTitle,
+					subtitle: links.siteSubTitle,
+					image_url: links.imageURL,
+					item_url: links.siteURL,
+					buttons: [{
+						type: 'element_share',
+					}],
+				},
+			],
+		},
+	});
+}
+
+module.exports.sendShare = sendShare;
+

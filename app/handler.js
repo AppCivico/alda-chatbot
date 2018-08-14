@@ -113,8 +113,7 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) {
 					// await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
-					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'subjects' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -301,7 +300,7 @@ module.exports = async (context) => {
 				break;
 			case 'share':
 				await context.sendText(flow.share.firstMessage);
-				await context.sendText(flow.share.shareButton);
+				await attach.sendShare(context, flow.share);
 				await context.sendText(flow.share.secondMessage, await attach.getQR(flow.share));
 				break;
 			case 'followMedia':

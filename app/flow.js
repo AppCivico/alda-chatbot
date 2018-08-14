@@ -168,7 +168,10 @@ module.exports = {
 	},
 	share: {
 		firstMessage: 'Muito bom! 😍',
-		shareButton: '[Botão share]',
+		siteTitle: 'ITS Rio de Janeiro',
+		siteSubTitle: 'Venha participar!',
+		imageURL: 'https://www.lesconferences.ca/files/sites/97/2016/12/LogoITS.jpg',
+		siteURL: 'https://itsrio.org/pt/home/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
