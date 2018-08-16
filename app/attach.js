@@ -39,12 +39,33 @@
 
 // module.exports.sendMenu = sendMenu;
 
-async function sendCarousel(context, links) {
+// async function sendCarousel(context, links) {
+// 	await context.sendAttachment({
+// 		type: 'template',
+// 		payload: {
+// 			template_type: 'generic',
+// 			elements: links,
+// 		},
+// 	});
+// }
+
+// module.exports.sendCarousel = sendCarousel;
+
+async function sendCarousel(context, items) {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: element.nome,
+			subtitle: element.cargo,
+			image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+		});
+	});
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
 			template_type: 'generic',
-			elements: links,
+			elements,
 		},
 	});
 }
@@ -76,3 +97,45 @@ async function sendCard(context, links) {
 
 
 module.exports.sendCard = sendCard;
+
+// get quick_replies opject with elements array
+// supossed to be used with menuOptions and menuPostback for each dialog on flow.js
+async function getQR(opt) {
+	const elements = [];
+	const firstArray = opt.menuOptions;
+
+	firstArray.forEach((element, index) => {
+		elements.push({
+			content_type: 'text',
+			title: element,
+			payload: opt.menuPostback[index],
+		});
+	});
+
+	return { quick_replies: elements };
+}
+
+module.exports.getQR = getQR;
+
+async function sendShare(context, links) {
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements: [
+				{
+					title: links.siteTitle,
+					subtitle: links.siteSubTitle,
+					image_url: links.imageURL,
+					item_url: links.siteURL,
+					buttons: [{
+						type: 'element_share',
+					}],
+				},
+			],
+		},
+	});
+}
+
+module.exports.sendShare = sendShare;
+

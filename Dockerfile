@@ -1,31 +1,21 @@
-# FROM node:8.9-alpine
-# ENV NODE_ENV production
-# WORKDIR /usr/src/app
-# COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
-# RUN npm install --production --silent && mv node_modules ../
-# COPY . .
-# EXPOSE 2300
-# CMD npm start
-
 FROM node:latest
 ENV NPM_CONFIG_LOGLEVEL warn
 
 EXPOSE 2300
 
 USER root
-# RUN useradd -ms /bin/bash node
-
+RUN mkdir src
+RUN chown -R node:node /src
 RUN apt-get update
 RUN apt-get install -y runit
 
-COPY . /src
-RUN chown -R node:node /src
-
+USER node
+ADD package.json /src/
 WORKDIR /src
 
-USER node
+RUN npm install bottender dotenv
 RUN npm install
-RUN npm install dotenv
+ADD . /src
 
 USER root
 COPY services/ /etc/service/

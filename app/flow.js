@@ -61,8 +61,10 @@ module.exports = {
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 		noCouncil: 'Desculpe, não consegui encontrar o conselho que cobre essa região!',
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
-		noOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
-		noPostback: ['sendLocation', 'retryType', 'noLocation'],
+	},
+	notFound: {
+		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
+		menuPostback: ['sendLocation', 'retryType', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
@@ -75,6 +77,7 @@ module.exports = {
 		firstMessage: 'Ótimo! 🎉',
 		secondMessage: 'Então, o Conselho mais próximo de você é o da', // will be completed
 		secondMessage2: 'que engloba os bairros', // will be completed
+		secondMessage3: 'que engloba a região', // will be completed
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
 		menuOptions: ['Sim', 'Não'],
 		menuPostback: ['wentAlready', 'neverWent'],
@@ -87,7 +90,7 @@ module.exports = {
 		menuPostback: ['wannaKnowMembers', 'notWannaKnow'],
 	},
 	wannaKnowMembers: {
-		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho X:',
+		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
 		carousel: [
 			{
 				title: 'Nome Sobrenome',
@@ -157,7 +160,7 @@ module.exports = {
 	userData: {
 		eMail: 'Legal! Escreva seu e-mail abaixo para o conselho te manter informado. 😉',
 		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
-		phoneExample: 'Exemplo: 944445555',
+		phoneExample: 'Exemplo: 2299999-8888',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
@@ -165,7 +168,10 @@ module.exports = {
 	},
 	share: {
 		firstMessage: 'Muito bom! 😍',
-		shareButton: '[Botão share]',
+		siteTitle: 'ITS Rio de Janeiro',
+		siteSubTitle: 'Venha participar!',
+		imageURL: 'https://www.lesconferences.ca/files/sites/97/2016/12/LogoITS.jpg',
+		siteURL: 'https://itsrio.org/pt/home/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
@@ -185,7 +191,11 @@ module.exports = {
 			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Iniciar'],
 		menuPostback: ['greetings'],
-
+	},
+	phone: {
+		firstMessage: 'Esse número não é válido! Quer tentar novamente?',
+		menuOptions: ['Tentar Novamente', 'Voltar'],
+		menuPostback: ['whatsApp', 'join'],
 	},
 
 };
