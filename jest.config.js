@@ -4,4 +4,7 @@ module.exports = {
 	testPathIgnorePatterns: [
 		'./__tests__/context.js',
 	],
+	globals: {
+		TEST: true,
+	},
 };

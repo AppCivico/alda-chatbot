@@ -18,6 +18,10 @@ it('aboutMe-Agora Não', async () => {
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(flow.aboutMe.notNow);
 	await expect(context.setState).toBeCalledWith({ dialog: 'aboutMeMenu' });
+
+	context.state.dialog = 'aboutMeMenu';
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith(flow.aboutMe.thirdMessage, await attach.getQR(flow.aboutMe));
 });
 
 it('whichCCS-Claro-if', async () => {
@@ -51,6 +55,11 @@ it('whichCCS-Agora Não', async () => {
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(flow.whichCCS.notNow);
 	await expect(context.setState).toBeCalledWith({ dialog: 'whichCCSMenu' });
+
+	context.state.dialog = 'whichCCSMenu';
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ retryCount: 0 });
+	// TODO
 });
 
 it('sendLocation from CCSMenu', async () => {
@@ -60,12 +69,6 @@ it('sendLocation from CCSMenu', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 });
 
-it('sendLocation-send free text', async () => {
-	const context = cont.textContext('Caju', 'sendLocation');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-});
 
 it('sendLocation-send coordinates', async () => {
 	const context = cont.getLocation('sendLocation');
@@ -80,18 +83,10 @@ it('wantToType from CCSMenu', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.wantToType.firstMessage);
 });
 
-it('wantToType-send free text', async () => {
-	const context = cont.textContext('Caju', 'wantToType');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-});
-
 it('findLocation-Success', async () => {
 	const context = cont.quickReplyContext(flow.foundLocation.menuPostback[0], 'findLocation');
 	await handler(context);
 	await expect(context.typingOn).toBeCalledWith();
-	// expect.assertions(2);
 	cont.fakeGeo({
 		latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
 		language: 'pt-BR',
@@ -120,3 +115,15 @@ it('findLocation-Success', async () => {
 // 	});
 // });
 
+it('nearestLocation - neverWent', async () => {
+	const context = cont.quickReplyContext(flow.nearestCouncil.menuPostback[1], 'neverWent');
+	await handler(context);
+
+	await expect(context.sendText).toBeCalledWith(flow.nearestCouncil.neverWent);
+	await expect(context.setState).toBeCalledWith({ dialog: 'wentAlreadyMenu' });
+
+	context.state.dialog = 'wentAlreadyMenu';
+	await handler(context);
+
+	await expect(context.sendText).toBeCalledWith(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
+});

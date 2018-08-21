@@ -66,7 +66,7 @@ typings/
 .eslintrc.json
 
 # file session storage
-.sessions/*.json
+.sessions
 
 # for prod container
 run-container.sh
@@ -79,3 +79,5 @@ secret-geolocation-api.json
 *.ods
 *.csv
 
+# vscode configuration folder
+.vscode

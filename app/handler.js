@@ -12,16 +12,17 @@ const attach = require('./attach');
 const db = require('./DB_helper');
 
 let CCSBairros;
-db.sequelize
-	.authenticate()
-	.then(async () => {
-		console.log('Connection has been established successfully.');
-		CCSBairros = await db.getCCS();
+if (!global.TEST) {
+	db.sequelize
+		.authenticate()
+		.then(async () => {
+			console.log('Connection has been established successfully.');
+			CCSBairros = await db.getCCS();
 		// console.log(JSON.stringify(CCSBairros));
-	}).catch((err) => {
-		console.error('Unable to connect to the database:', err);
-	});
-
+		}).catch((err) => {
+			console.error('Unable to connect to the database:', err);
+		});
+}
 
 let userDataArray = [];
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
@@ -182,11 +183,11 @@ module.exports = async (context) => {
 				await context.setState({ retryCount: 0 });
 				// if we don't have a CCS linked to a user already we ask for it
 				if (!context.state.CCS || !context.state.userLocation || !context.state.userLocation.neighborhood
-                        || !context.state.userLocation.neighborhood.long_name) {
+                    || !context.state.userLocation.neighborhood.long_name) {
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
 					await context.sendText(`${flow.whichCCS.remember} ${context.state.userLocation.neighborhood.long_name} ` +
-                            `${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
+					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}
 				break;
@@ -360,8 +361,6 @@ module.exports = async (context) => {
 					region: 'BR',
 					language: 'pt-BR',
 				}).asPromise().then(async (response) => {
-					// console.log('results:');
-					// console.dir(response.json.results[0].address_components);
 					if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
 						await userDataArray.push({
 							userId: context.session.user.id,
@@ -369,10 +368,7 @@ module.exports = async (context) => {
 							address: response.json.results[0].formatted_address,
 							geoLocation: response.json.results[0].geometry.location,
 						});
-						// await context.setState({ neighborhood: await getNeighborhood(response.json.results[0].address_components) });
-						// await context.setState({ address: response.json.results[0].formatted_address });
-						// await context.setState({ geoLocation: response.json.results[0].geometry.location });
-						// await context.sendText(`${flow.confirmLocation.firstMessage}\n${context.state.address}`);
+
 						await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 						await context.typingOff();
 						await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.confirmLocation));

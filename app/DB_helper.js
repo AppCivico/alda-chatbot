@@ -103,9 +103,3 @@ async function getAssuntos(CCS_ID) {
 }
 
 module.exports.getAssuntos = getAssuntos;
-
-// SELECT nome, cargo
-// FROM diretoria
-// WHERE id_ccs_cod_ccs = ${ CCS_ID } AND
-// fim_gestao >= ${currentDate}::date
-// ORDER BY inicio_gestao
