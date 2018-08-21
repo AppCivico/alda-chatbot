@@ -18,7 +18,7 @@ if (!global.TEST) {
 		.then(async () => {
 			console.log('Connection has been established successfully.');
 			CCSBairros = await db.getCCS();
-		// console.log(JSON.stringify(CCSBairros));
+			// console.log(JSON.stringify(CCSBairros));
 		}).catch((err) => {
 			console.error('Unable to connect to the database:', err);
 		});
@@ -112,7 +112,7 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) {
-					// await context.resetState();
+					await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
 					await context.setState({ dialog: 'whichCCSMenu' });
 				} else {
@@ -227,7 +227,7 @@ module.exports = async (context) => {
 					await context.setState({
 						CCS: findCCS(CCSBairros, context.state.userLocation.neighborhood.long_name),
 					});
-					if (context.state.CCS) {
+					if (context.state.CCS || (context.state.CCS && context.state.CCS.length !== 0)) {
 						await context.sendText(flow.nearestCouncil.firstMessage);
 						if (context.state.CCS.neighborhoods.length === 1) {
 							await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
@@ -238,8 +238,8 @@ module.exports = async (context) => {
 						}
 						await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 					} else {
-						await context.sendText(`${flow.confirmLocation.noCouncil}`);
-						await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
+						await context.sendText(flow.confirmLocation.noCouncil);
+						await context.sendText(flow.confirmLocation.notActive, await attach.getQR(flow.notFound));
 					}
 				} else {
 					await context.sendText(flow.confirmLocation.noFindGeo);
@@ -277,11 +277,10 @@ module.exports = async (context) => {
 				break;
 			case 'subjects':
 				await context.typingOn();
-				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.cod_ccs) }); // TODO review this
+				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.cod_ccs) });
 				if (context.state.assuntos.length === 0) {
-					await context.sendText('Ops, parece que essa reunião ainda não tem nenhuma pauta definida! ' +
-					'Mas com certeza estaremos discutindo questões relevantes para toda a população!');
-				} else {
+					await context.sendText(flow.subjects.emptyAssuntos);
+				} else { // TODO This will be updated to receive a link to a PDF
 					await context.sendText(`${flow.subjects.firstMessage} ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				// await context.sendText(flow.subjects.firstMessage);

@@ -13,9 +13,10 @@ module.exports.sequelize = sequelize;
 
 async function getCCS() {
 	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.cod_ccs, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
+    SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM id_ccs CCS
-	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs
+	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs 
+	WHERE CCS.status = 'Ativo'
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		// console.log(metadata);
 		// console.log(results);

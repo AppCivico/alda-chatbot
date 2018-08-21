@@ -59,7 +59,8 @@ module.exports = {
 		menuPostback: ['nearestCouncil', 'wantToChange'],
 		noFirst: 'Não consegui encontrar nenhum endereço com',
 		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
-		noCouncil: 'Desculpe, não consegui encontrar o conselho que cobre essa região!',
+		noCouncil: 'Essa região ainda não tem nenhum CCS ativo no momento.',
+		notActive: 'Deseja procurar um conselho em outra região? Ou talvez tentar novamente com mais detalhes?',
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
 	},
 	notFound: {
@@ -125,6 +126,8 @@ module.exports = {
 		link: 'http://www.africau.edu/images/default/sample.pdf',
 		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
 			' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		emptyAssuntos: 'Esse CCS ainda não produz ata no modelo/formato “Ata Eletrônica”',
+		// menu --
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
 		menuPostback: ['calendar', 'results', 'join'],
 		imageLink: 'https://cdn2.iconfinder.com/data/icons/business-office-icons/256/To-do_List-512.png',
