@@ -63,6 +63,7 @@ function textContext(text, dialog, lastActivity = new Date()) {
 		sendImage: jest.fn(),
 		typingOn: jest.fn(),
 		typingOff: jest.fn(),
+		sendButtonTemplate: jest.fn(),
 	};
 }
 

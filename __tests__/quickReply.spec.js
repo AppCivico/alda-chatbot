@@ -5,9 +5,6 @@ const handler = require('../app/handler');
 const attach = require('../app/attach');
 const cont = require('./context');
 
-const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
-const defaultAddress = process.env.DEFAULT_ADDRESS;
-
 it('aboutMe-Claro', async () => {
 	const context = cont.quickReplyContext(flow.greetings.menuPostback[0], 'aboutMe');
 	await handler(context);
@@ -72,32 +69,6 @@ it('sendLocation from CCSMenu', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 });
 
-it('sendLocation-send free text - confirmLocation', async () => {
-	const context = cont.textContext('Caju', 'sendLocation');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-
-	context.state.address = context.event.message.text;
-	context.state.dialog = 'confirmLocation';
-	await handler(context);
-	await expect(context.typingOn).toBeCalledWith();
-	cont.fakeGeo({
-		address: `${context.state.address}, ${addressComplement}`,
-		region: 'BR',
-		language: 'pt-BR',
-	}).then(async (response) => {
-		await expect(response.json.results[0].formatted_address.trim()).not.toEqual(defaultAddress);
-		// TODO the rest here
-	}).catch(() => {});
-});
-
-it('wantToType-send free text', async () => {
-	const context = cont.textContext('Caju', 'wantToType');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-});
 
 it('sendLocation-send coordinates', async () => {
 	const context = cont.getLocation('sendLocation');
