@@ -5,6 +5,8 @@ const handler = require('../app/handler');
 const attach = require('../app/attach');
 const cont = require('./context');
 
+const { db } = cont;
+
 it('aboutMe-Claro', async () => {
 	const context = cont.quickReplyContext(flow.greetings.menuPostback[0], 'aboutMe');
 	await handler(context);
@@ -115,15 +117,46 @@ it('findLocation-Success', async () => {
 // 	});
 // });
 
-it('nearestLocation - neverWent', async () => {
+it('nearestLocation - wentAlready', async () => {
+	const context = cont.quickReplyContext(flow.nearestCouncil.menuPostback[0], 'wentAlready');
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith(flow.wentAlready.firstMessage);
+	await expect(context.sendText).toBeCalledWith(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
+});
+
+it('nearestLocation - neverWent + menu', async () => {
 	const context = cont.quickReplyContext(flow.nearestCouncil.menuPostback[1], 'neverWent');
 	await handler(context);
-
 	await expect(context.sendText).toBeCalledWith(flow.nearestCouncil.neverWent);
 	await expect(context.setState).toBeCalledWith({ dialog: 'wentAlreadyMenu' });
 
 	context.state.dialog = 'wentAlreadyMenu';
 	await handler(context);
-
 	await expect(context.sendText).toBeCalledWith(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
 });
+
+it('wannaKnowMembers - wannaKnowMembers + carousel', async () => {
+	const context = cont.quickReplyContext(flow.wentAlready.menuPostback[0], 'wannaKnowMembers');
+	context.state.CCS = {
+		cod_ccs: true,
+	};
+	await handler(context);
+	await expect(context.typingOn).toBeCalledWith();
+	await expect(context.setState).toBeCalledWith({ diretoria: await db.getDiretoria(context.state.CCS.cod_ccs) });
+	await expect(context.sendText).toBeCalledWith(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs}`);
+	await expect(attach.sendCarousel).toBeCalledWith(context, context.state.diretoria);
+	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.secondMessage);
+});
+
+it('wannaKnowMembers - notWannaKnow + menu', async () => {
+	const context = cont.quickReplyContext(flow.wentAlready.menuPostback[1], 'wentAlreadyMenu');
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith(flow.councilMenu.notNow);
+	await expect(context.setState).toBeCalledWith({ dialog: 'councilMenu' });
+
+	context.state.dialog = 'councilMenu';
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+	await expect(context.typingOff).toBeCalledWith();
+});
+
