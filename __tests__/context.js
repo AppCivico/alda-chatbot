@@ -60,9 +60,9 @@ function textContext(text, dialog, lastActivity = new Date()) {
 		sendText: jest.fn(),
 		setState: jest.fn(),
 		resetState: jest.fn(),
-		// sendImage: jest.fn(),
-		// typingOn: jest.fn(),
-		// typingOff: jest.fn(),
+		sendImage: jest.fn(),
+		typingOn: jest.fn(),
+		typingOff: jest.fn(),
 	};
 }
 
@@ -133,3 +133,4 @@ function fakeGeo(opt) {
 }
 
 module.exports.fakeGeo = fakeGeo;
+

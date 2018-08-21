@@ -64,6 +64,11 @@ function createPersistentMenu() {
 }
 
 // Will be executed when imported
-// It's being imported on index.js, should be commented out after first execution
-createGetStarted();
-createPersistentMenu();
+// It's being imported on index.js, should be commented out after first execution (If both status_code aren't 200 you may want to run it again)
+async function load() {
+	await createGetStarted();
+	await createPersistentMenu();
+}
+
+load();
+

@@ -42,15 +42,16 @@ it('Free text on falls through', async () => {
 it('Enter e-mail', async () => {
 	const context = cont.textContext('Qualquer@coisa.vale', 'eMail');
 	await handler(context);
+
 	await expect(context.setState).toBeCalledWith({ eMail: context.event.message.text });
 	await expect(context.setState).toBeCalledWith({ dialog: 'userData' });
 });
 
 it('Enter invalid phone', async () => {
 	const context = cont.textContext('119999aa-8888', 'whatsApp');
+	context.state.phone = `+55${'119999aa-8888'.replace(/[- .)(]/g, '')}`;
 	await handler(context);
 
-	context.state.phone = `+55${'119999aa-8888'.replace(/[- .)(]/g, '')}`;
 	await expect(context.setState).toBeCalledWith({ phone: context.state.phone });
 	await expect(context.state.phone).not.toMatch(phoneRegex);
 	await expect(context.setState).toBeCalledWith({ phone: '', dialog: 'reAskPhone' });
@@ -58,13 +59,12 @@ it('Enter invalid phone', async () => {
 
 it('Enter valid phone', async () => {
 	const context = cont.textContext('11999998888', 'whatsApp');
-	await handler(context);
 	context.state.phone = `+55${'11999998888'.replace(/[- .)(]/g, '')}`;
+	await handler(context);
 
 	await expect(context.setState).toBeCalledWith({ phone: context.state.phone });
 	await expect(phoneRegex.test(context.state.phone)).toBeTruthy();
-	// await expect(context.setState).toBeCalledWith({ dialog: 'gotPhone' });
-	// TODO: figure out how to regex.test
+	await expect(context.setState).toBeCalledWith({ dialog: 'gotPhone' });
 });
 
 it('check attachment', async () => {
