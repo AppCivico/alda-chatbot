@@ -255,8 +255,20 @@ module.exports = async (context) => {
 			case 'wannaKnowMembers':
 				await context.typingOn();
 				await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.cod_ccs) });
-				await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs}`);
-				await attach.sendCarousel(context, context.state.diretoria);
+				await context.setState({ diretoriaAtual: [] });
+				await context.state.diretoria.forEach((element) => { // check which members of the diretoria aren't active today
+					if (Date.parse(element.fim_gestao) > new Date()) {
+						context.state.diretoriaAtual.push(element);
+					}
+				});
+				if (Object.keys(context.state.diretoriaAtual).length > 0) { // if there's at least one active member today we show the members(s)
+					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
+					await attach.sendCarousel(context, context.state.diretoriaAtual);
+				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
+					await context.sendText(`Não temos um conselho ativo atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
+					await attach.sendCarousel(context, context.state.diretoria);
+				}
+				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
 			case 'councilMenu':

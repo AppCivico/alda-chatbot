@@ -44,10 +44,11 @@ async function getDiretoria(CCS_ID) {
 	console.log('\n\n\n\n');
 
 	const result = await sequelize.query(`
-	SELECT nome, cargo
+	SELECT nome, cargo, fim_gestao
 	FROM diretoria
 	WHERE id_ccs_cod_ccs = ${CCS_ID}
-	ORDER BY inicio_gestao
+	ORDER BY inicio_gestao DESC, nome
+	LIMIT 10
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		// console.log(metadata);
 		// console.log(results);
