@@ -33,7 +33,7 @@ module.exports = {
 		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
-		menuPostback: ['sendLocation', 'wantToType', 'noLocation'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 		notNow: 'Entendo! 😉',
 		remember: 'Pelo que me lembro você quer saber sobre a região', // will be completed
 		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
@@ -44,7 +44,8 @@ module.exports = {
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
+		firstMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Legal. Agora digite o bairro desse município:',
 	},
 	foundLocation: {
 		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
@@ -65,11 +66,19 @@ module.exports = {
 	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
-		menuPostback: ['sendLocation', 'retryType', 'noLocation'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
+	},
+	notFoundMunicipio: {
+		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
+	},
+	notFoundBairro: {
+		menuOptions: ['Enviar localização', 'Trocar bairro', 'Voltar'],
+		menuPostback: ['sendLocation', 'wantToType2', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],

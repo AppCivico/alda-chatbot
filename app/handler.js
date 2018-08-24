@@ -18,7 +18,15 @@ if (!global.TEST) {
 		.then(async () => {
 			console.log('Connection has been established successfully.');
 			CCSBairros = await db.getCCS();
-			// console.log(JSON.stringify(CCSBairros));
+			CCSBairros.push({
+				ccs: 'Eokoe',
+				cod_ccs: 9999,
+				status: 'Ativo',
+				regiao: 'SP',
+				municipio: 'Paraíso',
+				bairro: 'Paraíso',
+			});
+			CCSBairros.forEach((element) => { console.log(element); });
 		}).catch((err) => {
 			console.error('Unable to connect to the database:', err);
 		});
@@ -46,6 +54,36 @@ function findCCS(CCSList, place) {
 	return undefined;
 }
 
+function findCCSMunicipio(CCSList, municipio) {
+	const sameMunicipio = [];
+
+	CCSList.forEach((element) => { // get every ccs on the same municipio (we say municipio but we are actually using regiao)
+		if (element.regiao.toLowerCase() === municipio.trim().toLowerCase()) {
+			sameMunicipio.push(element);
+		}
+	});
+
+	if (sameMunicipio.length > 0) {
+		return sameMunicipio;
+	}
+	return undefined;
+}
+
+function findCCSBairro(sameMunicipio, bairro) {
+	const theBairro = [];
+
+	sameMunicipio.forEach((element) => {
+		if (element.bairro.toLowerCase() === bairro.trim().toLowerCase()) {
+			theBairro.push(element);
+		}
+	});
+
+	if (theBairro.length > 0) {
+		return theBairro;
+	}
+	return undefined;
+}
+
 function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('political'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality')); }
@@ -54,8 +92,8 @@ function getNeighborhood(results) {
 }
 
 const timeLimit = 1000 * 60 * 60; // 60 minutes
-const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
-const defaultAddress = process.env.DEFAULT_ADDRESS;
+// const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
+// const defaultAddress = process.env.DEFAULT_ADDRESS;
 // context.state.geoLocation => the geolocation coordinates from the user
 // context.state.address => the address the user types
 
@@ -75,7 +113,15 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'mainMenu' });
 				}
 			} else if (context.event.isPostback) {
-				await context.setState({ dialog: context.event.postback.payload });
+				if (context.event.postback.payload.slice(0, 6) === 'centro') {
+					await context.setState({
+						CCS: context.state.bairroFound.find(x => x.cod_ccs === parseInt(context.event.postback.payload.replace('centro', ''), 10)),
+						cameFromTyping: true,
+					});
+					console.log(context.state.CCS);
+				} else {
+					await context.setState({ dialog: context.event.postback.payload });
+				}
 			} else if (context.event.isQuickReply) {
 				switch (context.event.quickReply.payload) {
 				case 'notMe':
@@ -115,21 +161,38 @@ module.exports = async (context) => {
 					await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
 					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'confirmLocation' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
 						// falls through
 					case 'confirmLocation':
 						// falls through
-					case 'wantToType':
-						// falls through
 					case 'sendLocation':
 						// falls through
 					case 'whichCCSMenu':
 						// falls through
 					case 'wantToChange':
-						await context.setState({ address: context.event.message.text }); // what the user types is stored here
+					// falls through
+					case 'wantToType1':
+						await context.setState({ municipiosFound: await findCCSMunicipio(CCSBairros, context.event.message.text) });
+						if (!context.state.municipiosFound) {
+							await context.setState({ dialog: 'municipioNotFound' });
+						} else {
+							await context.setState({ dialog: 'wantToType2' });
+						}
+						break;
+					case 'wantToType2':
+						// await context.setState({ bairro: context.event.message.text }); // what the user types is stored here
+						await context.setState({ bairroFound: await findCCSBairro(context.state.municipiosFound, context.event.message.text) });
 						await context.setState({ dialog: 'confirmLocation' });
+						if (!context.state.bairroFound) {
+							await context.setState({ dialog: 'bairroNotFound' });
+						} else if (context.state.bairroFound.length === 1) {
+							await context.setState({ CCS: context.state.bairroFound[0], cameFromTyping: true });
+						} else if (context.state.bairroFound[0].bairro === 'Centro') { // this means we are on bairro "centro"
+							await context.setState({ dialog: 'confirmCentro' });
+						}
 						break;
 					case 'eMail':
 						await context.setState({ eMail: context.event.message.text });
@@ -195,23 +258,37 @@ module.exports = async (context) => {
 				await context.sendText(flow.sendLocation.firstMessage);
 				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 				break;
-			case 'wantToType':
-				await context.sendText(flow.wantToType.firstMessage);
-				break;
 			case 'retryType':
 				await context.sendText(flow.wantToChange.firstMessage);
 				// falls through
-			case 'wantToChange':
+			case 'wantToType1': // asking for municipio
 				await context.setState({ CCS: undefined, geoLocation: undefined, userLocation: undefined });
 				await context.setState({ retryCount: context.state.retryCount + 1 });
 				// On the users 3rd try we offer him to either give up or send his location directly
-				if (context.state.retryCount >= 3) {
+				if (context.state.retryCount > 3) {
 					await context.setState({ retryCount: 0 });
-					await context.sendText(`${flow.wantToChange.secondMessage.slice(0, -1)}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
+					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
 				} else {
-					await context.sendText(flow.wantToChange.secondMessage);
+					await context.sendText(flow.wantToType.firstMessage);
 				}
 				break;
+			case 'wantToType2': // asking for bairro
+				await context.setState({ retryCount: 0 });
+				await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}`);
+				break;
+			case 'municipioNotFound':
+				await context.sendText('Não consegui encontrar esse municipio. ' +
+					'Deseja tentar novamente? Você pode pesquisar por Interior, Capital, Grande Niterói e Baixada Fluminense.', await attach.getQR(flow.notFoundMunicipio));
+				break;
+			case 'bairroNotFound':
+				await context.sendText('Não consegui encontrar esse bairro. ' +
+					'Quer tentar de novo? Você pode pesquisar por Copacabana, Centro, Ipanema e outros.', await attach.getQR(flow.notFoundBairro));
+				break;
+			case 'confirmCentro': {
+				await context.sendText(`Parece que você quer saber sobre o Centro da Capital do Rio! Temos ${context.state.bairroFound.length} ` +
+					'conselhos nessa região. Escolha qual dos seguintes complementos melhor se encaixa na sua região');
+				await attach.sendCentro(context, context.state.bairroFound);
+				break; }
 			case 'foundLocation':
 				await context.sendText(flow.foundLocation.firstMessage);
 				await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
@@ -226,6 +303,7 @@ module.exports = async (context) => {
 					userDataArray = await userDataArray.filter(obj => obj.userId !== context.session.user.id);
 					await context.setState({
 						CCS: findCCS(CCSBairros, context.state.userLocation.neighborhood.long_name),
+						cameFromTyping: false,
 					});
 					if (context.state.CCS || (context.state.CCS && context.state.CCS.length !== 0)) {
 						await context.sendText(flow.nearestCouncil.firstMessage);
@@ -366,33 +444,34 @@ module.exports = async (context) => {
 				break;
 			}
 			case 'confirmLocation':
-				await context.typingOn();
-				googleMapsClient.geocode({
-					address: `${context.state.address}, ${addressComplement}`,
-					region: 'BR',
-					language: 'pt-BR',
-				}).asPromise().then(async (response) => {
-					if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
-						await userDataArray.push({
-							userId: context.session.user.id,
-							neighborhood: await getNeighborhood(response.json.results[0].address_components),
-							address: response.json.results[0].formatted_address,
-							geoLocation: response.json.results[0].geometry.location,
-						});
+				await context.sendText('ok achei');
 
-						await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
-						await context.typingOff();
-						await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.confirmLocation));
-					} else { // empty => falls into the default adress
-						await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
-						await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
-					}
-				}).catch(async (err) => {
-					await context.typingOff();
-					console.log(`Couldn't get geolocation => ${err}`);
-					await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
-					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
-				});
+				// googleMapsClient.geocode({
+				// 	address: `${context.state.address}, ${addressComplement}`,
+				// 	region: 'BR',
+				// 	language: 'pt-BR',
+				// }).asPromise().then(async (response) => {
+				// 	if (response.json.results[0].formatted_address.trim() !== defaultAddress) {
+				// 		await userDataArray.push({
+				// 			userId: context.session.user.id,
+				// 			neighborhood: await getNeighborhood(response.json.results[0].address_components),
+				// 			address: response.json.results[0].formatted_address,
+				// 			geoLocation: response.json.results[0].geometry.location,
+				// 		});
+
+				// 		await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
+				// 		await context.typingOff();
+				// 		await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.confirmLocation));
+				// 	} else { // empty => falls into the default adress
+				// 		await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
+				// 		await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
+				// 	}
+				// }).catch(async (err) => {
+				// 	await context.typingOff();
+				// 	console.log(`Couldn't get geolocation => ${err}`);
+				// 	await context.sendText(`${flow.confirmLocation.noFirst} "${context.state.address}".`);
+				// 	await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
+				// });
 				break;
 			}
 		}

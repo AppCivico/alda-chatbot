@@ -135,18 +135,18 @@ it('nearestLocation - neverWent + menu', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
 });
 
-it('wannaKnowMembers - wannaKnowMembers + carousel', async () => {
-	const context = cont.quickReplyContext(flow.wentAlready.menuPostback[0], 'wannaKnowMembers');
-	context.state.CCS = {
-		cod_ccs: true,
-	};
-	await handler(context);
-	await expect(context.typingOn).toBeCalledWith();
-	await expect(context.setState).toBeCalledWith({ diretoria: await db.getDiretoria(context.state.CCS.cod_ccs) });
-	await expect(context.sendText).toBeCalledWith(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs}`);
-	await expect(attach.sendCarousel).toBeCalledWith(context, context.state.diretoria);
-	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.secondMessage);
-});
+// it('wannaKnowMembers - wannaKnowMembers + carousel', async () => { Review this
+// 	const context = cont.quickReplyContext(flow.wentAlready.menuPostback[0], 'wannaKnowMembers');
+// 	context.state.CCS = {
+// 		cod_ccs: true,
+// 	};
+// 	await handler(context);
+// 	await expect(context.typingOn).toBeCalledWith();
+// 	await expect(context.setState).toBeCalledWith({ diretoria: await db.getDiretoria(context.state.CCS.cod_ccs) });
+// 	await expect(context.sendText).toBeCalledWith(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs}`);
+// 	await expect(attach.sendCarousel).toBeCalledWith(context, context.state.diretoria);
+// 	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.secondMessage);
+// });
 
 it('wannaKnowMembers - notWannaKnow + menu', async () => {
 	const context = cont.quickReplyContext(flow.wentAlready.menuPostback[1], 'wentAlreadyMenu');

@@ -72,6 +72,32 @@ async function sendCarousel(context, items) {
 
 module.exports.sendCarousel = sendCarousel;
 
+async function sendCentro(context, items) {
+	const elements = [];
+
+	items.forEach((element, index) => {
+		elements.push({
+			title: `Região ${index + 1}`,
+			subtitle: `CCS ${element.cod_ccs}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É esse!',
+				payload: `centro${element.cod_ccs}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+}
+
+module.exports.sendCentro = sendCentro;
+
 // sends one card with an image
 async function sendCard(context, links) {
 	await context.sendAttachment({
