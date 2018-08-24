@@ -58,7 +58,7 @@ async function sendCarousel(context, items) {
 		elements.push({
 			title: element.nome,
 			subtitle: element.cargo,
-			image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
 		});
 	});
 	await context.sendAttachment({
