@@ -64,7 +64,7 @@ module.exports = async (context) => {
 					await context.setState({
 						CCS: context.state.bairro.find(x => x.cod_ccs === parseInt(context.event.postback.payload.replace('centro', ''), 10)),
 					});
-					await context.setState({ dialog: 'confirmLocation' });
+					await context.setState({ dialog: 'nearestCouncil' });
 				} else {
 					await context.setState({ dialog: context.event.postback.payload });
 				}
@@ -126,8 +126,6 @@ module.exports = async (context) => {
 					switch (context.state.dialog) {
 					case 'retryType':
 						// falls through
-					case 'confirmLocation':
-						// falls through
 					case 'sendLocation':
 						// falls through
 					case 'whichCCSMenu':
@@ -150,7 +148,7 @@ module.exports = async (context) => {
 							await context.setState({ dialog: 'bairroNotFound' });
 						} else if (context.state.bairro.length === 1) {
 							await context.setState({ CCS: context.state.bairro[0] });
-							await context.setState({ dialog: 'confirmLocation' });
+							await context.setState({ dialog: 'nearestCouncil' });
 						} else if (context.state.bairro[0].bairro === 'Centro') { // this means we are on bairro "centro"
 							await context.setState({ dialog: 'confirmCentro' });
 						}
@@ -220,12 +218,12 @@ module.exports = async (context) => {
 				await context.sendText(flow.sendLocation.firstMessage);
 				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 				break;
-			case 'wantToChange':
+			case 'wantToChange': // comes from sendLocation flow
 				await context.setState({ CCS: undefined, geoLocation: undefined, bairro: undefined });
 				await context.sendText(flow.wantToChange.firstMessage);
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
-			case 'retryType':
+			case 'retryType': // comes from text flow
 				await context.sendText(flow.wantToChange.firstMessage);
 				// falls through
 			case 'wantToType1': // asking for municipio
@@ -244,7 +242,7 @@ module.exports = async (context) => {
 				await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}`);
 				break;
 			case 'municipioNotFound':
-				await context.sendText('Não consegui encontrar esse municipio. ' +
+				await context.sendText('Não consegui encontrar esse município. ' +
 					'Deseja tentar novamente? Você pode pesquisar por Interior, Capital, Grande Niterói e Baixada Fluminense.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound':
@@ -378,14 +376,14 @@ module.exports = async (context) => {
 					// storing the bairro found
 					tempAuxObject[context.session.user.id] = await help.getNeighborhood(response.json.results[0].address_components); // need to save the bairro found
 					await context.typingOff(); // is this bairro correct? if so => nearestCouncil
-					await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
+					await context.sendText(`${flow.foundLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}).catch(async (err) => { // an error ocorred
 					await context.typingOff();
 					await console.log('Couldn\'t get geolocation => ');
 					await console.log(err);
-					await context.sendText(flow.confirmLocation.noFindGeo);
-					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
+					await context.sendText(flow.foundLocation.noFindGeo);
+					await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
 				});
 				break;
 			}

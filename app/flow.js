@@ -48,21 +48,12 @@ module.exports = {
 		secondMessage: 'Legal. Agora digite o bairro desse município:',
 	},
 	foundLocation: {
-		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
+		firstMessage: 'Encontrei o seguinte endereço:',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		menuPostback: ['nearestCouncil', 'wantToChange'],
-	},
-	confirmLocation: {
-		firstMessage: 'Encontrei o seguinte endereço:',
-		secondMessage: 'É esse o endereço certo?',
-		menuOptions: ['É esse mesmo', 'Não é esse'],
-		menuPostback: ['nearestCouncil', 'wantToChange'],
-		noFirst: 'Não consegui encontrar nenhum endereço com',
-		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
-		noCouncil: 'Essa região ainda não tem nenhum CCS ativo no momento.',
-		notActive: 'Deseja procurar um conselho em outra região? Ou talvez tentar novamente com mais detalhes?',
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
+		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
