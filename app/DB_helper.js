@@ -17,8 +17,6 @@ async function getCCS() {
 	FROM id_ccs CCS
 	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs 
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		// console.log(metadata);
-		// console.log(results);
 		results.forEach((element) => {
 			if (element.bairro === null) {
 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
@@ -29,18 +27,14 @@ async function getCCS() {
 	}).catch((err) => {
 		console.error('Error on getCCS => ', err);
 	});
-	// console.log(result);
 	return result;
 }
 
 module.exports.getCCS = getCCS;
 
 async function getDiretoria(CCS_ID) {
-	let currentDate = (new Date(Date.now())).toISOString().split('T')[0].split('-');
-	currentDate = new Date(currentDate[0], currentDate[1] - 1, currentDate[2]);
-	console.log(currentDate);
-	console.log(typeof currentDate);
-	console.log('\n\n\n\n');
+	// let currentDate = (new Date(Date.now())).toISOString().split('T')[0].split('-');
+	// currentDate = new Date(currentDate[0], currentDate[1] - 1, currentDate[2]);
 
 	const result = await sequelize.query(`
 	SELECT nome, cargo, fim_gestao
@@ -49,14 +43,11 @@ async function getDiretoria(CCS_ID) {
 	ORDER BY inicio_gestao DESC, nome
 	LIMIT 10
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		// console.log(metadata);
-		// console.log(results);
-		console.log(`Loaded Diretoria ${CCS_ID} successfully!`);
+		console.log(`Loaded Diretoria from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getDiretoria => ', err);
 	});
-	console.log(result);
 	return result;
 }
 
@@ -69,14 +60,11 @@ async function getCalendario(CCS_ID) {
 	WHERE id_ccs_cod_ccs = ${CCS_ID}
 	ORDER BY data_hora DESC
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		// console.log(metadata);
-		// console.log(results);
-		console.log(`Loaded calendario ${CCS_ID} successfully!`);
+		console.log(`Loaded calendario from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getCalendario => ', err);
 	});
-	// console.log(result);
 	return result;
 }
 
@@ -88,18 +76,15 @@ async function getAssuntos(CCS_ID) {
 	FROM assunto_ata
 	WHERE id_ccs_cod_ccs = ${CCS_ID}
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		// console.log(metadata);
-		// console.log(results);
 		const assuntos = [];
 		results.forEach((element) => {
 			assuntos.push(element.assunto.toLowerCase());
 		});
-		console.log(`Loaded assuntos ${CCS_ID} successfully!`);
+		console.log(`Loaded assuntos from ${CCS_ID} successfully!`);
 		return assuntos;
 	}).catch((err) => {
 		console.error('Error on getAssuntos => ', err);
 	});
-	console.log(result);
 	return result;
 }
 
