@@ -66,12 +66,13 @@ function getNeighborhood(results) {
 
 module.exports.getNeighborhood = getNeighborhood;
 
-async function findBairrosByCod(CCSList, cod) { // find other bairros that are also served by this CCS using the ccs_cod
+function findBairrosByCod(CCSList, cod) { // find other bairros that are also served by this CCS using the ccs_cod
 	const bairros = [];
 
 	for (const element of CCSList) { // eslint-disable-line
 		if (element.cod_ccs === cod) { // if their code is the same, this bairro is on the same CCS
 			bairros.push(element.bairro);
+			console.log(bairros);
 		}
 	}
 	return bairros;
