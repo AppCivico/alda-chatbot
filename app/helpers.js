@@ -22,6 +22,7 @@ function findCCS(CCSList, place) {
 
 module.exports.findCCS = findCCS;
 
+// TODO turn this and the next function to be the same function
 function findCCSMunicipio(CCSList, municipio) {
 	const sameMunicipio = [];
 
@@ -65,16 +66,15 @@ function getNeighborhood(results) {
 
 module.exports.getNeighborhood = getNeighborhood;
 
-function findOtherBairros(CCSList, codCcs) {
+async function findBairrosByCod(CCSList, cod) { // find other bairros that are also served by this CCS using the ccs_cod
 	const bairros = [];
 
-	CCSList.forEach((element) => {
-		if (element.cod_ccs === codCcs) {
+	for (const element of CCSList) { // eslint-disable-line
+		if (element.cod_ccs === cod) { // if their code is the same, this bairro is on the same CCS
 			bairros.push(element.bairro);
 		}
-	});
-
+	}
 	return bairros;
 }
 
-module.exports.findOtherBairros = findOtherBairros;
+module.exports.findBairrosByCod = findBairrosByCod;
