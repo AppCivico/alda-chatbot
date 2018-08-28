@@ -82,7 +82,6 @@ module.exports = async (context) => {
 					if (!context.state.bairro || tempAuxObject[context.session.user.id]) { // we still don't have a CCS found or data is still on the auxObject
 						await context.setState({ bairro: tempAuxObject[context.session.user.id].long_name }); // saves obj-stored bairro-long-name on context
 						delete tempAuxObject[context.session.user.id];
-						console.log('bairro: ', context.state.bairro);
 					} // ----- don't put an 'else' here
 
 					if (context.state.bairro) { // check if bairro is centro
@@ -209,7 +208,9 @@ module.exports = async (context) => {
 				if (!context.state.CCS || !context.state.bairro) {
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
-					await context.sendText(`${flow.whichCCS.remember} ${context.state.bairro} ` +
+					console.log(context.state.bairro);
+
+					await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
 					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}
@@ -249,11 +250,11 @@ module.exports = async (context) => {
 				await context.sendText('Não consegui encontrar esse bairro. ' +
 					'Quer tentar de novo? Você pode pesquisar por Copacabana, Centro, Ipanema e outros.', await attach.getQR(flow.notFoundBairro));
 				break;
-			case 'confirmCentro': {
+			case 'confirmCentro':
 				await context.sendText(`Parece que você quer saber sobre o Centro da Capital do Rio! Temos ${context.state.bairro.length} ` +
 					'conselhos nessa região. Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
 				await attach.sendCentro(context, context.state.bairro);
-				break; }
+				break;
 			case 'foundLocation':
 				await context.sendText(flow.foundLocation.firstMessage);
 				await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
