@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const Request = require('request');
 
 const pageToken = process.env.ACCESS_TOKEN;

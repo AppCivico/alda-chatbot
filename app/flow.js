@@ -51,7 +51,7 @@ module.exports = {
 		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['nearestCouncil', 'wantToChange'],
+		menuPostback: ['checkWhere', 'wantToChange'],
 	},
 	confirmLocation: {
 		firstMessage: 'Encontrei o seguinte endereço:',
