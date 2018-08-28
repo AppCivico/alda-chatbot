@@ -34,7 +34,7 @@ if (!global.TEST) {
 		});
 }
 
-let userDataArray = [];
+const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of googleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
 
@@ -42,7 +42,6 @@ const timeLimit = 1000 * 60 * 60; // 60 minutes
 // const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
 // const defaultAddress = process.env.DEFAULT_ADDRESS;
 // context.state.geoLocation => the geolocation coordinates from the user
-// context.state.address => the address the user types
 
 
 module.exports = async (context) => {
@@ -81,15 +80,24 @@ module.exports = async (context) => {
 					await context.sendText(flow.whichCCS.notNow);
 					await context.setState({ dialog: 'whichCCSMenu' });
 					break;
-				// case 'whichCCSMenu':
-					// falls through
-				case 'checkWhere':
-					if (context.state.cameFromTyping === true) {
-						await context.setState({ dialog: 'confirmLocation' });
-					} else {
-						await context.setState({ dialog: 'nearestCouncil' });
+				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation
+					if (!context.state.bairro || tempAuxObject[context.session.user.id]) { // we still don't have a CCS found or data is still on the auxObject
+						await context.setState({ bairro: tempAuxObject[context.session.user.id].long_name }); // saves obj-stored bairro-long-name on context
+						delete tempAuxObject[context.session.user.id];
+						console.log('bairro: ', context.state.bairro);
+					} // -----
+
+					if (context.state.bairro) { // check if bairro is centro
+						if (context.state.bairro === 'Centro') { // test with Paraíso
+							await context.setState({ dialog: 'confirmCentro' });
+						} else {
+							await context.setState({ CCS: await CCSBairros.find(obj => (obj.bairro.includes(context.state.bairro))) }); // load CCS from bairro
+							console.log(context.state.CCS);
+						}
 					}
 					break;
+				case 'whichCCSMenu':
+					// falls through
 				case 'goBackMenu':
 					// falls through
 				case 'noLocation':
@@ -116,6 +124,8 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) {
 					await context.resetState();
 					// await context.setState({ dialog: 'greetings' });
+					console.log('sdfsdfsdfasdfsdaf');
+
 					await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'confirmLocation' });
 				} else {
@@ -168,7 +178,7 @@ module.exports = async (context) => {
 						break;
 					}
 				}
-			} else if (context.event.isLocation) {
+			} else if (context.event.isLocation) { // received location so we can search for bairro
 				await context.setState({ geoLocation: context.event.location.coordinates });
 				await context.setState({ dialog: 'findLocation' });
 			} else if (context.event.hasAttachment || context.event.isLikeSticker ||
@@ -200,15 +210,14 @@ module.exports = async (context) => {
 				await context.sendImage(flow.whichCCS.CCSImage);
 				await context.typingOff();
 				// falls through
-			case 'whichCCSMenu':
-				await context.setState({ municipiosFound: '', bairroFound: '' });
+			case 'whichCCSMenu': // asks user if he wants to find his CCS or confirm if we already have one stored
+				// await context.setState({ municipiosFound: '', bairroFound: '' });
 				await context.setState({ retryCount: 0 });
 				// if we don't have a CCS linked to a user already we ask for it
-				if (!context.state.CCS || !context.state.userLocation || !context.state.userLocation.neighborhood
-                    || !context.state.userLocation.neighborhood.long_name) {
+				if (!context.state.CCS || !context.state.bairro) {
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
-					await context.sendText(`${flow.whichCCS.remember} ${context.state.userLocation.neighborhood.long_name} ` +
+					await context.sendText(`${flow.whichCCS.remember} ${context.state.bairro} ` +
 					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				}
@@ -221,7 +230,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.firstMessage);
 				// falls through
 			case 'wantToType1': // asking for municipio
-				await context.setState({ CCS: undefined, geoLocation: undefined, userLocation: undefined });
+				await context.setState({ CCS: undefined, geoLocation: undefined, bairro: undefined });
 				await context.setState({ retryCount: context.state.retryCount + 1 });
 				// On the users 3rd try we offer him to either give up or send his location directly
 				if (context.state.retryCount > 3) {
@@ -255,36 +264,27 @@ module.exports = async (context) => {
 				await context.sendText(flow.foundLocation.firstMessage);
 				await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				break;
-			case 'nearestCouncil':
-				if (!context.state.userLocation) {
-					await context.setState({ userLocation: userDataArray.find(obj => obj.userId === context.session.user.id) });
-					// console.log(context.state.userLocation.neighborhood.long_name);
-				} // -----
+			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
 
-				if (context.state.userLocation) {
-					userDataArray = await userDataArray.filter(obj => obj.userId !== context.session.user.id);
-					await context.setState({
-						CCS: help.findCCS(CCSBairros, context.state.userLocation.neighborhood.long_name),
-						cameFromTyping: false,
-					});
-					if (context.state.CCS || (context.state.CCS && context.state.CCS.length !== 0)) { // check if there's CCS available
-						await context.sendText(flow.nearestCouncil.firstMessage);
-						if (context.state.CCS.neighborhoods.length === 1) { // check if there's more than one neighborhood
-							await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
-								`${flow.nearestCouncil.secondMessage3} ${context.state.CCS.neighborhoods}.`);
-						} else {
-							await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
-							`${flow.nearestCouncil.secondMessage2} ${context.state.CCS.neighborhoods.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
-						}
-						await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
-					} else { //
-						await context.sendText(flow.confirmLocation.noCouncil);
-						await context.sendText(flow.confirmLocation.notActive, await attach.getQR(flow.notFound));
-					}
-				} else {
-					await context.sendText(flow.confirmLocation.noFindGeo);
-					await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
-				}
+
+				// 	if (context.state.CCS || (context.state.CCS && context.state.CCS.length !== 0)) { // check if there's CCS available
+				// 		await context.sendText(flow.nearestCouncil.firstMessage);
+				// 		if (context.state.CCS.neighborhoods.length === 1) { // check if there's more than one neighborhood
+				// 			await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
+				// 				`${flow.nearestCouncil.secondMessage3} ${context.state.CCS.neighborhoods}.`);
+				// 		} else {
+				// 			await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
+				// 			`${flow.nearestCouncil.secondMessage2} ${context.state.CCS.neighborhoods.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
+				// 		}
+				// 		await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+				// 	} else { //
+				// 		await context.sendText(flow.confirmLocation.noCouncil);
+				// 		await context.sendText(flow.confirmLocation.notActive, await attach.getQR(flow.notFound));
+				// 	}
+				// } else {
+				// 	await context.sendText(flow.confirmLocation.noFindGeo);
+				// 	await context.sendText(flow.confirmLocation.noSecond, await attach.getQR(flow.notFound));
+				// }
 				break;
 			case 'wentAlready':
 				await context.sendText(flow.wentAlready.firstMessage);
@@ -381,22 +381,18 @@ module.exports = async (context) => {
 					payload: flow.error.menuPostback[0],
 				}]);
 				break;
-			case 'findLocation': {
+			case 'findLocation': { // user sends location, we find the bairro using googleMaps and confirm at the end
 				await context.typingOn();
 				googleMapsClient.reverseGeocode({
 					latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
 					language: 'pt-BR',
 				}).asPromise().then(async (response) => {
-					await userDataArray.push({
-						userId: context.session.user.id,
-						neighborhood: await help.getNeighborhood(response.json.results[0].address_components),
-						address: response.json.results[0].formatted_address,
-						geoLocation: response.json.results[0].geometry.location,
-					});
-					await context.typingOff();
+					// storing the bairro found
+					tempAuxObject[context.session.user.id] = await help.getNeighborhood(response.json.results[0].address_components); // need to save the bairro found
+					await context.typingOff(); // is this bairro correct? if so => nearestCouncil
 					await context.sendText(`${flow.confirmLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
-				}).catch(async (err) => {
+				}).catch(async (err) => { // an error ocorred
 					await context.typingOff();
 					await console.log('Couldn\'t get geolocation => ');
 					await console.log(err);
@@ -405,21 +401,21 @@ module.exports = async (context) => {
 				});
 				break;
 			}
-			case 'confirmLocation':
-				// await context.setState({ bairrosDoCCS: await help.findOtherBairros(CCSBairros, context.state.CCS.cod_ccs) });
+			// case 'confirmLocation':
+			// 	// await context.setState({ bairrosDoCCS: await help.findOtherBairros(CCSBairros, context.state.CCS.cod_ccs) });
 
-				// console.log(context.state.CCS);
-				// console.log(context.state.bairrosDoCCS);
-				await context.sendText(`Legal! Encontrei o ${context.state.CCS.ccs}`);
-				// await context.setState({ bairrosDoCCS: '' });
+			// 	// console.log(context.state.CCS);
+			// 	// console.log(context.state.bairrosDoCCS);
+			// 	await context.sendText(`Legal! Encontrei o ${context.state.CCS.ccs}`);
+			// 	// await context.setState({ bairrosDoCCS: '' });
 
-				if (context.state.CCS.status.toLowerCase() !== 'ativo') {
-					await context.sendText('Sentimos muito mas esse CCS não está ativo no momento! Deseja tentar em outra localização?', await attach.getQR(flow.notFound));
-				} else {
-					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
-				}
+			// 	if (context.state.CCS.status.toLowerCase() !== 'ativo') {
+			// 		await context.sendText('Sentimos muito mas esse CCS não está ativo no momento! Deseja tentar em outra localização?', await attach.getQR(flow.notFound));
+			// 	} else {
+			// 		await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+			// 	}
 
-				break;
+			// 	break;
 			}
 		}
 	} catch (err) {
