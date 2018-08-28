@@ -220,6 +220,11 @@ module.exports = async (context) => {
 				await context.sendText(flow.sendLocation.firstMessage);
 				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 				break;
+			case 'wantToChange':
+				await context.setState({ CCS: undefined, geoLocation: undefined, bairro: undefined });
+				await context.sendText(flow.wantToChange.firstMessage);
+				await context.sendText(flow.wantToChange.secondMessage);
+				break;
 			case 'retryType':
 				await context.sendText(flow.wantToChange.firstMessage);
 				// falls through
