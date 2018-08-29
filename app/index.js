@@ -5,8 +5,12 @@ const { createServer } = require('bottender/restify');
 
 const config = require('./bottender.config').messenger;
 
-// const postbacks = require('./postback');
+const cronjobs = require('./cronjob');
+
 const messageWaiting = eval(process.env.TIME_WAIT); // eslint-disable-line no-eval
+
+console.log(`Crontab activatedCCS is running? => ${cronjobs.activatedCCS.running}`);
+
 
 const bot = new MessengerBot({
 	accessToken: config.accessToken,

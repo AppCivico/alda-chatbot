@@ -11,11 +11,11 @@ const { sequelize } = require('./server/index.js');
 
 module.exports.sequelize = sequelize;
 
-async function getCCS() {
+module.exports.getCCS = async function getCCS() {
 	const result = await sequelize.query(`
     SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM id_ccs CCS
-	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs 
+	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
 			if (element.bairro === null) {
@@ -28,20 +28,48 @@ async function getCCS() {
 		console.error('Error on getCCS => ', err);
 	});
 	return result;
-}
+};
 
-module.exports.getCCS = getCCS;
+module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
+	const result = await sequelize.query(`
+	SELECT bairro
+	FROM ccs_aisp_risp
+	WHERE id_ccs_cod_ccs = ${CCS_ID}
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		const bairros = [];
+		results.forEach((element) => {
+			bairros.push(element.bairro);
+		});
+		console.log(`Loaded bairros from ${CCS_ID} successfully!`);
+		return bairros;
+	}).catch((err) => {
+		console.error('Error on getDiretoria => ', err);
+	});
+	return result;
+};
 
-async function getDiretoria(CCS_ID) {
-	// let currentDate = (new Date(Date.now())).toISOString().split('T')[0].split('-');
-	// currentDate = new Date(currentDate[0], currentDate[1] - 1, currentDate[2]);
+module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
+	const result = await sequelize.query(`
+	SELECT ccs
+	FROM id_ccs
+	WHERE cod_ccs = ${CCS_ID}
+	LIMIT 1;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Got name from ${CCS_ID} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getDiretoria => ', err);
+	});
+	return result[0].ccs;
+};
 
+module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT nome, cargo, fim_gestao
 	FROM diretoria
 	WHERE id_ccs_cod_ccs = ${CCS_ID}
 	ORDER BY inicio_gestao DESC, nome
-	LIMIT 10
+	LIMIT 10;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded Diretoria from ${CCS_ID} successfully!`);
 		return results;
@@ -49,16 +77,14 @@ async function getDiretoria(CCS_ID) {
 		console.error('Error on getDiretoria => ', err);
 	});
 	return result;
-}
+};
 
-module.exports.getDiretoria = getDiretoria;
-
-async function getCalendario(CCS_ID) {
+module.exports.getCalendario = async function getCalendario(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT data_hora, endereco
 	FROM agenda
 	WHERE id_ccs_cod_ccs = ${CCS_ID}
-	ORDER BY data_hora DESC
+	ORDER BY data_hora DESC;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded calendario from ${CCS_ID} successfully!`);
 		return results;
@@ -66,15 +92,13 @@ async function getCalendario(CCS_ID) {
 		console.error('Error on getCalendario => ', err);
 	});
 	return result;
-}
+};
 
-module.exports.getCalendario = getCalendario;
-
-async function getAssuntos(CCS_ID) {
+module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT assunto
 	FROM assunto_ata
-	WHERE id_ccs_cod_ccs = ${CCS_ID}
+	WHERE id_ccs_cod_ccs = ${CCS_ID};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		const assuntos = [];
 		results.forEach((element) => {
@@ -86,19 +110,45 @@ async function getAssuntos(CCS_ID) {
 		console.error('Error on getAssuntos => ', err);
 	});
 	return result;
-}
+};
 
-module.exports.getAssuntos = getAssuntos;
-
-async function addNotActive(UserID, CCS_COD) { // adds a future notification if the user searched for a not-active ccs
+// adds a future notification if the user searched for a not-active ccs
+module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 	await sequelize.query(`
 	INSERT INTO notificar_ativacao(user_id, ccs_cod)
-	VALUES (${UserID}, ${CCS_COD})
+	VALUES (${UserID}, ${CCS_COD});
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Added ${UserID} and ${CCS_COD} successfully!`);
 	}).catch((err) => {
 		console.error('Error on addNotActive => ', err);
 	});
-}
+};
 
-module.exports.addNotActive = addNotActive;
+// get every notification that wasn't already sent
+module.exports.getActivatedNotification = async function getActivatedNotification() {
+	const result = await sequelize.query(`
+	SELECT id, user_id, ccs_cod
+	FROM notificar_ativacao
+	WHERE NOT notificado
+	ORDER BY ccs_cod;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log('Loaded notifications successfully!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getAssuntos => ', err);
+	});
+	return result;
+};
+
+// updates value of notificado from PK
+module.exports.updateNotification = async function updateNotification(PK) {
+	await sequelize.query(`
+	UPDATE notificar_ativacao
+	SET notificado = FALSE
+	WHERE id = ${PK};
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Updated row ${PK} successfully!`);
+	}).catch((err) => {
+		console.error('Error on addNotActive => ', err);
+	});
+};

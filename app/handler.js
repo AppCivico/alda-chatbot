@@ -268,7 +268,7 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
 						`${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
-				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
+				if (context.state.CCS.status === 'Ativo') { // check if ccs isn't active
 					await context.sendText(`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`, await attach.getQR(flow.notFoundBairro));
 					await db.addNotActive(context.session.user.id, context.state.CCS.cod_ccs);
 				} else { // ask user if he already went to one of the meetings

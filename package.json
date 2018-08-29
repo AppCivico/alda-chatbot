@@ -10,6 +10,7 @@
   "dependencies": {
     "@google/maps": "^0.5.4",
     "bottender": "0.14.34",
+    "cron": "^1.4.1",
     "dotenv": "^5.0.1",
     "moment": "^2.22.2",
     "node-emoji": "^1.8.1",
