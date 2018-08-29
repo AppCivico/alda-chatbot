@@ -14,7 +14,6 @@ function findCCS(CCSList, place) {
 				result.neighborhoods.push(element.bairro);
 			}
 		});
-		console.log(result);
 		return result;
 	}
 	return undefined;
@@ -72,7 +71,6 @@ function findBairrosByCod(CCSList, cod) { // find other bairros that are also se
 	for (const element of CCSList) { // eslint-disable-line
 		if (element.cod_ccs === cod) { // if their code is the same, this bairro is on the same CCS
 			bairros.push(element.bairro);
-			console.log(bairros);
 		}
 	}
 	return bairros;

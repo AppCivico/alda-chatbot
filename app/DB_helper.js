@@ -89,3 +89,16 @@ async function getAssuntos(CCS_ID) {
 }
 
 module.exports.getAssuntos = getAssuntos;
+
+async function addNotActive(UserID, CCS_COD) { // adds a future notification if the user searched for a not-active ccs
+	await sequelize.query(`
+	INSERT INTO notificar_ativacao(user_id, ccs_cod)
+	VALUES (${UserID}, ${CCS_COD})
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Added ${UserID} and ${CCS_COD} successfully!`);
+	}).catch((err) => {
+		console.error('Error on addNotActive => ', err);
+	});
+}
+
+module.exports.addNotActive = addNotActive;
