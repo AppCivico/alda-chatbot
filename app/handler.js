@@ -37,8 +37,7 @@ if (!global.TEST) {
 const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
-
-const timeLimit = 1000 * 60 * 60; // 60 minutes
+const timeLimit = 1000 * 60 * 60 * 12; // 60 minutes * 12 hours
 
 // context.state.geoLocation => the geolocation coordinates from the user
 // context.state.bairro => bairro found with GoogleMaps API or that the user typed
@@ -54,10 +53,10 @@ module.exports = async (context) => {
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
 					await context.sendText(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
-					await context.setState({ dialog: 'mainMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 				} else {
 					await context.sendText(`Olá! ${flow.greetings.comeBack}`);
-					await context.setState({ dialog: 'mainMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 				}
 			} else if (context.event.isPostback) {
 				if (context.event.postback.payload.slice(0, 6) === 'centro') { // from confirmCentro
@@ -118,8 +117,8 @@ module.exports = async (context) => {
 					break;
 				}
 			} else if (context.event.isText) {
-				if (context.event.message.text === process.env.RESTART) {
-					await context.resetState();
+				if (context.event.message.text === process.env.RESTART) { // for quick testing
+					// await context.resetState();
 					await context.setState({ dialog: 'whichCCSMenu' });
 				} else {
 					switch (context.state.dialog) {
@@ -145,11 +144,11 @@ module.exports = async (context) => {
 						await context.setState({ municipiosFound: '' });
 						if (!context.state.bairro) {
 							await context.setState({ dialog: 'bairroNotFound' });
-						} else if (context.state.bairro.length === 1) {
-							await context.setState({ CCS: context.state.bairro[0] });
-							await context.setState({ dialog: 'nearestCouncil' });
 						} else if (context.state.bairro[0].bairro === 'Centro') { // this means we are on bairro "centro"
 							await context.setState({ dialog: 'confirmCentro' });
+						} else if (context.state.bairro.length >= 1) {
+							await context.setState({ CCS: context.state.bairro[0] });
+							await context.setState({ dialog: 'nearestCouncil' });
 						}
 						break;
 					case 'eMail':
@@ -208,11 +207,9 @@ module.exports = async (context) => {
 				if (!context.state.CCS || !context.state.bairro) {
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
-					console.log(context.state.bairro);
-
 					await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
 					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
-					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.whichCCSMenu));
 				}
 				break;
 			case 'sendLocation':
@@ -220,7 +217,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 				break;
 			case 'wantToChange': // comes from sendLocation flow
-				await context.setState({ CCS: undefined, geoLocation: undefined, bairro: undefined });
+				await context.setState({ geoLocation: undefined, bairro: undefined });
 				await context.sendText(flow.wantToChange.firstMessage);
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
@@ -228,7 +225,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.firstMessage);
 				// falls through
 			case 'wantToType1': // asking for municipio
-				await context.setState({ CCS: undefined, geoLocation: undefined, bairro: undefined });
+				await context.setState({ geoLocation: undefined, bairro: undefined });
 				await context.setState({ retryCount: context.state.retryCount + 1 });
 				// On the users 3rd try we offer him to either give up or send his location directly
 				if (context.state.retryCount > 3) {
@@ -240,7 +237,7 @@ module.exports = async (context) => {
 				break;
 			case 'wantToType2': // asking for bairro
 				await context.setState({ retryCount: 0 });
-				await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}`);
+				await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}.`);
 				break;
 			case 'municipioNotFound':
 				await context.sendText('Não consegui encontrar esse município. ' +
@@ -255,10 +252,12 @@ module.exports = async (context) => {
 					'conselhos nessa região. Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
 				await attach.sendCentro(context, context.state.bairro);
 				break;
-			case 'foundLocation':
+			case 'foundLocation': // are we ever using this?
 				await context.sendText(flow.foundLocation.firstMessage);
 				await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 				break;
+			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
+				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
 				await context.setState({ otherBairros: await help.findBairrosByCod(CCSBairros, context.state.CCS.cod_ccs) }); // get other bairros on this ccs
 

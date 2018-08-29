@@ -39,6 +39,10 @@ module.exports = {
 		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
 		// the rest of the dialog comes from foundLocation
 	},
+	whichCCSMenu: {
+		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
+		menuPostback: ['advance', 'wantToChange'],
+	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',

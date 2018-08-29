@@ -27,7 +27,7 @@ function findCCSMunicipio(CCSList, municipio) {
 	const sameMunicipio = [];
 
 	CCSList.forEach((element) => { // get every ccs on the same municipio (we say municipio but we are actually using regiao)
-		if (element.regiao.toLowerCase() === municipio.trim().toLowerCase()) {
+		if (element.regiao.toLowerCase().includes(municipio.trim().toLowerCase())) {
 			sameMunicipio.push(element);
 		}
 	});
@@ -44,7 +44,7 @@ function findCCSBairro(sameMunicipio, bairro) {
 	const theBairro = [];
 
 	sameMunicipio.forEach((element) => {
-		if (element.bairro.toLowerCase() === bairro.trim().toLowerCase()) {
+		if (element.bairro.toLowerCase().includes(bairro.trim().toLowerCase())) {
 			theBairro.push(element);
 		}
 	});
