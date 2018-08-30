@@ -22,13 +22,13 @@ module.exports.sendActivatedNotification = async function sendActivatedNotificat
 	} else {
 		textMsg = `Olá, o ${ccsName} se encontra agora ativo. Este conselho os bairros ${bairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`;
 	}
-
+	// TODO: Tirar o botão "Entendi" e mostrar botões "Entendi" e "Ver sobre esse CCS"
 	const response = await client.sendText(USER_ID, textMsg, {
 		quick_replies: [
 			{
 				content_type: 'text',
 				title: 'Entendi',
-				payload: 'whichCCSMenu',
+				payload: 'advance',
 			},
 		],
 	}).then(resp => // eslint-disable-line no-unused-vars
