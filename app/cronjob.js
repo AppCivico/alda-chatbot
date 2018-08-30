@@ -4,7 +4,7 @@ const db = require('./DB_helper');
 
 // Cronjob for notificating users that a ccs they were interested in is now active
 const activatedCCS = new Cron.CronJob(
-	'*/5 * * * * 1-5', async () => { // At 10h from monday through friday 00 00 10 * * 1-5
+	'*/5 * 10 * * 1-5', async () => { // At 10h from monday through friday 00 00 10 * * 1-5
 		const notifications = await db.getActivatedNotification();
 		console.log(notifications);
 
@@ -14,30 +14,21 @@ const activatedCCS = new Cron.CronJob(
 			bairros: await db.getEveryBairro(notifications[0].ccs_cod),
 		};
 
-		const sentAlready = {};
-
-		// fix this
-		for (let [element] of notifications) { // eslint-disable-line
-			if (sentAlready[element.user_id] && sentAlready[element.user_id] === element.ccs_cod) {
-				// What happens here: The same user can query if a certain CCS is active multiple times and we store all of them in the database
-				// With sentAlready we can detected if we already warned the user that this ccs is now active, so we won't warn him again
-			} else if (element.ccs_cod !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
-				// If we are not on the same CCS as before we have to reload the data
+		for (const element of notifications) { // eslint-disable-line
+			if (element.ccs_cod !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
+				// If we are not warning on the same CCS as before we have to reload the data
 				// This is an assurance in case more than one ccs gets activated
-				console.log(element);
-
-				currentCCS = await {
+				// Obs: the getActivatedNotification query orders results by the ccs_cod
+				currentCCS = {
 					cod_ccs: element.ccs_cod,
-					nome: await db.getNamefromCCS(element.ccs_cod),
-					bairros: await db.getEveryBairro(element.ccs_cod),
+					nome: await db.getNamefromCCS(element.ccs_cod), // eslint-disable-line no-await-in-loop
+					bairros: await db.getEveryBairro(element.ccs_cod), // eslint-disable-line no-await-in-loop
 				};
-				console.log(`Ei, ${element.user_id}. O ${currentCCS.nome} está ativo agora! Ele encobre as regiões ${currentCCS.bairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}`); // send notification to user to be implemented
-			} else {
-				console.log(`Ei, ${element.user_id}. O ${currentCCS.nome} está ativo agora! Ele encobre as regiões ${currentCCS.bairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}`); // send notification to user to be implemented
 			}
+
 			// finally we send the messages
-			sentAlready[element.user_id] = element.ccs_cod; // add user + cod to the alreadySent object because he already knows that this ccs
-			// db.updateNotification(element.user_id);
+			console.log(`Ei, ${element.user_id}. O ${currentCCS.nome} está ativo agora! Ele encobre as regiões ${currentCCS.bairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}`); // send notification to user to be implemented
+			// db.updateNotification(element.user_id); // table boolean gets updated either way
 		}
 	}, (() => {
 		console.log('Crontab \'activatedCCSTimer\' stopped.');

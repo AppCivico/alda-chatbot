@@ -30,20 +30,36 @@ module.exports.getCCS = async function getCCS() {
 	return result;
 };
 
+module.exports.checkIfNotificationExists = async function getEveryBairro(UserID, CCS_ID) {
+	const result = await sequelize.query(`
+	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id=${UserID} AND ccs_cod=${CCS_ID})
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on checkIfNotificationExists => ', err);
+	});
+	return result[0].exists;
+};
+
 module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT bairro
+	SELECT bairro, municipio
 	FROM ccs_aisp_risp
-	WHERE id_ccs_cod_ccs = ${CCS_ID}
+	WHERE id_ccs_cod_ccs = ${CCS_ID};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		const bairros = [];
 		results.forEach((element) => {
-			bairros.push(element.bairro);
+			if (element.bairro) { // in case bairro is empty
+				bairros.push(element.bairro);
+			} else {
+				bairros.push(element.municipio);
+			}
 		});
 		console.log(`Loaded bairros from ${CCS_ID} successfully!`);
 		return bairros;
 	}).catch((err) => {
-		console.error('Error on getDiretoria => ', err);
+		console.error('Error on getEveryBairro => ', err);
 	});
 	return result;
 };

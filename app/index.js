@@ -4,13 +4,9 @@ const { MessengerBot, FileSessionStore, withTyping } = require('bottender');
 const { createServer } = require('bottender/restify');
 
 const config = require('./bottender.config').messenger;
-
 const cronjobs = require('./cronjob');
 
 const messageWaiting = eval(process.env.TIME_WAIT); // eslint-disable-line no-eval
-
-console.log(`Crontab activatedCCS is running? => ${cronjobs.activatedCCS.running}`);
-
 
 const bot = new MessengerBot({
 	accessToken: config.accessToken,
@@ -30,6 +26,7 @@ const server = createServer(bot);
 server.listen(process.env.API_PORT, () => {
 	console.log(`Server is running on ${process.env.API_PORT} port...`);
 	console.log(`App: ${process.env.APP} & Page: ${process.env.PAGE}`);
+	console.log(`Cronjob activatedCCS is running? => ${cronjobs.activatedCCS.running}`);
 });
 
 process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });
