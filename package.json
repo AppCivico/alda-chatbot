@@ -12,6 +12,7 @@
     "bottender": "0.14.34",
     "cron": "^1.4.1",
     "dotenv": "^5.0.1",
+    "messaging-api-messenger": "^0.7.6",
     "moment": "^2.22.2",
     "node-emoji": "^1.8.1",
     "nodemon": "^1.17.4",
