@@ -118,7 +118,6 @@ module.exports = async (context) => {
 						}
 						break;
 					case 'wantToType2':
-						// await context.setState({ bairro: context.event.message.text }); // what the user types is stored here
 						await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.event.message.text) });
 						await context.setState({ municipiosFound: '' });
 						if (!context.state.bairro) {
@@ -216,7 +215,14 @@ module.exports = async (context) => {
 				break;
 			case 'wantToType2': // asking for bairro
 				await context.setState({ retryCount: 0 });
-				await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}.`);
+				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) });
+
+				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
+					await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}.`);
+				} else {
+					await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}. `
+					+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' ou')}.`);
+				}
 				break;
 			case 'municipioNotFound':
 				await context.sendText('Não consegui encontrar esse município. ' +
@@ -378,12 +384,6 @@ module.exports = async (context) => {
 		console.log(err);
 		console.log('\n');
 
-		// await context.sendText('Parece que aconteceu um erro');
 		await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
 	}
 };
-
-
-// municipio
-// bairro
-// centro => região
