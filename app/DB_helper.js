@@ -30,18 +30,6 @@ module.exports.getCCS = async function getCCS() {
 	return result;
 };
 
-module.exports.checkIfNotificationExists = async function checkIfNotificationExists(UserID, CCS_ID) {
-	const result = await sequelize.query(`
-	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id=${UserID} AND ccs_cod=${CCS_ID})
-	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
-		return results;
-	}).catch((err) => {
-		console.error('Error on checkIfNotificationExists => ', err);
-	});
-	return result[0].exists;
-};
-
 // get every ccs on the same municipio (we say municipio but we are actually using regiao)
 module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Municipio) {
 	const result = await sequelize.query(`
@@ -173,6 +161,21 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	return result;
 };
 
+// notificar_ativacao -------------------------------------------------------------------------------
+
+// check if notification_ativacao with UserID, CCS_ID exists already
+module.exports.checkNotificationAtivacao = async function checkNotificationAtivacao(UserID, CCS_ID) {
+	const result = await sequelize.query(`
+	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id=${UserID} AND ccs_cod=${CCS_ID})
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on checkNotificationAtivacao => ', err);
+	});
+	return result[0].exists;
+};
+
 // adds a future notification if the user searched for a not-active ccs
 module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 	await sequelize.query(`
@@ -197,7 +200,7 @@ module.exports.getActivatedNotification = async function getActivatedNotificatio
 		console.log('Loaded notifications successfully!');
 		return results;
 	}).catch((err) => {
-		console.error('Error on getAssuntos => ', err);
+		console.error('Error on getActivatedNotification => ', err);
 	});
 	return result;
 };
@@ -211,16 +214,52 @@ module.exports.updateNotification = async function updateNotification(PK) {
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Updated row ${PK} successfully!`);
 	}).catch((err) => {
+		console.error('Error on updateNotification => ', err);
+	});
+};
+
+// notificar_agenda -------------------------------------------------------------------------------
+
+// check if notification_agenda with UserID, CCS_ID exists already
+module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, CCS_ID) {
+	const result = await sequelize.query(`
+	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id=${UserID} AND ccs_cod=${CCS_ID})
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on checkNotificationAgenda => ', err);
+	});
+	return result[0].exists;
+};
+
+// adds a future notification_agenda if the user searched the agenda for that ccs
+module.exports.addAgenda = async function addNotActive(UserID, CCS_COD, DataHora) {
+	await sequelize.query(`
+	INSERT INTO notificar_agenda(user_id, ccs_cod, data_hora)
+	VALUES ('${UserID}', '${CCS_COD}', '${DataHora}');
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Added ${UserID} and ${CCS_COD} successfully!`);
+	}).catch((err) => {
 		console.error('Error on addNotActive => ', err);
 	});
 };
 
-
 /*
 	CREATE TABLE notificar_ativacao(
 	ID SERIAL PRIMARY KEY,
-	user_id        BIGINT     NOT NULL,
+	user_id        BIGINT  NOT NULL,
 	ccs_cod        INT     NOT NULL,
+	notificado     BOOLEAN NOT NULL DEFAULT FALSE
+);
+*/
+
+/*
+	CREATE TABLE notificar_agenda(
+	ID SERIAL PRIMARY KEY,
+	user_id        BIGINT  NOT NULL,
+	ccs_cod        INT     NOT NULL,
+	data_hora	   TIMESTAMP WITHOUT TIME ZONE,
 	notificado     BOOLEAN NOT NULL DEFAULT FALSE
 );
 */
