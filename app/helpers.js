@@ -18,6 +18,7 @@ module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
 	return undefined;
 };
 
+// get n number of random elements from arr
 function getRandom(arr, n) {
 	const result = new Array(n);
 	let len = arr.length;
@@ -45,7 +46,7 @@ module.exports.listBairros = function listBairros(ccs) {
 		bairros.push(element.bairro);
 	});
 	bairros = getRandom(bairros, 5);
-	return [...new Set(bairros)];
+	return [...new Set(bairros)]; // set stores only unique values
 };
 
 // function findCCS(CCSList, place) {
