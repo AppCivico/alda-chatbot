@@ -312,8 +312,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				// before adding the user+ccs on the table we check if it's already there
 				if (await db.checkNotificationAgenda(context.session.user.id, context.state.CCS.cod_ccs) !== true) {
-					// TODO rever questão do timezone
-					await db.addAgenda(context.session.user.id, context.state.CCS.cod_ccs, context.state.calendario[0].data_hora); // if it's not we add it
+					await db.addAgenda(context.session.user.id, context.state.CCS.cod_ccs, context.state.calendario[0].data_hora.toLocaleString()); // if it's not we add it
 				}
 				await context.typingOff();
 				break;
