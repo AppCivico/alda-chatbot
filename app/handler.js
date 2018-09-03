@@ -13,31 +13,10 @@ const db = require('./DB_helper');
 const help = require('./helpers');
 // const postback = require('./postback');
 
-let CCSBairros;
-if (!global.TEST) {
-	db.sequelize
-		.authenticate()
-		.then(async () => {
-			console.log('Connection has been established successfully.');
-			CCSBairros = await db.getCCS();
-			CCSBairros.push({ // for send-location testing purposes
-				ccs: 'CCS Eokoe', // the name of the CCS
-				cod_ccs: 1087, // don't forget this
-				status: 'Ativo',
-				regiao: 'SP',
-				municipio: 'Paraíso',
-				bairro: 'Paraíso',
-			});
-			// CCSBairros.forEach((element) => { console.log(element); });
-		}).catch((err) => {
-			console.error('Unable to connect to the database:', err);
-		});
-}
-
 const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
-const timeLimit = 1000 * 60 * 60 * 12; // 60 minutes * 12 hours
+const timeLimit = 1000 * 60 * 60 * 12; // 60 minutes * 12 hours => 1000 * 60 * 60 * 12
 
 // context.state.geoLocation => the geolocation coordinates from the user
 // context.state.bairro => bairro found with GoogleMaps API or that the user typed
@@ -87,7 +66,7 @@ module.exports = async (context) => {
 						if (context.state.bairro === 'Centro') { // test with Paraíso
 							await context.setState({ dialog: 'confirmCentro' });
 						} else {
-							await context.setState({ CCS: await CCSBairros.find(obj => (obj.bairro.includes(context.state.bairro))) }); // load CCS from bairro
+							await context.setState({ CCS: await db.getCCSsFromBairro(context.state.bairro.toLowerCase()) }); // load CCS from bairro
 							await context.setState({ dialog: 'nearestCouncil' });
 						}
 					}
@@ -131,8 +110,8 @@ module.exports = async (context) => {
 					case 'wantToChange':
 					// falls through
 					case 'wantToType1':
-						await context.setState({ municipiosFound: await help.findCCSMunicipio(CCSBairros, context.event.message.text) });
-						if (!context.state.municipiosFound) {
+						await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.event.message.text.toLowerCase()) });
+						if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
 							await context.setState({ dialog: 'municipioNotFound' });
 						} else {
 							await context.setState({ dialog: 'wantToType2' });
@@ -259,7 +238,7 @@ module.exports = async (context) => {
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
-				await context.setState({ otherBairros: await help.findBairrosByCod(CCSBairros, context.state.CCS.cod_ccs) }); // get other bairros on this ccs
+				await context.setState({ otherBairros: await db.getEveryBairro(context.state.CCS.cod_ccs) }); // get other bairros on this ccs
 
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs
 					await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
