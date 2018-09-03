@@ -140,13 +140,14 @@ module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 	});
 };
 
-// get every notification that wasn't already sent
+// get every notification that wasn't already sent but only if the status of the ccs is now active
 module.exports.getActivatedNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
-	SELECT id, user_id, ccs_cod
-	FROM notificar_ativacao
-	WHERE NOT notificado
-	ORDER BY ccs_cod;
+	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ccs_cod, CCS.cod_ccs, CCS.status
+	FROM notificar_ativacao AS NOTIFICATION
+	INNER JOIN id_ccs CCS ON NOTIFICATION.ccs_cod = CCS.cod_ccs
+	WHERE NOT NOTIFICATION.notificado and CCS.status = 'Ativo'
+	ORDER BY NOTIFICATION.ccs_cod;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log('Loaded notifications successfully!');
 		return results;
