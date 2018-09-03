@@ -169,3 +169,13 @@ module.exports.updateNotification = async function updateNotification(PK) {
 		console.error('Error on addNotActive => ', err);
 	});
 };
+
+
+/*
+	CREATE TABLE notificar_ativacao(
+	ID SERIAL PRIMARY KEY,
+	user_id        BIGINT     NOT NULL,
+	ccs_cod        INT     NOT NULL,
+	notificado     BOOLEAN NOT NULL DEFAULT FALSE
+);
+*/
