@@ -119,14 +119,13 @@ module.exports = async (context) => {
 						break;
 					case 'wantToType2':
 						await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.event.message.text) });
-						await context.setState({ municipiosFound: '' });
 						if (!context.state.bairro) {
 							await context.setState({ dialog: 'bairroNotFound' });
 						} else if (context.state.bairro[0].bairro === 'Centro') { // this means we are on bairro "centro"
-							await context.setState({ dialog: 'confirmCentro' });
+							await context.setState({ dialog: 'confirmCentro', municipiosFound: '' });
 						} else if (context.state.bairro.length >= 1) {
 							await context.setState({ CCS: context.state.bairro[0] });
-							await context.setState({ dialog: 'nearestCouncil' });
+							await context.setState({ dialog: 'nearestCouncil', municipiosFound: '' });
 						}
 						break;
 					case 'eMail':
@@ -215,12 +214,12 @@ module.exports = async (context) => {
 				break;
 			case 'wantToType2': // asking for bairro
 				await context.setState({ retryCount: 0 });
-				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) });
+				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
 
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
-					await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}.`);
+					await context.sendText(`Legal. Agora digite o bairro da região ${context.state.municipiosFound[0].regiao}.`);
 				} else {
-					await context.sendText(`Legal. Agora digite o bairro do município ${context.state.municipiosFound[0].regiao}. `
+					await context.sendText(`Legal. Agora digite o bairro da região ${context.state.municipiosFound[0].regiao}. `
 					+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' ou')}.`);
 				}
 				break;
@@ -229,8 +228,18 @@ module.exports = async (context) => {
 					'Deseja tentar novamente? Você pode pesquisar por Interior, Capital, Grande Niterói e Baixada Fluminense.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound':
-				await context.sendText('Não consegui encontrar esse bairro. ' +
-					'Quer tentar de novo? Você pode pesquisar por Copacabana, Centro, Ipanema e outros.', await attach.getQR(flow.notFoundBairro));
+				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
+
+				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
+					await context.sendText(`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}. ` +
+							'Quer tentar de novo? ', await attach.getQR(flow.notFoundBairro));
+				} else {
+					await context.sendText(
+						`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}.\n` +
+						`Quer tentar de novo? Exemplos de alguns bairros nesse municipio: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
+						await attach.getQR(flow.notFoundBairro),
+					);
+				}
 				break;
 			case 'confirmCentro':
 				await context.sendText(`Parece que você quer saber sobre o Centro da Capital do Rio! Temos ${context.state.bairro.length} ` +
