@@ -99,7 +99,7 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'calendar' });
+					await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':

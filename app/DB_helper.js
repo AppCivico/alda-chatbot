@@ -14,8 +14,8 @@ module.exports.sequelize = sequelize;
 module.exports.getCCS = async function getCCS() {
 	const result = await sequelize.query(`
     SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
-	FROM id_ccs CCS
-	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs;
+	FROM conselhos CCS
+	INNER JOIN abrangencias LOCATION ON CCS.cod_ccs = LOCATION.conselho_id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
 			if (element.bairro === null) {
@@ -34,8 +34,8 @@ module.exports.getCCS = async function getCCS() {
 module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Municipio) {
 	const result = await sequelize.query(`
     SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
-	FROM id_ccs CCS
-	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs
+	FROM conselhos CCS
+	INNER JOIN abrangencias LOCATION ON CCS.cod_ccs = LOCATION.conselho_id
 	WHERE LOWER(LOCATION.regiao) = '${Municipio}'
 	ORDER BY CCS.cod_ccs;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -56,8 +56,8 @@ module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Munici
 module.exports.getCCSsFromBairro = async function getCCSsFromBairro(Bairro) {
 	const result = await sequelize.query(`
     SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
-	FROM id_ccs CCS
-	INNER JOIN ccs_aisp_risp LOCATION ON CCS.cod_ccs = LOCATION.id_ccs_cod_ccs
+	FROM conselhos CCS
+	INNER JOIN abrangencias LOCATION ON CCS.cod_ccs = LOCATION.conselho_id
 	WHERE LOWER(LOCATION.regiao) = '${Bairro} OR LOWER(LOCATION.bairro) = '${Bairro}'
 	ORDER BY CCS.cod_ccs;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -78,8 +78,8 @@ module.exports.getCCSsFromBairro = async function getCCSsFromBairro(Bairro) {
 module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT bairro, municipio
-	FROM ccs_aisp_risp
-	WHERE id_ccs_cod_ccs = ${CCS_ID};
+	FROM abrangencias
+	WHERE conselho_id = ${CCS_ID};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		const bairros = [];
 		results.forEach((element) => { // building an array of bairros
@@ -100,7 +100,7 @@ module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
 module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT ccs
-	FROM id_ccs
+	FROM conselhos
 	WHERE cod_ccs = ${CCS_ID}
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -193,7 +193,7 @@ module.exports.getActivatedNotification = async function getActivatedNotificatio
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ccs_cod, CCS.cod_ccs, CCS.status
 	FROM notificar_ativacao AS NOTIFICATION
-	INNER JOIN id_ccs CCS ON NOTIFICATION.ccs_cod = CCS.cod_ccs
+	INNER JOIN conselhos CCS ON NOTIFICATION.ccs_cod = CCS.cod_ccs
 	WHERE NOT NOTIFICATION.notificado and CCS.status = 'Ativo'
 	ORDER BY NOTIFICATION.ccs_cod;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
