@@ -67,7 +67,13 @@ module.exports = async (context) => {
 							await context.setState({ dialog: 'confirmCentro' });
 						} else {
 							await context.setState({ CCS: await db.getCCSsFromBairro(context.state.bairro.toLowerCase()) }); // load CCS from bairro
-							await context.setState({ dialog: 'nearestCouncil' });
+							if (context.state.CCS && context.state.CCS.length !== 0) { // meaning we found a ccs on that bairro
+								await context.setState({ CCS: context.state.CCS[0] }); // load CCS from bairro
+								// db return an array and we grab the first object/bairro.
+								await context.setState({ dialog: 'nearestCouncil' });
+							} else {
+								await context.setState({ dialog: 'notFoundFromGeo' });
+							}
 						}
 					}
 					break;
@@ -98,8 +104,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'greetings' });
+					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -254,7 +260,7 @@ module.exports = async (context) => {
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
-				await context.setState({ otherBairros: await db.getEveryBairro(context.state.CCS.cod_ccs) }); // get other bairros on this ccs
+				await context.setState({ otherBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
 
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs
 					await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
@@ -266,8 +272,8 @@ module.exports = async (context) => {
 				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
 					await context.sendText(`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`, await attach.getQR(flow.notFoundBairro));
 					// before adding the user+ccs on the table we check if it's already there
-					if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.cod_ccs) !== true) {
-						await db.addNotActive(context.session.user.id, context.state.CCS.cod_ccs); // if it's not we add it
+					if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
+						await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 					}
 				} else { // ask user if he already went to one of the meetings
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
@@ -281,7 +287,7 @@ module.exports = async (context) => {
 				break;
 			case 'wannaKnowMembers':
 				await context.typingOn();
-				await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.cod_ccs) }); // all the members of the the diretoria
+				await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.id) }); // all the members of the the diretoria
 				await context.setState({ diretoriaAtual: [] }); // stored active members on present date
 				await context.state.diretoria.forEach((element) => { // check which members of the diretoria aren't active today
 					if (Date.parse(element.fim_gestao) > new Date()) { context.state.diretoriaAtual.push(element); }
@@ -305,20 +311,20 @@ module.exports = async (context) => {
 				break;
 			case 'calendar': // agenda
 				await context.typingOn();
-				await context.setState({ calendario: await db.getCalendario(context.state.CCS.cod_ccs) });
+				await context.setState({ calendario: await db.getCalendario(context.state.CCS.id) });
 				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
 					`${help.formatDate(moment, context.state.calendario[0].data_hora)} e vai acontecer no local ` +
 					`${context.state.calendario[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				// before adding the user+ccs on the table we check if it's already there
-				if (await db.checkNotificationAgenda(context.session.user.id, context.state.CCS.cod_ccs) !== true) {
-					await db.addAgenda(context.session.user.id, context.state.CCS.cod_ccs, context.state.calendario[0].data_hora.toLocaleString()); // if it's not we add it
+				if (await db.checkNotificationAgenda(context.session.user.id, context.state.CCS.id) !== true) {
+					await db.addAgenda(context.session.user.id, context.state.CCS.id, context.state.calendario[0].data_hora.toLocaleString()); // if it's not we add it
 				}
 				await context.typingOff();
 				break;
 			case 'subjects':
 				await context.typingOn();
-				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.cod_ccs) });
+				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
 				if (context.state.assuntos.length === 0) {
 					await context.sendText(flow.subjects.emptyAssuntos);
 				} else { // TODO This will be updated to receive a link to a PDF
@@ -388,8 +394,13 @@ module.exports = async (context) => {
 					await context.sendText(flow.foundLocation.noFindGeo);
 					await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
 				});
+				break; }
+			case 'notFoundFromGeo':
+				await context.sendText(
+					`Não encontrei nenhum conselho no bairro ${context.state.bairro}. Quer tentar novamente?`,
+					await attach.getQR(flow.whichCCS),
+				);
 				break;
-			}
 			} // dialog switch
 		} // try
 	} catch (err) {

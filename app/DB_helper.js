@@ -13,9 +13,9 @@ module.exports.sequelize = sequelize;
 
 module.exports.getCCS = async function getCCS() {
 	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
-	INNER JOIN abrangencias LOCATION ON CCS.cod_ccs = LOCATION.conselho_id;
+	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
 			if (element.bairro === null) {
@@ -33,11 +33,11 @@ module.exports.getCCS = async function getCCS() {
 // get every ccs on the same municipio (we say municipio but we are actually using regiao)
 module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Municipio) {
 	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
-	INNER JOIN abrangencias LOCATION ON CCS.cod_ccs = LOCATION.conselho_id
+	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
 	WHERE LOWER(LOCATION.regiao) = '${Municipio}'
-	ORDER BY CCS.cod_ccs;
+	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
 			if (element.bairro === null) {
@@ -55,11 +55,11 @@ module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Munici
 // get ccs using bairro
 module.exports.getCCSsFromBairro = async function getCCSsFromBairro(Bairro) {
 	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.cod_ccs, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
-	INNER JOIN abrangencias LOCATION ON CCS.cod_ccs = LOCATION.conselho_id
-	WHERE LOWER(LOCATION.regiao) = '${Bairro} OR LOWER(LOCATION.bairro) = '${Bairro}'
-	ORDER BY CCS.cod_ccs;
+	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
+	WHERE LOWER(LOCATION.regiao) = '${Bairro}' OR LOWER(LOCATION.bairro) = '${Bairro}'
+	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
 			if (element.bairro === null) {
@@ -101,7 +101,7 @@ module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT ccs
 	FROM conselhos
-	WHERE cod_ccs = ${CCS_ID}
+	WHERE id = ${CCS_ID}
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Got name from ${CCS_ID} successfully!`);
@@ -191,9 +191,9 @@ module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 // get every notification that wasn't already sent but only if the status of the ccs is now 'Ativo'
 module.exports.getActivatedNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
-	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ccs_cod, CCS.cod_ccs, CCS.status
+	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ccs_cod, CCS.id, CCS.status
 	FROM notificar_ativacao AS NOTIFICATION
-	INNER JOIN conselhos CCS ON NOTIFICATION.ccs_cod = CCS.cod_ccs
+	INNER JOIN conselhos CCS ON NOTIFICATION.ccs_cod = CCS.id
 	WHERE NOT NOTIFICATION.notificado and CCS.status = 'Ativo'
 	ORDER BY NOTIFICATION.ccs_cod;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
