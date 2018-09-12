@@ -164,6 +164,21 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	});
 	return result;
 };
+module.exports.getResults = async function getResults(AgendaID) {
+	const result = await sequelize.query(`
+	SELECT texto
+	FROM resultados
+	WHERE agenda_id = ${AgendaID} ;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Loaded resultados from ${AgendaID} successfully!`);
+		console.log(results);
+
+		return results;
+	}).catch((err) => {
+		console.error('Error on getResults => ', err);
+	});
+	return result[0].texto;
+};
 
 // notificar_ativacao -------------------------------------------------------------------------------
 

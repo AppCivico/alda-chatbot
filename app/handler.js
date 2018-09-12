@@ -333,8 +333,7 @@ module.exports = async (context) => {
 				break;
 			case 'subjects':
 				await context.typingOn();
-				await context.setState({ assuntos: await db.getAssuntos(1028) });
-				// await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
+				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
 				if (context.state.assuntos.length === 0) {
 					await context.sendText(flow.subjects.emptyAssuntos);
 				} else { // TODO This will be updated to receive a link to a PDF
@@ -345,8 +344,13 @@ module.exports = async (context) => {
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
 				await context.typingOff();
 				break;
-			case 'results':
-				await attach.sendCard(context, flow.results);
+			case 'results': // TODO SET DEFAULT CARD AND PUT LINK ON TEXTO
+				await context.setState({ results: await db.getResults(context.state.calendario[0].id) });
+				if (context.state.results === '') { // if we have not results we send this template card
+					await attach.sendCard(context, flow.results);
+				} else {
+					await context.sendText(`Nossos resultados:${context.state.results}`);
+				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
 			case 'join':
