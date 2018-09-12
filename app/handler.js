@@ -333,7 +333,8 @@ module.exports = async (context) => {
 				break;
 			case 'subjects':
 				await context.typingOn();
-				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
+				await context.setState({ assuntos: await db.getAssuntos(1028) });
+				// await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
 				if (context.state.assuntos.length === 0) {
 					await context.sendText(flow.subjects.emptyAssuntos);
 				} else { // TODO This will be updated to receive a link to a PDF
@@ -418,6 +419,8 @@ module.exports = async (context) => {
 		console.log(err);
 		console.log('\n');
 
-		await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
+		await context.sendText(` Erro: ${flow.councilMenu.firstMessage}`, await attach.getQR(flow.councilMenu));
+
+		// await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
 	}
 };

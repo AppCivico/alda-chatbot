@@ -149,9 +149,9 @@ module.exports.getAgenda = async function getAgenda(CCS_ID) { // also known as c
 
 module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT assunto
-	FROM assunto_ata
-	WHERE id_ccs_cod_ccs = ${CCS_ID};
+	SELECT DISTINCT assunto
+	FROM assuntos
+	WHERE conselho_id = ${CCS_ID} AND ano = 2017;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		const assuntos = [];
 		results.forEach((element) => {
@@ -261,8 +261,7 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
 );
 */
 
-// CREATE TABLE notificar_agenda
-// 	(
+// CREATE TABLE notificar_agenda (
 // 	id SERIAL PRIMARY KEY,
 // 	user_id BIGINT NOT NULL,
 // 	notificado boolean NOT NULL,
