@@ -1,4 +1,8 @@
 const { sequelize } = require('./server/index.js');
+const moment = require('moment');
+
+moment.locale('pt-BR');
+
 
 sequelize
 	.authenticate()
@@ -107,7 +111,7 @@ module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
 		console.log(`Got name from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
-		console.error('Error on getDiretoria => ', err);
+		console.error('Error on getNamefromCCS => ', err);
 	});
 	return result[0].ccs;
 };
@@ -115,8 +119,8 @@ module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
 module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT nome, cargo, fim_gestao
-	FROM diretoria
-	WHERE id_ccs_cod_ccs = ${CCS_ID}
+	FROM diretorias
+	WHERE conselho_id = ${CCS_ID}
 	ORDER BY inicio_gestao DESC, nome
 	LIMIT 10;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -128,17 +132,17 @@ module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 	return result;
 };
 
-module.exports.getCalendario = async function getCalendario(CCS_ID) {
+module.exports.getAgenda = async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT data_hora, endereco
-	FROM agenda
-	WHERE id_ccs_cod_ccs = ${CCS_ID}
-	ORDER BY data_hora DESC;
+	SELECT id, create_at, endereco
+	FROM agendas
+	WHERE conselho_id = ${CCS_ID}
+	ORDER BY create_at DESC;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Loaded calendario from ${CCS_ID} successfully!`);
+		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
-		console.error('Error on getCalendario => ', err);
+		console.error('Error on getAgenda => ', err);
 	});
 	return result;
 };
@@ -221,11 +225,11 @@ module.exports.updateNotification = async function updateNotification(PK) {
 // notificar_agenda -------------------------------------------------------------------------------
 
 // check if notification_agenda with UserID, CCS_ID exists already
-module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, CCS_ID) {
+module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, agendaID) {
 	const result = await sequelize.query(`
-	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id=${UserID} AND ccs_cod=${CCS_ID})
+	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id=${UserID} AND id=${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
+		console.log(`Checked if ${UserID} and ${agendaID} exists successfully! => ${results[0].exists}`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on checkNotificationAgenda => ', err);
@@ -234,14 +238,17 @@ module.exports.checkNotificationAgenda = async function checkNotificationAgenda(
 };
 
 // adds a future notification_agenda if the user searched the agenda for that ccs
-module.exports.addAgenda = async function addNotActive(UserID, CCS_COD, DataHora) {
+module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+
 	await sequelize.query(`
-	INSERT INTO notificar_agenda(user_id, ccs_cod, data_hora)
-	VALUES ('${UserID}', '${CCS_COD}', '${DataHora}');
+	INSERT INTO notificar_agenda(user_id, agendas_id, notificado, created_at, updated_at)
+	VALUES ('${UserID}', '${agendaID}', FALSE, '${date}', '${date}');
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Added ${UserID} and ${CCS_COD} successfully!`);
+		console.log(`Added ${UserID} and ${agendaID} successfully!`);
 	}).catch((err) => {
-		console.error('Error on addNotActive => ', err);
+		console.error('Error on addAgenda => ', err);
 	});
 };
 
@@ -254,12 +261,12 @@ module.exports.addAgenda = async function addNotActive(UserID, CCS_COD, DataHora
 );
 */
 
-/*
-	CREATE TABLE notificar_agenda(
-	ID SERIAL PRIMARY KEY,
-	user_id        BIGINT  NOT NULL,
-	ccs_cod        INT     NOT NULL,
-	data_hora	   TIMESTAMP WITHOUT TIME ZONE,
-	notificado     BOOLEAN NOT NULL DEFAULT FALSE
-);
-*/
+// CREATE TABLE notificar_agenda
+// 	(
+// 	id SERIAL PRIMARY KEY,
+// 	user_id BIGINT NOT NULL,
+// 	notificado boolean NOT NULL,
+// 	agendas_id integer NOT NULL,
+// 	created_at timestamp without time zone NOT NULL,
+// 	updated_at timestamp without time zone NOT NULL
+// 	);

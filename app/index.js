@@ -26,7 +26,7 @@ const server = createServer(bot);
 server.listen(process.env.API_PORT, () => {
 	console.log(`Server is running on ${process.env.API_PORT} port...`);
 	console.log(`App: ${process.env.APP} & Page: ${process.env.PAGE}`);
-	console.log(`Cronjob activatedCCS is running? => ${cronjobs.activatedCCS.running}`);
+	console.log(`Cronjob activatedCCS is running? => ${cronjobs.activatedCCS.running ? cronjobs.activatedCCS.running : 'Nope (awaiting for DB)'}`);
 });
 
 process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });

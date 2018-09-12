@@ -104,7 +104,7 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) {
@@ -115,6 +115,8 @@ module.exports = async (context) => {
 					case 'whichCCSMenu':
 						// falls through
 					case 'wantToChange':
+					// falls through
+					case 'municipioNotFound':
 					// falls through
 					case 'wantToType1':
 						await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.event.message.text.toLowerCase()) });
@@ -271,10 +273,10 @@ module.exports = async (context) => {
 				}
 				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
 					await context.sendText(`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`, await attach.getQR(flow.notFoundBairro));
-					// before adding the user+ccs on the table we check if it's already there
-					if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
-						await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
-					}
+					// before adding the user+ccs on the table we check if it's already there [ACTIVATE THIS WHEN DB IS UPDATED]
+					// if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
+					// 	await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
+					// }
 				} else { // ask user if he already went to one of the meetings
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}
@@ -311,14 +313,21 @@ module.exports = async (context) => {
 				break;
 			case 'calendar': // agenda
 				await context.typingOn();
-				await context.setState({ calendario: await db.getCalendario(context.state.CCS.id) });
+				await context.setState({ calendario: await db.getAgenda(context.state.CCS.id) });
 				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
-					`${help.formatDate(moment, context.state.calendario[0].data_hora)} e vai acontecer no local ` +
+					`${help.formatDate(moment, context.state.calendario[0].create_at)} e vai acontecer no local ` +
 					`${context.state.calendario[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				// before adding the user+ccs on the table we check if it's already there
-				if (await db.checkNotificationAgenda(context.session.user.id, context.state.CCS.id) !== true) {
-					await db.addAgenda(context.session.user.id, context.state.CCS.id, context.state.calendario[0].data_hora.toLocaleString()); // if it's not we add it
+				if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
+					// await context.setState({ date: await moment(context.state.date).format('YYYY-MM-DD HH:mm:ss') });
+					// console.log('date');
+
+					await db.addAgenda(
+						context.session.user.id, context.state.calendario[0].id,
+						context.state.calendario[0].create_at.toLocaleString(),
+						context.state.date,
+					); // if it's not we add it
 				}
 				await context.typingOff();
 				break;

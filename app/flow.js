@@ -107,7 +107,7 @@ module.exports = {
 				subtitle: 'Função',
 				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
 			}],
-		secondMessage: 'Bacana né, olha só o que mais você pode fazer por aqui!',
+		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
 		firstMessage: 'Escolha uma das opções:',
