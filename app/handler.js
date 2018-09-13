@@ -340,16 +340,18 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.subjects.firstMessage} ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				// await context.sendText(flow.subjects.firstMessage);
-				// await attach.sendCard(context, flow.subjects);
+				// await attach.sendCardWithLink(context, flow.subjects);
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
 				await context.typingOff();
 				break;
-			case 'results': // TODO SET DEFAULT CARD AND PUT LINK ON TEXTO
+			case 'results':
 				await context.setState({ results: await db.getResults(context.state.calendario[0].id) });
-				if (context.state.results === '') { // if we have not results we send this template card
-					await attach.sendCard(context, flow.results);
+				// if we don't have any results or if result is not a valid url we send this default message
+				if (context.state.results === '' || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
+					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
-					await context.sendText(`Nossos resultados:${context.state.results}`);
+					await context.sendText('Disponibilizamos o resultado da ultima reunião em um arquivo que você pode baixar clicando abaixo.');
+					await attach.sendCardWithLink(context, flow.results, context.state.results);
 				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
@@ -365,7 +367,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.share.secondMessage, await attach.getQR(flow.share));
 				break;
 			case 'followMedia':
-				await attach.sendCard(context, flow.followMedia);
+				await attach.sendCardWithLink(context, flow.followMedia);
 				// falls through
 			case 'userData':
 				await context.sendText(flow.userData.menuMessage, await attach.getQR(flow.userData));

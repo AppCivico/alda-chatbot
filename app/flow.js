@@ -140,12 +140,12 @@ module.exports = {
 		firstMessage: 'A última reunião ocorreu no dia xx/xx/xx. No link abaixo você pode visualizar o PDF completinho do que rolou:',
 		title: 'Baixar PDF',
 		sub: 'Veja os resultados de nossos esforços.',
-		link: 'http://www.africau.edu/images/default/sample.pdf',
+		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
+		// link: 'http://www.africau.edu/images/default/sample.pdf',
 		secondMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
 			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
-		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 
 	},
 	mainMenu: {

@@ -171,8 +171,6 @@ module.exports.getResults = async function getResults(AgendaID) {
 	WHERE agenda_id = ${AgendaID} ;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded resultados from ${AgendaID} successfully!`);
-		console.log(results);
-
 		return results;
 	}).catch((err) => {
 		console.error('Error on getResults => ', err);

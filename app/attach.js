@@ -98,20 +98,20 @@ async function sendCentro(context, items) {
 
 module.exports.sendCentro = sendCentro;
 
-// sends one card with an image
-async function sendCard(context, links) {
+// sends one card with an image and link
+module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url) {
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
 			template_type: 'generic',
 			elements: [
 				{
-					title: links.title,
-					subtitle: links.sub,
-					image_url: links.imageLink,
+					title: cardData.title,
+					subtitle: cardData.sub,
+					image_url: cardData.imageLink,
 					default_action: {
 						type: 'web_url',
-						url: links.link,
+						url,
 						messenger_extensions: 'false',
 						webview_height_ratio: 'full',
 					},
@@ -119,10 +119,30 @@ async function sendCard(context, links) {
 			],
 		},
 	});
-}
+};
 
+module.exports.sendCardWithout = async function sendCardWithLink(context, cardData) {
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements: [
+				{
+					title: cardData.title,
+					subtitle: cardData.sub,
+					image_url: cardData.imageLink,
+					// default_action: {
+					// 	type: 'web_url',
+					// 	url,
+					// 	messenger_extensions: 'false',
+					// 	webview_height_ratio: 'full',
+					// },
+				},
+			],
+		},
+	});
+};
 
-module.exports.sendCard = sendCard;
 
 // get quick_replies opject with elements array
 // supossed to be used with menuOptions and menuPostback for each dialog on flow.js

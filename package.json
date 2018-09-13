@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@google/maps": "^0.5.4",
-    "bottender": "0.14.34",
+    "bottender": "^0.15.6",
     "cron": "^1.4.1",
     "dotenv": "^5.0.1",
     "messaging-api-messenger": "^0.7.6",
@@ -21,7 +21,8 @@
     "pg-native": "^3.0.0",
     "request": "^2.87.0",
     "sequelize": "^4.38.0",
-    "sequelize-cli": "^4.0.0"
+    "sequelize-cli": "^4.0.0",
+    "url-exists": "^1.0.3"
   },
   "devDependencies": {
     "eslint": "^4.19.1",
