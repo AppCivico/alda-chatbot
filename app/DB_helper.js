@@ -240,7 +240,7 @@ module.exports.updateNotification = async function updateNotification(PK) {
 // check if notification_agenda with UserID, CCS_ID exists already
 module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, agendaID) {
 	const result = await sequelize.query(`
-	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id=${UserID} AND id=${agendaID})
+	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id=${UserID} AND agendas_id=${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Checked if ${UserID} and ${agendaID} exists successfully! => ${results[0].exists}`);
 		return results;
@@ -271,14 +271,16 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
 	user_id        BIGINT  NOT NULL,
 	ccs_cod        INT     NOT NULL,
 	notificado     BOOLEAN NOT NULL DEFAULT FALSE
-);
+	);
 */
 
-// CREATE TABLE notificar_agenda (
-// 	id SERIAL PRIMARY KEY,
-// 	user_id BIGINT NOT NULL,
-// 	notificado boolean NOT NULL,
-// 	agendas_id integer NOT NULL,
-// 	created_at timestamp without time zone NOT NULL,
-// 	updated_at timestamp without time zone NOT NULL
-// 	);
+/*
+	CREATE TABLE notificar_agenda (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	notificado boolean NOT NULL,
+	agendas_id integer NOT NULL,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
