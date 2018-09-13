@@ -104,7 +104,7 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'councilMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) {
@@ -273,10 +273,10 @@ module.exports = async (context) => {
 				}
 				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
 					await context.sendText(`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`, await attach.getQR(flow.notFoundBairro));
-					// before adding the user+ccs on the table we check if it's already there [ACTIVATE THIS WHEN DB IS UPDATED]
-					// if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
-					// 	await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
-					// }
+					// before adding the user+ccs on the table we check if it's already there
+					if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
+						await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
+					}
 				} else { // ask user if he already went to one of the meetings
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}

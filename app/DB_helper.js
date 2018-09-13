@@ -183,7 +183,7 @@ module.exports.getResults = async function getResults(AgendaID) {
 // check if notification_ativacao with UserID, CCS_ID exists already
 module.exports.checkNotificationAtivacao = async function checkNotificationAtivacao(UserID, CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id=${UserID} AND ccs_cod=${CCS_ID})
+	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id=${UserID} AND conselho_id=${CCS_ID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
 		return results;
@@ -196,7 +196,7 @@ module.exports.checkNotificationAtivacao = async function checkNotificationAtiva
 // adds a future notification if the user searched for a not-active ccs
 module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 	await sequelize.query(`
-	INSERT INTO notificar_ativacao(user_id, ccs_cod)
+	INSERT INTO notificar_ativacao(user_id, conselho_id)
 	VALUES (${UserID}, ${CCS_COD});
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Added ${UserID} and ${CCS_COD} successfully!`);
@@ -208,11 +208,11 @@ module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 // get every notification that wasn't already sent but only if the status of the ccs is now 'Ativo'
 module.exports.getActivatedNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
-	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ccs_cod, CCS.id, CCS.status
+	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.conselho_id, CCS.id, CCS.status
 	FROM notificar_ativacao AS NOTIFICATION
-	INNER JOIN conselhos CCS ON NOTIFICATION.ccs_cod = CCS.id
+	INNER JOIN conselhos CCS ON NOTIFICATION.conselho_id = CCS.id
 	WHERE NOT NOTIFICATION.notificado and CCS.status = 'Ativo'
-	ORDER BY NOTIFICATION.ccs_cod;
+	ORDER BY NOTIFICATION.conselho_id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log('Loaded notifications successfully!');
 		return results;
@@ -268,9 +268,11 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
 /*
 	CREATE TABLE notificar_ativacao(
 	ID SERIAL PRIMARY KEY,
-	user_id        BIGINT  NOT NULL,
-	ccs_cod        INT     NOT NULL,
-	notificado     BOOLEAN NOT NULL DEFAULT FALSE
+	user_id BIGINT  NOT NULL,
+	conselho_id INT     NOT NULL,
+	notificado BOOLEAN NOT NULL DEFAULT FALSE,
+	created_at timestamp without time zone NOT NULL,
+  	updated_at timestamp without time zone NOT NULL
 	);
 */
 
@@ -278,7 +280,7 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
 	CREATE TABLE notificar_agenda (
 	id SERIAL PRIMARY KEY,
 	user_id BIGINT NOT NULL,
-	notificado boolean NOT NULL,
+	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	agendas_id integer NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL

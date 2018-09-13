@@ -37,7 +37,7 @@ const activatedCCS = new Cron.CronJob(
 	}, (() => {
 		console.log('Crontab \'activatedCCSTimer\' stopped.');
 	}),
-	false, /* Starts the job right now (no need for MissionTimer.start()) */
+	true, /* Starts the job right now (no need for MissionTimer.start()) */
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
