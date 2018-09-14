@@ -40,7 +40,7 @@ module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Munici
     SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
-	WHERE LOWER(LOCATION.regiao) = '${Municipio}'
+	WHERE LOWER(LOCATION.regiao) LIKE '%' || '${Municipio}' || '%'
 	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
@@ -48,7 +48,7 @@ module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Munici
 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
 			}
 		});
-		console.log(`Got CCS on ${Municipio} successfully!`);
+		console.log(`Got CCS on municipio ${Municipio} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getCCSsFromMunicipio => ', err);
@@ -70,10 +70,10 @@ module.exports.getCCSsFromBairro = async function getCCSsFromBairro(Bairro) {
 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
 			}
 		});
-		console.log(`Got CCS on ${Bairro} successfully!`);
+		console.log(`Got CCS on bairro ${Bairro} successfully!`);
 		return results;
 	}).catch((err) => {
-		console.error('Error on getCCSsFromMunicipio => ', err);
+		console.error('Error on getCCSsFromBairro => ', err);
 	});
 	return result;
 };

@@ -78,11 +78,11 @@ async function sendCentro(context, items) {
 	items.forEach((element, index) => {
 		elements.push({
 			title: `Região ${index + 1}`,
-			subtitle: `CCS ${element.cod_ccs}`,
+			subtitle: `CCS ${element.id}`,
 			buttons: [{
 				type: 'postback',
 				title: 'É esse!',
-				payload: `centro${element.cod_ccs}`,
+				payload: `centro${element.id}`,
 			}],
 		});
 	});

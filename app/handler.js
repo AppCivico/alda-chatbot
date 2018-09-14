@@ -40,7 +40,7 @@ module.exports = async (context) => {
 			} else if (context.event.isPostback) {
 				if (context.event.postback.payload.slice(0, 6) === 'centro') { // from confirmCentro
 					await context.setState({
-						CCS: context.state.bairro.find(x => x.cod_ccs === parseInt(context.event.postback.payload.replace('centro', ''), 10)),
+						CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('centro', ''), 10)),
 					});
 					await context.setState({ dialog: 'nearestCouncil' });
 				} else {
@@ -127,12 +127,13 @@ module.exports = async (context) => {
 						}
 						break;
 					case 'wantToType2':
+					// TODO Make this better (Ver questão com usuário ter que digitar o nome completo do bairro)
 						await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.event.message.text) });
-						if (!context.state.bairro) {
+						if (!context.state.bairro || context.state.bairro === 0) {
 							await context.setState({ dialog: 'bairroNotFound' });
 						} else if (context.state.bairro[0].bairro === 'Centro') { // this means we are on bairro "centro"
 							await context.setState({ dialog: 'confirmCentro', municipiosFound: '' });
-						} else if (context.state.bairro.length >= 1) {
+						} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
 							await context.setState({ CCS: context.state.bairro[0] });
 							await context.setState({ dialog: 'nearestCouncil', municipiosFound: '' });
 						}

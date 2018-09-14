@@ -8,16 +8,16 @@ module.exports.formatDate = function formatDate(moment, date) {
 
 
 module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
-	const theBairro = [];
+	const theBairros = [];
 
 	sameMunicipio.forEach((element) => {
-		if (element.bairro.toLowerCase().includes(bairro.trim().toLowerCase())) {
-			theBairro.push(element);
+		if (element.bairro.toLowerCase() === (bairro.trim().toLowerCase())) {
+			theBairros.push(element);
 		}
 	});
 
-	if (theBairro.length > 0) {
-		return theBairro;
+	if (theBairros.length > 0) {
+		return theBairros;
 	}
 	return undefined;
 };
