@@ -195,9 +195,12 @@ module.exports.checkNotificationAtivacao = async function checkNotificationAtiva
 
 // adds a future notification if the user searched for a not-active ccs
 module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+
 	await sequelize.query(`
-	INSERT INTO notificar_ativacao(user_id, conselho_id)
-	VALUES (${UserID}, ${CCS_COD});
+	INSERT INTO notificar_ativacao(user_id, conselho_id, created_at, updated_at)
+	VALUES (${UserID}, ${CCS_COD}, '${date}', '${date}');
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Added ${UserID} and ${CCS_COD} successfully!`);
 	}).catch((err) => {

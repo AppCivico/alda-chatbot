@@ -136,7 +136,7 @@ module.exports = async (context) => {
 						} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
 							await context.setState({ CCS: context.state.bairro[0] });
 							await context.setState({ dialog: 'nearestCouncil', municipiosFound: '' });
-						}
+						} // what happens if we find more than one bairro?
 						break;
 					case 'eMail':
 						await context.setState({ eMail: context.event.message.text });
