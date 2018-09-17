@@ -254,13 +254,13 @@ module.exports.checkNotificationAgenda = async function checkNotificationAgenda(
 };
 
 // adds a future notification_agenda if the user searched the agenda for that ccs
-module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
+module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, dataHora) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 	await sequelize.query(`
-	INSERT INTO notificar_agenda(user_id, agendas_id, notificado, created_at, updated_at)
-	VALUES ('${UserID}', '${agendaID}', FALSE, '${date}', '${date}');
+	INSERT INTO notificar_agenda(user_id, agendas_id, notificado, endereco, data_hora, created_at, updated_at)
+	VALUES ('${UserID}', '${agendaID}', FALSE, '${endereco}', '${dataHora}', '${date}', '${date}');
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Added ${UserID} and ${agendaID} successfully!`);
 	}).catch((err) => {
@@ -271,7 +271,8 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
 // get every notification that wasn't already sent (including when the agendas.status is 1 or 0)
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
-	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, AGENDAS.conselho_id, AGENDAS.status, AGENDAS.create_at, AGENDAS.endereco, CONSELHOS.ccs
+	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
+	AGENDAS.conselho_id, AGENDAS.status, AGENDAS.create_at as new_datahora, AGENDAS.endereco as new_endereco, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
@@ -319,7 +320,17 @@ module.exports.updateAgendaNotification = async function updateAgendaNotificatio
 	user_id BIGINT NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	agendas_id integer NOT NULL,
+    endereco text NOT NULL,
+    data_hora timestamp without time zone NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);
+*/
+
+/*
+	Agenda Status map:
+	0 -> no change in status
+	1 -> reunion was canceled
+	2 -> reunion was canceled and then changed
+	3 -> reunion was changed
 */

@@ -317,8 +317,7 @@ module.exports = async (context) => {
 				if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
 					await db.addAgenda(
 						context.session.user.id, context.state.calendario[0].id,
-						context.state.calendario[0].create_at.toLocaleString(),
-						context.state.date,
+						context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
 					); // if it's not we add it
 				}
 				await context.typingOff();

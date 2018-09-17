@@ -2,7 +2,6 @@
 const { MessengerClient } = require('messaging-api-messenger');
 
 const config = require('./bottender.config').messenger;
-const help = require('./helpers');
 
 const client = MessengerClient.connect({
 	accessToken: config.accessToken,
@@ -55,9 +54,8 @@ module.exports.sendActivatedNotification = async function sendActivatedNotificat
 // dataHora = The new date-time for the reunion/agenda
 // address = The new place the reunion will take place
 // ccsName = the name of said CCS
-module.exports.sendAgendaNotification = async function sendAgendaNotification(USER_ID, dataHora, address, ccsName) {
-	const textMsg = `Olá, a próxima reunião do ${ccsName} mudou. A reunião agora será as: ${help.formatDate(dataHora)} no ${address}. Venha participar!`;
-	const response = await client.sendText(USER_ID, textMsg, {
+module.exports.sendAgendaNotification = async function sendAgendaNotification(USER_ID, message) {
+	const response = await client.sendText(USER_ID, message, {
 		quick_replies: [
 			{
 				content_type: 'text',
