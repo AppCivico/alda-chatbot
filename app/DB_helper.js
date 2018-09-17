@@ -227,10 +227,13 @@ module.exports.getActivatedNotification = async function getActivatedNotificatio
 
 // updates value of notificado from PK
 module.exports.updateNotification = async function updateNotification(PK) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+
 	await sequelize.query(`
 	UPDATE notificar_ativacao
-	SET notificado = TRUE
-	WHERE id = ${PK};
+	SET notificado = TRUE, updated_at = '${date}'
+	WHERE conselho_id = ${PK};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Updated row ${PK} successfully!`);
 	}).catch((err) => {
@@ -265,6 +268,40 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID) {
 		console.log(`Added ${UserID} and ${agendaID} successfully!`);
 	}).catch((err) => {
 		console.error('Error on addAgenda => ', err);
+	});
+};
+
+// get every notification that wasn't already sent (including when the agendas.status is 1 or 0)
+module.exports.getAgendaNotification = async function getActivatedNotification() {
+	const result = await sequelize.query(`
+	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, AGENDAS.conselho_id, AGENDAS.status, AGENDAS.create_at, AGENDAS.endereco, CONSELHOS.ccs
+	FROM notificar_agenda AS NOTIFICATION
+	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
+	inner join conselhos CONSELHOS on AGENDAS.conselho_id=CONSELHOS.id
+	WHERE NOT NOTIFICATION.notificado
+	ORDER BY AGENDAS.status;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log('Loaded notifications successfully!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getAgendaNotification => ', err);
+	});
+	return result;
+};
+
+// updates value of notificado from PK
+module.exports.updateAgendaNotification = async function updateAgendaNotification(PK) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+
+	await sequelize.query(`
+	UPDATE notificar_agenda
+	SET notificado = TRUE, updated_at = '${date}'
+	WHERE id = ${PK};
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Updated row ${PK} successfully!`);
+	}).catch((err) => {
+		console.error('Error on updateAgendaNotification => ', err);
 	});
 };
 

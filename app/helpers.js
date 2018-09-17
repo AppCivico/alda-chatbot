@@ -1,8 +1,14 @@
 const util = require('util');
+const moment = require('moment');
+
+moment.locale('pt-BR');
+
+
+module.exports.moment = moment;
 
 module.exports.urlExists = util.promisify(require('url-exists'));
 
-module.exports.formatDate = function formatDate(moment, date) {
+module.exports.formatDate = function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
 };
 

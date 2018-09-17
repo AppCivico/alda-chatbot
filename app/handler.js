@@ -3,10 +3,6 @@ const googleMapsClient = require('@google/maps').createClient({
 	Promise,
 });
 
-const moment = require('moment');
-
-moment.locale('pt-BR');
-
 const flow = require('./flow');
 const attach = require('./attach');
 const db = require('./DB_helper');
@@ -77,8 +73,6 @@ module.exports = async (context) => {
 						}
 					}
 					break;
-				case 'whichCCSMenu':
-					// falls through
 				case 'goBackMenu':
 					// falls through
 				case 'noLocation':
@@ -104,8 +98,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
-					// await context.setState({ dialog: 'greetings' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'councilMenu' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -305,7 +299,7 @@ module.exports = async (context) => {
 				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
-			case 'councilMenu':
+			case 'councilMenu': // "Escolha uma das opções"
 				await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
 				await context.typingOff();
 				break;
@@ -316,14 +310,11 @@ module.exports = async (context) => {
 				await context.typingOn();
 				await context.setState({ calendario: await db.getAgenda(context.state.CCS.id) });
 				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
-					`${help.formatDate(moment, context.state.calendario[0].create_at)} e vai acontecer no local ` +
+					`${help.formatDate(context.state.calendario[0].create_at)} e vai acontecer no local ` +
 					`${context.state.calendario[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				// before adding the user+ccs on the table we check if it's already there
 				if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
-					// await context.setState({ date: await moment(context.state.date).format('YYYY-MM-DD HH:mm:ss') });
-					// console.log('date');
-
 					await db.addAgenda(
 						context.session.user.id, context.state.calendario[0].id,
 						context.state.calendario[0].create_at.toLocaleString(),
