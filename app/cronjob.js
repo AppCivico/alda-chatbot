@@ -11,20 +11,20 @@ const activatedCCS = new Cron.CronJob(
 
 		if (notifications.length !== 0) { // checking if there is any notification to send
 			let currentCCS = { // loading data from first ccs
-				cod_ccs: notifications[0].ccs_cod,
-				nome: await db.getNamefromCCS(notifications[0].ccs_cod),
-				bairros: await db.getEveryBairro(notifications[0].ccs_cod),
+				cod_ccs: notifications[0].conselho_id,
+				nome: await db.getNamefromCCS(notifications[0].conselho_id),
+				bairros: await db.getEveryBairro(notifications[0].conselho_id),
 			};
 
 		for (const element of notifications) { // eslint-disable-line
-				if (element.ccs_cod !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
+				if (element.conselho_id !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
 				// If we are not warning on the same CCS as before we have to reload the data
 				// This is an assurance in case more than one ccs gets activated
-				// Obs: the getActivatedNotification query orders results by the ccs_cod
+				// Obs: the getActivatedNotification query orders results by the conselho_id
 					currentCCS = { // loading data from the new ccs
-						cod_ccs: element.ccs_cod,
-						nome: await db.getNamefromCCS(element.ccs_cod), // eslint-disable-line no-await-in-loop
-						bairros: await db.getEveryBairro(element.ccs_cod), // eslint-disable-line no-await-in-loop
+						cod_ccs: element.conselho_id,
+						nome: await db.getNamefromCCS(element.conselho_id), // eslint-disable-line no-await-in-loop
+						bairros: await db.getEveryBairro(element.conselho_id), // eslint-disable-line no-await-in-loop
 					};
 				}
 
