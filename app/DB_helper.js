@@ -1,8 +1,5 @@
 const { sequelize } = require('./server/index.js');
-const moment = require('moment');
-
-moment.locale('pt-BR');
-
+const { moment } = require('./helpers');
 
 sequelize
 	.authenticate()
@@ -183,7 +180,7 @@ module.exports.getResults = async function getResults(AgendaID) {
 // check if notification_ativacao with UserID, CCS_ID exists already
 module.exports.checkNotificationAtivacao = async function checkNotificationAtivacao(UserID, CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id=${UserID} AND conselho_id=${CCS_ID})
+	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id = ${UserID} AND conselho_id = ${CCS_ID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Checked if ${UserID} and ${CCS_ID} exists successfully! => ${results[0].exists}`);
 		return results;
@@ -246,7 +243,7 @@ module.exports.updateNotification = async function updateNotification(PK) {
 // check if notification_agenda with UserID, CCS_ID exists already
 module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, agendaID) {
 	const result = await sequelize.query(`
-	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id=${UserID} AND agendas_id=${agendaID})
+	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id = ${UserID} AND agendas_id = ${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Checked if ${UserID} and ${agendaID} exists successfully! => ${results[0].exists}`);
 		return results;
@@ -277,7 +274,7 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, AGENDAS.conselho_id, AGENDAS.status, AGENDAS.create_at, AGENDAS.endereco, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
-	inner join conselhos CONSELHOS on AGENDAS.conselho_id=CONSELHOS.id
+	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
 	WHERE NOT NOTIFICATION.notificado
 	ORDER BY AGENDAS.status;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
