@@ -4,7 +4,7 @@ const { MessengerClient } = require('messaging-api-messenger');
 
 const config = require('./bottender.config').messenger;
 
-const { getBroadcastMetrics } = require('./helpers');
+// const { getBroadcastMetrics } = require('./helpers');
 
 const client = MessengerClient.connect({
 	accessToken: config.accessToken,
@@ -95,11 +95,11 @@ async function sendAdminBroadcast(text, label) {
 	});
 
 	if (results.broadcast_id) {
-		const metrics = await getBroadcastMetrics(results.broadcast_id);
-		console.log(metrics.data[0].values);
-		return metrics;
+		return results;
 	}
-	return undefined; // error
+	return results; // error
 }
 module.exports.sendAdminBroadcast = sendAdminBroadcast;
+
+// sendAdminBroadcast('test', process.env.LABEL_ADMIN);
 

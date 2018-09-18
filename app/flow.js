@@ -205,24 +205,28 @@ module.exports = {
 		menuPostback: ['whatsApp', 'join'],
 	},
 	adminStart: {
-		menuOptions: ['Broadcast', 'Sair'],
+		menuOptions: ['Broadcast', 'Sair do Admin'],
 		menuPostback: ['broadcast', 'goBackMenu'],
 	},
 	broadcast: {
-		menuOptions: ['Voltar', 'Sair'],
+		menuOptions: ['Voltar', 'Sair do Admin'],
 		menuPostback: ['adminStart', 'goBackMenu'],
 	},
 	adminConfirm1: {
-		menuOptions: ['Sim', 'Não', 'Sair'],
+		menuOptions: ['Sim', 'Não', 'Voltar'],
 		menuPostback: ['adminMessage', 'broadcast', 'goBackMenu'],
 	},
 	adminConfirm2: {
-		menuOptions: ['Voltar', 'Sair'],
+		menuOptions: ['Voltar', 'Sair do Admin'],
 		menuPostback: ['broadcast', 'goBackMenu'],
 	},
 	adminConfirmText: {
 		menuOptions: ['Pode', 'Reescrever', 'Voltar'],
-		menuPostback: ['broadcast', 'adminMessage', 'adminStart'],
+		menuPostback: ['broadcastSent', 'adminMessage', 'adminStart'],
+	},
+	broadcastSent: {
+		menuOptions: ['Ok', 'Métricas', 'Sair do Admin'],
+		menuPostback: ['adminStart', 'metrics', 'adminStart'],
 	},
 
 };

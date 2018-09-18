@@ -360,7 +360,7 @@ module.exports = async (context) => {
 						context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
 					); // if it's not we add it
 				}
-				// create an agendaLabel using CCS_ID because we don't know if there's a rate limit
+				// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
 				await help.linkUserToAgendaLabel(`agenda${context.state.CCS.id}`, context.session.user.id);
 				await context.typingOff();
 				break;
@@ -495,6 +495,19 @@ module.exports = async (context) => {
 				await context.sendText(context.state.broadcastText);
 				await context.sendText('Podemos envia-la?', await attach.getQR(flow.adminConfirmText));
 				break;
+			case 'broadcastSent': {
+				await context.sendText('OK, estamos enviando...');
+				const result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.broadcastNumber}`);
+
+				if (result.broadcast_id) {
+					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso. (Métricas estão por fazer)`, await attach.getQR(flow.broadcastSent));
+					// const metrics = await getBroadcastMetrics(results.broadcast_id);
+					// console.log(metrics.data[0].values);
+				} else {
+					await context.sendText(`Ocorreu um erro, avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
+				}
+				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+				break; }
 			} // dialog switch
 		} // try
 	} catch (err) {
