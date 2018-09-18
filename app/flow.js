@@ -209,8 +209,8 @@ module.exports = {
 		menuPostback: ['broadcast', 'goBackMenu'],
 	},
 	broadcast: {
-		menuOptions: ['Sair'],
-		menuPostback: ['goBackMenu'],
+		menuOptions: ['Voltar', 'Sair'],
+		menuPostback: ['adminStart', 'goBackMenu'],
 	},
 	adminConfirm1: {
 		menuOptions: ['Sim', 'Não', 'Sair'],
@@ -219,6 +219,10 @@ module.exports = {
 	adminConfirm2: {
 		menuOptions: ['Voltar', 'Sair'],
 		menuPostback: ['broadcast', 'goBackMenu'],
+	},
+	adminConfirmText: {
+		menuOptions: ['Pode', 'Reescrever', 'Voltar'],
+		menuPostback: ['broadcast', 'adminMessage', 'adminStart'],
 	},
 
 };

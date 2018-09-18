@@ -306,16 +306,20 @@ module.exports.updateAgendaNotification = async function updateAgendaNotificatio
 // broadcast -------------------------------------------------------------------------------
 
 // get every open agenda to warn with a broadcast
-// module.exports.getAgendasBroadcast = async function getAgendasBroadcast(PK) {
-// 	await sequelize.query(`
-// 	SELECT user_id, data_hora, endereco, updated_at
-// 	WHERE id = ${PK};
-// 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-// 		console.log(`Updated row ${PK} successfully!`);
-// 	}).catch((err) => {
-// 		console.error('Error on getAgendasBroadcast => ', err);
-// 	});
-// };
+module.exports.getAgendaNotificationFromID = async function getAgendaNotificationFromID(PK) {
+	const result = await sequelize.query(`
+	SELECT user_id, data_hora, endereco, updated_at
+	FROM notificar_agenda
+	WHERE agendas_id = ${PK} AND NOT notificado;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Updated row ${PK} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getAgendaNotificationFromID => ', err);
+	});
+
+	return result;
+};
 
 
 /*

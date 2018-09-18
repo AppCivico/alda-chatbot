@@ -180,6 +180,9 @@ module.exports = async (context) => {
 							await context.sendText('Número inválido. Tente novamente!');
 						} // not changing dialog --> admin goes back to 'broadcast'
 						break;
+					case 'adminMessage':
+						await context.setState({ broadcastText: context.event.message.text, dialog: 'adminConfirmText' });
+						break;
 					default: // regular text message
 						await context.setState({ dialog: 'errorText' });
 						break;
@@ -463,13 +466,33 @@ module.exports = async (context) => {
 					}
 					await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.adminConfirm1));
 				} else {
-					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente.', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente ou entre em contato!', await attach.getQR(flow.adminConfirm2));
 					await context.setState({ dialog: 'broadcast' });
 				}
 				break;
 			case 'adminMessage':
 			// here we need to check if there's any entry in notificacao_agenda that matches the ccs
+				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda[0].id) });
+				console.log(context.state.notification_agenda);
 
+				if (!context.state.notification_agenda) { // error
+					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.adminConfirm2));
+				} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
+					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.adminConfirm2));
+				} else if (context.state.notification_agenda.length === 1) {
+					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada apenas para ${context.state.notification_agenda.length} usuário. ` +
+					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
+				} else {
+					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para ${context.state.notification_agenda.length} usuários. ` +
+					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
+				}
+				break;
+			case 'adminConfirmText':
+				await context.sendText('Sua mensagem aparecerá assim:');
+				await context.sendText(context.state.broadcastText);
+				await context.sendText('Podemos envia-la?', await attach.getQR(flow.adminConfirmText));
 				break;
 			} // dialog switch
 		} // try
