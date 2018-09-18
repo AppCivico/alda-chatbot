@@ -131,7 +131,7 @@ module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 
 module.exports.getAgenda = async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT id, create_at, endereco
+	SELECT id, create_at, endereco, updated_at
 	FROM agendas
 	WHERE conselho_id = ${CCS_ID}
 	ORDER BY create_at DESC;
@@ -302,6 +302,21 @@ module.exports.updateAgendaNotification = async function updateAgendaNotificatio
 		console.error('Error on updateAgendaNotification => ', err);
 	});
 };
+
+// broadcast -------------------------------------------------------------------------------
+
+// get every open agenda to warn with a broadcast
+// module.exports.getAgendasBroadcast = async function getAgendasBroadcast(PK) {
+// 	await sequelize.query(`
+// 	SELECT user_id, data_hora, endereco, updated_at
+// 	WHERE id = ${PK};
+// 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+// 		console.log(`Updated row ${PK} successfully!`);
+// 	}).catch((err) => {
+// 		console.error('Error on getAgendasBroadcast => ', err);
+// 	});
+// };
+
 
 /*
 	CREATE TABLE notificar_ativacao(

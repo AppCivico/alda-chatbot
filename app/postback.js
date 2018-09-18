@@ -67,10 +67,28 @@ function createPersistentMenu() {
 // Will be executed when imported
 // It's being imported on index.js (or handler.js), should be commented out after first execution (If both status_code aren't 200 you may want to run it again)
 // Or you can just run it => node postback.js
-async function load() {
+async function load() { // eslint-disable-line no-unused-vars
 	await createGetStarted();
 	await createPersistentMenu();
 }
 
-load();
+// load();
 
+
+function createNewLabel(name) { // eslint-disable-line no-unused-vars
+	Request.post({
+		uri: `https://graph.facebook.com/v2.11/me/custom_labels?access_token=${pageToken}`,
+		'content-type': 'application/json',
+		form: {
+			name,
+		},
+	}, (error, response, body) => {
+		console.log('\nMenu lateral:');
+		console.log('error:', error);
+		console.log('statusCode:', response && response.statusCode);
+		console.log('body:', body);
+		console.log('The ID we need:', body.id);
+	});
+}
+
+// createNewLabel('Admin');

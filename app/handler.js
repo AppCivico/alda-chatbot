@@ -99,7 +99,23 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'councilMenu' });
+					// await context.setState({ dialog: 'councilMenu' });
+				} if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
+					await context.setState({ labels: await context.getAssociatedLabels() });
+
+					await context.setState({ isAdmin: false });
+					await context.state.labels.data.forEach(async (element) => {
+						if (element.id === process.env.LABEL_ADMIN2) { // checks if this user has the admin tag attached to it
+							await context.setState({ isAdmin: true });
+						}
+					});
+
+					if (context.state.isAdmin === true) { // user is an admin
+						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
+					} else { // user is not an admin
+						await context.sendText('Vocẽ não é um administrador! Esse menu é proibido!');
+						await context.setState({ dialog: 'whichCCSMenu', labels: '', isAdmin: '' });
+					}
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -143,6 +159,27 @@ module.exports = async (context) => {
 						} else { // invalid phone
 							await context.setState({ phone: '', dialog: 'reAskPhone' });
 						}
+						break;
+					case 'adminConfirm':
+						// falls throught
+					case 'adminStart': // admin can type number on admin Start and it will fall to broadcast
+						await context.setState({ dialog: 'broadcast' });
+					// falls throught
+					case 'broadcast': // admin typed ccs number
+						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
+						// checking if number if valid and present on database
+						if (Number.isInteger(context.state.broadcastNumber) && (context.state.broadcastNumber >= 1001 && context.state.broadcastNumber <= 1110)) {
+							await context.setState({ CCSBroadcast: await db.getNamefromCCS(context.state.broadcastNumber) });
+							if (context.state.CCSBroadcast) { // we found a CCS
+								await context.sendText(`Encontrei o ${context.state.CCSBroadcast}. É esse conselho que você quer?`);
+								await context.setState({ dialog: 'adminConfirm' });
+							} else {
+								await context.sendText(`Ops. Aconteceu um erro. Eu não consegui encontrar um CCS com ID ${context.state.broadcastNumber}. ` +
+								'Tente Novamente. Se o erro persistir, entre em contato com nossa equipe.');
+							}
+						} else {
+							await context.sendText('Número inválido. Tente novamente!');
+						} // not changing dialog --> admin goes back to 'broadcast'
 						break;
 					default: // regular text message
 						await context.setState({ dialog: 'errorText' });
@@ -407,6 +444,30 @@ module.exports = async (context) => {
 					`Não encontrei nenhum conselho no bairro ${context.state.bairro}. Quer tentar novamente?`,
 					await attach.getQR(flow.whichCCS),
 				);
+				break;
+			case 'adminStart':
+				await context.sendText('Bem-vindo ao painel de administrador do bot! Muito cuidado por aqui!\nO que deseja fazer?', await attach.getQR(flow.adminStart));
+				break;
+			case 'broadcast':
+				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que visualizaram a agenda de um conselho.' +
+					'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.broadcast));
+				break;
+			case 'adminConfirm':
+				await context.setState({ broadcastAgenda: await db.getAgenda(context.state.broadcastNumber) });
+				if (context.state.broadcastAgenda[0]) { // check if we have an agenda for this CCS
+					if (context.state.broadcastAgenda[0].create_at && context.state.broadcastAgenda[0].create_at !== '' && context.state.broadcastAgenda[0].endereco && context.state.broadcastAgenda[0].endereco !== '') {
+						await context.sendText(`Temos uma reunião marcada nesse CCS em ${help.formatDate(context.state.broadcastAgenda[0].create_at)} no ${context.state.broadcastAgenda[0].endereco}`);
+					} else { // check if the values have been updated on the database already
+						await context.sendText(`Temos uma reunião marcada nesse CCS que parece ter sido cancelada em ${help.formatDate(context.state.broadcastAgenda[0].updated_at)}`);
+					}
+					await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.adminConfirm1));
+				} else {
+					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente.', await attach.getQR(flow.adminConfirm2));
+					await context.setState({ dialog: 'broadcast' });
+				}
+				break;
+			case 'adminMessage':
+
 				break;
 			} // dialog switch
 		} // try

@@ -204,6 +204,22 @@ module.exports = {
 		menuOptions: ['Tentar Novamente', 'Voltar'],
 		menuPostback: ['whatsApp', 'join'],
 	},
+	adminStart: {
+		menuOptions: ['Broadcast', 'Sair'],
+		menuPostback: ['broadcast', 'goBackMenu'],
+	},
+	broadcast: {
+		menuOptions: ['Sair'],
+		menuPostback: ['goBackMenu'],
+	},
+	adminConfirm1: {
+		menuOptions: ['Sim', 'Não', 'Sair'],
+		menuPostback: ['adminMessage', 'broadcast', 'goBackMenu'],
+	},
+	adminConfirm2: {
+		menuOptions: ['Voltar', 'Sair'],
+		menuPostback: ['broadcast', 'goBackMenu'],
+	},
 
 };
 
