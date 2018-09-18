@@ -99,3 +99,12 @@ async function listAllLabels() { // eslint-disable-line no-unused-vars
 	return response;
 }
 module.exports.listAllLabels = listAllLabels;
+
+async function getBroadcastMetrics(broadcastID) {
+	const res = await req.get(`https://graph.facebook.com/v2.11/${broadcastID}/insights/messages_sent?access_token=${pageToken}`);
+	const response = await res.json();
+	return response;
+}
+
+module.exports.getBroadcastMetrics = getBroadcastMetrics;
+

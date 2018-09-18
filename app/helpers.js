@@ -12,7 +12,6 @@ module.exports.formatDate = function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
 };
 
-
 module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
 	const theBairros = [];
 
@@ -79,3 +78,5 @@ async function linkUserToAgendaLabel(labelName, UserID) { // eslint-disable-line
 }
 
 module.exports.linkUserToAgendaLabel = linkUserToAgendaLabel;
+
+module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;

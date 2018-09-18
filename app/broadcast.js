@@ -1,7 +1,10 @@
+require('dotenv').config();
 
 const { MessengerClient } = require('messaging-api-messenger');
 
 const config = require('./bottender.config').messenger;
+
+const { getBroadcastMetrics } = require('./helpers');
 
 const client = MessengerClient.connect({
 	accessToken: config.accessToken,
@@ -75,3 +78,28 @@ module.exports.sendAgendaNotification = async function sendAgendaNotification(US
 
 	return response;
 };
+
+// creates and send an admin broadcast
+async function sendAdminBroadcast(text, label) {
+	const results = await client.createMessageCreative([
+		{
+			text,
+			// fallback_text: 'Hello friend!',
+		},
+	]).then(async (result) => {
+		const broadcastResult = await client.sendBroadcastMessage(result.message_creative_id, label);
+		return broadcastResult;
+	}).catch((error) => {
+		console.log("Couldn't create new message => ", error);
+		return error;
+	});
+
+	if (results.broadcast_id) {
+		const metrics = await getBroadcastMetrics(results.broadcast_id);
+		console.log(metrics.data[0].values);
+		return metrics;
+	}
+	return undefined; // error
+}
+module.exports.sendAdminBroadcast = sendAdminBroadcast;
+

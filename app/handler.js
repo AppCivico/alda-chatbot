@@ -7,6 +7,7 @@ const flow = require('./flow');
 const attach = require('./attach');
 const db = require('./DB_helper');
 const help = require('./helpers');
+const { sendAdminBroadcast } = require('./broadcast');
 
 const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
