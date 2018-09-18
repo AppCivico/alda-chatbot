@@ -1,48 +1,40 @@
 require('dotenv').config();
 
-const Request = require('request');
 const req = require('requisition');
-
-const pageToken = process.env.ACCESS_TOKEN;
+const { MessengerClient } = require('messaging-api-messenger');
+const config = require('./bottender.config').messenger;
 const flow = require('./flow');
 
-function createGetStarted() {
-	Request.post({
-		uri: `https://graph.facebook.com/v2.6/me/messenger_profile?access_token=${pageToken}`,
-		'content-type': 'application/json',
-		form: {
-			get_started: {
-				payload: 'greetings',
-			},
-			greeting: [
-				{
-					locale: 'default',
-					text: flow.greetings.getStarted,
-				},
-			],
-		},
-	}, (error, response, body) => {
-		console.log('\nMensagem de boas-vindas:');
-		console.log('error:', error);
-		console.log('body:', body);
-		console.log('statusCode:', response && response.statusCode);
-	});
+const client = MessengerClient.connect({
+	accessToken: config.accessToken,
+	appSecret: config.appSecret,
+});
+
+const pageToken = process.env.ACCESS_TOKEN;
+// const flow = require('./flow');
+
+async function createGetStarted() {
+	console.log(await client.setGetStarted('greetings'));
+	console.log(await client.setGreeting([{
+		locale: 'default',
+		text: flow.greetings.getStarted,
+	}]));
 }
 
-function createPersistentMenu() {
-	Request.post({
-		uri: `https://graph.facebook.com/v2.6/me/messenger_profile?access_token=${pageToken}`,
-		'content-type': 'application/json',
-		form: {
-			persistent_menu: [
+async function createPersistentMenu() {
+	console.log(await client.setPersistentMenu([
+		{
+			locale: 'default',
+			call_to_actions: [
 				{
-					locale: 'default',
+					type: 'web_url',
+					title: 'Nosso site',
+					url: 'http://www.consperj.rj.gov.br/',
+				},
+				{
+					type: 'nested',
+					title: 'Menus',
 					call_to_actions: [
-						{
-							type: 'web_url',
-							title: 'Nosso site',
-							url: 'http://www.consperj.rj.gov.br/',
-						},
 						{
 							type: 'postback',
 							title: 'Ir para o Início',
@@ -55,23 +47,33 @@ function createPersistentMenu() {
 						},
 					],
 				},
+				{
+					type: 'nested',
+					title: 'Notificações',
+					call_to_actions: [
+						{
+							type: 'postback',
+							title: 'Ativar Notificações',
+							payload: 'greetings',
+						},
+						{
+							type: 'postback',
+							title: 'Ativar Notificações',
+							payload: 'whichCCSMenu',
+						},
+					],
+				},
+
 			],
 		},
-	}, (error, response, body) => {
-		console.log('\nMenu lateral:');
-		console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
-		console.log('body:', body);
-	});
+	]));
 }
 
 // Each of these functions should be ran from the terminal, with all changes being made right here on the code
 // Run it => node postback.js
-// load();
-async function load() { // eslint-disable-line no-unused-vars
-	await createGetStarted();
-	await createPersistentMenu();
-}
+createGetStarted();
+createPersistentMenu();
+
 
 // creates a new label. Pass in the name of the label and add the return ID to the .env file
 // createNewLabel('example');
