@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const Request = require('request');
+const req = require('requisition');
 
 const pageToken = process.env.ACCESS_TOKEN;
 const flow = require('./flow');
@@ -64,60 +65,37 @@ function createPersistentMenu() {
 	});
 }
 
-// Will be executed when imported
-// It's being imported on index.js (or handler.js), should be commented out after first execution (If both status_code aren't 200 you may want to run it again)
-// Or you can just run it => node postback.js
+// Each of these functions should be ran from the terminal, with all changes being made right here on the code
+// Run it => node postback.js
+// load();
 async function load() { // eslint-disable-line no-unused-vars
 	await createGetStarted();
 	await createPersistentMenu();
 }
 
-// load();
-
 // creates a new label. Pass in the name of the label and add the return ID to the .env file
-function createNewLabel(name) { // eslint-disable-line no-unused-vars
-	Request.post({
-		uri: `https://graph.facebook.com/v2.11/me/custom_labels?access_token=${pageToken}`,
-		'content-type': 'application/json',
-		form: {
-			name,
-		},
-	}, (error, response, body) => {
-		console.log(`\nCreate new label ${name}:`);
-		console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
-		console.log('body and id: ', body);
-	});
-}
-
 // createNewLabel('example');
+async function createNewLabel(name) { // eslint-disable-line no-unused-vars
+	const res = await req.post(`https://graph.facebook.com/v2.11/me/custom_labels?access_token=${pageToken}`).query({ name });
+	const response = await res.json();
+	return response;
+}
+module.exports.createNewLabel = createNewLabel;
+
 
 // Associates user to a label. Pass in the custom label id and the user psid
-function associatesLabelToUser(labelID, userID) { // eslint-disable-line no-unused-vars
-	Request.post({
-		uri: `https://graph.facebook.com/v2.11/${labelID}/label?access_token=${pageToken}`,
-		'content-type': 'application/json',
-		form: {
-			user: userID,
-		},
-	}, (error, response, body) => {
-		console.log(`\nAdd ${userID} to label ${labelID}:`);
-		console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
-		console.log('body:', body);
-	});
-}
-
 // associatesLabelToUser(process.env.LABEL_ADMIN, '123123');
+async function associatesLabelToUser(labelID, user) { // eslint-disable-line no-unused-vars
+	const res = await req.post(`https://graph.facebook.com/v2.11/${labelID}/label?access_token=${pageToken}`).query({ user });
+	const response = await res.json();
+	return response;
+}
+module.exports.associatesLabelToUser = associatesLabelToUser;
 
 // get every label
-function listAllLabels() { // eslint-disable-line no-unused-vars
-	Request.get({
-		uri: `https://graph.facebook.com/v2.11/me/custom_labels?fields=name&access_token=${pageToken}`,
-	}, (error, response, body) => {
-		console.log('\nListing all labels we have:');
-		console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
-		console.log('body:', body);
-	});
+async function listAllLabels() { // eslint-disable-line no-unused-vars
+	const res = await req.get(`https://graph.facebook.com/v2.11/me/custom_labels?fields=name&access_token=${pageToken}`);
+	const response = await res.json();
+	return response;
 }
+module.exports.listAllLabels = listAllLabels;

@@ -1,8 +1,8 @@
 const util = require('util');
 const moment = require('moment');
+const postback = require('./postback');
 
 moment.locale('pt-BR');
-
 
 module.exports.moment = moment;
 
@@ -59,49 +59,23 @@ module.exports.listBairros = function listBairros(ccs) {
 	return [...new Set(bairros)]; // set stores only unique values
 };
 
-// function findCCS(CCSList, place) {
-// 	const result = CCSList.find(obj => (obj.bairro.includes(place)));
 
-// 	if (result) {
-// 		result.neighborhoods = [];
-// 		CCSList.forEach((element) => {
-// 			if (element.cod_ccs === result.cod_ccs) {
-// 				result.neighborhoods.push(element.bairro);
-// 			}
-// 		});
-// 		return result;
-// 	}
-// 	return undefined;
-// }
+// link an user to an agendaLabel
+// each angendaLabel is 'agenda' + 'ID of the CCS' -> agenda1110
+// All of the are going to be created and associated
+async function linkUserToAgendaLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
+	const ourLabels = await postback.listAllLabels(); // get all labels we have
+	const theOneLabel = await ourLabels.data.find(x => x.name === labelName); // find the one label with the name same (we need the id)
 
-// module.exports.findCCS = findCCS;
+	if (theOneLabel) { // if we already have that label, all we have to do is associate the user to the id
+		return postback.associatesLabelToUser(theOneLabel.id, UserID);
+	}
+	// no theOneLabel exists so we have to create it
+	const newLabel = await postback.createNewLabel(labelName);
+	if (!newLabel.error) { // no errors, so we can add the user to the label
+		return postback.associatesLabelToUser(newLabel.id, UserID);
+	}
+	return newLabel;
+}
 
-// TODO turn this and the next function to be the same function
-// function findCCSMunicipio(CCSList, municipio) {
-// 	const sameMunicipio = [];
-
-// 	CCSList.forEach((element) => { // get every ccs on the same municipio (we say municipio but we are actually using regiao)
-// 		if (element.regiao.toLowerCase().includes(municipio.trim().toLowerCase())) {
-// 			sameMunicipio.push(element);
-// 		}
-// 	});
-
-// 	if (sameMunicipio.length > 0) {
-// 		return sameMunicipio;
-// 	}
-// 	return undefined;
-// }
-
-// module.exports.findCCSMunicipio = findCCSMunicipio;
-// function findBairrosByCod(CCSList, cod) { // find other bairros that are also served by this CCS using the ccs_cod
-// 	const bairros = [];
-
-// 	for (const element of CCSList) { // eslint-disable-line
-// 		if (element.cod_ccs === cod) { // if their code is the same, this bairro is on the same CCS
-// 			bairros.push(element.bairro);
-// 		}
-// 	}
-// 	return bairros;
-// }
-
-// module.exports.findBairrosByCod = findBairrosByCod;
+module.exports.linkUserToAgendaLabel = linkUserToAgendaLabel;

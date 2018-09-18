@@ -7,7 +7,6 @@ const flow = require('./flow');
 const attach = require('./attach');
 const db = require('./DB_helper');
 const help = require('./helpers');
-// const postback = require('./postback');
 
 const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
@@ -99,13 +98,13 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					// await context.setState({ dialog: 'councilMenu' });
+					await context.setState({ dialog: 'calendar' });
 				} if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					await context.setState({ labels: await context.getAssociatedLabels() });
 
 					await context.setState({ isAdmin: false });
 					await context.state.labels.data.forEach(async (element) => {
-						if (element.id === process.env.LABEL_ADMIN2) { // checks if this user has the admin tag attached to it
+						if (element.id === process.env.LABEL_ADMIN) { // checks if this user has the admin tag attached to it
 							await context.setState({ isAdmin: true });
 						}
 					});
@@ -357,6 +356,8 @@ module.exports = async (context) => {
 						context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
 					); // if it's not we add it
 				}
+				// create an agendaLabel using CCS_ID because we don't know if there's a rate limit
+				await help.linkUserToAgendaLabel(`agenda${context.state.CCS.id}`, context.session.user.id);
 				await context.typingOff();
 				break;
 			case 'subjects':
@@ -467,6 +468,7 @@ module.exports = async (context) => {
 				}
 				break;
 			case 'adminMessage':
+			// here we need to check if there's any entry in notificacao_agenda that matches the ccs
 
 				break;
 			} // dialog switch
