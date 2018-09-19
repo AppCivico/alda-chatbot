@@ -81,3 +81,5 @@ secret-geolocation-api.json
 
 # vscode configuration folder
 .vscode
+
+run-container.sh
