@@ -232,6 +232,11 @@ module.exports = {
 		menuOptions: ['Ok', 'Métricas', 'Sair do Admin'],
 		menuPostback: ['adminStart', 'metrics', 'adminStart'],
 	},
+	notificationDisable: {
+		menuOptions: ['Entendi'],
+		menuPostback: ['goBackMenu'],
+
+	},
 
 };
 

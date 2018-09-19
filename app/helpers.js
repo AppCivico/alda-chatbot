@@ -80,3 +80,8 @@ async function linkUserToAgendaLabel(labelName, UserID) { // eslint-disable-line
 module.exports.linkUserToAgendaLabel = linkUserToAgendaLabel;
 
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
+module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
+module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
+module.exports.addUserToBlackList = postback.addUserToBlackList;
+module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
+module.exports.checkUserOnLabel = postback.checkUserOnLabel;

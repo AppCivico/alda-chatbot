@@ -8,7 +8,6 @@ const attach = require('./attach');
 const db = require('./DB_helper');
 const help = require('./helpers');
 const { sendAdminBroadcast } = require('./broadcast');
-const { getBroadcastMetrics } = require('./postback');
 
 const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
@@ -100,20 +99,12 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'calendar' });
-				} if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
-					await context.setState({ labels: await context.getAssociatedLabels() });
-
-					await context.setState({ isAdmin: false });
-					await context.state.labels.data.forEach(async (element) => {
-						if (element.id === process.env.LABEL_ADMIN) { // checks if this user has the admin tag attached to it
-							await context.setState({ isAdmin: true });
-						}
-					});
-
-					if (context.state.isAdmin === true) { // user is an admin
+					await context.setState({ dialog: 'councilMenu' });
+					// await context.setState({ dialog: 'calendar' });
+				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
+					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
-					} else { // user is not an admin
+					} else {
 						await context.sendText('Vocẽ não é um administrador! Esse menu é proibido!');
 						await context.setState({ dialog: 'whichCCSMenu', labels: '', isAdmin: '' });
 					}
@@ -188,7 +179,7 @@ module.exports = async (context) => {
 					case 'metrics':
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
 						if (Number.isInteger(context.state.broadcastNumber)) { // check if it's integer
-							await context.setState({ metrics: await getBroadcastMetrics(context.state.broadcastNumber) });
+							await context.setState({ metrics: await help.getBroadcastMetrics(context.state.broadcastNumber) });
 							if (context.state.metrics && context.state.metrics.data[0] && context.state.metrics.data[0].values) {
 								await context.sendText(`Sucesso! Esse broadcast atingiu ${context.state.metrics.data[0].values[0].value} usuário(s).`);
 							} else {
@@ -324,8 +315,10 @@ module.exports = async (context) => {
 				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
 					await context.sendText(`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`, await attach.getQR(flow.notFoundBairro));
 					// before adding the user+ccs on the table we check if it's already there
-					if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
-						await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
+					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+						if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
+							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
+						}
 					}
 				} else { // ask user if he already went to one of the meetings
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
@@ -369,14 +362,16 @@ module.exports = async (context) => {
 					`${context.state.calendario[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
 				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 				// before adding the user+ccs on the table we check if it's already there
-				if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
-					await db.addAgenda(
-						context.session.user.id, context.state.calendario[0].id,
-						context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
-					); // if it's not we add it
+				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+					if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
+						await db.addAgenda(
+							context.session.user.id, context.state.calendario[0].id,
+							context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
+						); // if it's not we add it
+					}
+					// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
+					await help.linkUserToAgendaLabel(`agenda${context.state.calendario[0].id}`, context.session.user.id);
 				}
-				// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
-				await help.linkUserToAgendaLabel(`agenda${context.state.calendario[0].id}`, context.session.user.id);
 				await context.typingOff();
 				break;
 			case 'subjects':
@@ -465,7 +460,7 @@ module.exports = async (context) => {
 					await attach.getQR(flow.whichCCS),
 				);
 				break;
-			case 'adminStart':
+			case 'adminStart': // Admin flow ----------------------------------------------
 				await context.sendText('Bem-vindo ao painel de administrador do bot! Muito cuidado por aqui!\nO que deseja fazer?', await attach.getQR(flow.adminStart));
 				break;
 			case 'broadcast':
@@ -516,8 +511,6 @@ module.exports = async (context) => {
 
 				if (result.broadcast_id) {
 					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso. (Métricas estão por fazer)`, await attach.getQR(flow.broadcastSent));
-					// const metrics = await getBroadcastMetrics(results.broadcast_id);
-					// console.log(metrics.data[0].values);
 				} else {
 					await context.sendText(`Ocorreu um erro, avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
 				}
@@ -529,6 +522,17 @@ module.exports = async (context) => {
 					'Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
 					await attach.getQR(flow.metrics),
 				);
+				break;
+			case 'disableNotifications': // Notifications flow ----------------------------------------------
+				if (await help.dissociateLabelsFromUser(context.session.user.id)) { // remove every label from user
+					await help.addUserToBlackList(context.session.user.id); // add user to the 'blacklist'
+					await context.sendText('Tudo bem. Não estarei mais te enviando nenhuma notificação.', await attach.getQR(flow.notificationDisable));
+				}
+				break;
+			case 'enableNotifications':
+				if (await help.removeUserFromBlackList(context.session.user.id)) { // remove blacklist label from user
+					await context.sendText('Legal! Estarei te interando das novidades!', await attach.getQR(flow.notificationDisable));
+				}
 				break;
 			} // dialog switch
 		} // try

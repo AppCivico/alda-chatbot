@@ -47,22 +47,22 @@ async function createPersistentMenu() { // eslint-disable-line no-unused-vars
 						},
 					],
 				},
-				// {
-				// 	type: 'nested',
-				// 	title: 'Notificações',
-				// 	call_to_actions: [
-				// 		{
-				// 			type: 'postback',
-				// 			title: 'Ativar Notificações',
-				// 			payload: 'greetings',
-				// 		},
-				// 		{
-				// 			type: 'postback',
-				// 			title: 'Ativar Notificações',
-				// 			payload: 'whichCCSMenu',
-				// 		},
-				// 	],
-				// },
+				{
+					type: 'nested',
+					title: 'Notificações',
+					call_to_actions: [
+						{
+							type: 'postback',
+							title: 'Ativar Notificações',
+							payload: 'enableNotifications',
+						},
+						{
+							type: 'postback',
+							title: 'Desativar Notificações',
+							payload: 'disableNotifications',
+						},
+					],
+				},
 			],
 		},
 	]));
@@ -107,3 +107,45 @@ async function getBroadcastMetrics(broadcastID) {
 
 module.exports.getBroadcastMetrics = getBroadcastMetrics;
 
+async function dissociateLabelsFromUser(UserID) {
+	const userLabels = await client.getAssociatedLabels(UserID);
+	if (userLabels.data) {
+		await userLabels.data.forEach(async (element) => {
+			await client.dissociateLabel(UserID, element.id);
+		});
+		return true;
+	}
+	return false;
+}
+
+module.exports.dissociateLabelsFromUser = dissociateLabelsFromUser;
+
+async function addUserToBlackList(UserID) {
+	return client.associateLabel(UserID, process.env.LABEL_BLACKLIST);
+}
+
+module.exports.addUserToBlackList = addUserToBlackList;
+
+async function removeUserFromBlackList(UserID) {
+	return client.dissociateLabel(UserID, process.env.LABEL_BLACKLIST);
+}
+
+module.exports.removeUserFromBlackList = removeUserFromBlackList;
+
+async function checkUserOnLabel(UserID, labelID) { // checks if user is on the label
+	const userLabels = await client.getAssociatedLabels(UserID);
+	const theOneLabel = await userLabels.data.find(x => x.id === `${labelID}`); // find the one label with the name same
+
+	if (theOneLabel) {
+		return true;
+	}
+	return false;
+}
+
+module.exports.checkUserOnLabel = checkUserOnLabel;
+
+
+// async function test() {
+// 	console.log(await dissociateLabelsFromUser());
+// }
+// test();
