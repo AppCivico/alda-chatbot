@@ -135,3 +135,21 @@ function fakeGeo(opt) {
 
 module.exports.fakeGeo = fakeGeo;
 
+// db mock-up
+
+const db = {};
+
+async function getDiretoria(CCS_ID) {
+	if (CCS_ID === true) {
+		return [
+			{ nome: 'George', cargo: 'Lead' },
+			{ nome: 'Ringo', cargo: 'Drums' }];
+	}
+	return [
+		{ nome: 'John', cargo: 'Singer' },
+		{ nome: 'Paul', cargo: 'Bass' }];
+}
+
+db.getDiretoria = getDiretoria;
+
+module.exports.db = db;

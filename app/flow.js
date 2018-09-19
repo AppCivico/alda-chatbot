@@ -33,42 +33,47 @@ module.exports = {
 		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
-		menuPostback: ['sendLocation', 'wantToType', 'noLocation'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 		notNow: 'Entendo! 😉',
 		remember: 'Pelo que me lembro você quer saber sobre a região', // will be completed
 		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
 		// the rest of the dialog comes from foundLocation
+	},
+	whichCCSMenu: {
+		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
+		menuPostback: ['advance', 'wantToChange'],
 	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
+		firstMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Legal. Agora digite o bairro desse município:',
 	},
 	foundLocation: {
-		firstMessage: 'Você quer saber sobre a região X e o conselho que eu encontrei aqui foi o AISP (Área Integrada de Segurança Pública) Y.',
+		firstMessage: 'Encontrei o seguinte endereço:',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		menuPostback: ['nearestCouncil', 'wantToChange'],
-	},
-	confirmLocation: {
-		firstMessage: 'Encontrei o seguinte endereço:',
-		secondMessage: 'É esse o endereço certo?',
-		menuOptions: ['É esse mesmo', 'Não é esse'],
-		menuPostback: ['nearestCouncil', 'wantToChange'],
-		noFirst: 'Não consegui encontrar nenhum endereço com',
-		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
-		noCouncil: 'Desculpe, não consegui encontrar o conselho que cobre essa região!',
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
+		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
 	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
-		menuPostback: ['sendLocation', 'retryType', 'noLocation'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
+	},
+	notFoundMunicipio: {
+		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
+	},
+	notFoundBairro: {
+		menuOptions: ['Enviar localização', 'Trocar bairro', 'Voltar'],
+		menuPostback: ['sendLocation', 'wantToType2', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a região ou bairro da cidade do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],
@@ -102,7 +107,7 @@ module.exports = {
 				subtitle: 'Função',
 				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
 			}],
-		secondMessage: 'Bacana né, olha só o que mais você pode fazer por aqui!',
+		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
 		firstMessage: 'Escolha uma das opções:',
@@ -125,6 +130,8 @@ module.exports = {
 		link: 'http://www.africau.edu/images/default/sample.pdf',
 		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
 			' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		emptyAssuntos: 'Esse CCS ainda não produz ata no modelo/formato “Ata Eletrônica”',
+		// menu --
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
 		menuPostback: ['calendar', 'results', 'join'],
 		imageLink: 'https://cdn2.iconfinder.com/data/icons/business-office-icons/256/To-do_List-512.png',
@@ -133,12 +140,12 @@ module.exports = {
 		firstMessage: 'A última reunião ocorreu no dia xx/xx/xx. No link abaixo você pode visualizar o PDF completinho do que rolou:',
 		title: 'Baixar PDF',
 		sub: 'Veja os resultados de nossos esforços.',
-		link: 'http://www.africau.edu/images/default/sample.pdf',
+		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
+		// link: 'http://www.africau.edu/images/default/sample.pdf',
 		secondMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
 			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
-		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 
 	},
 	mainMenu: {
@@ -196,6 +203,39 @@ module.exports = {
 		firstMessage: 'Esse número não é válido! Quer tentar novamente?',
 		menuOptions: ['Tentar Novamente', 'Voltar'],
 		menuPostback: ['whatsApp', 'join'],
+	},
+	adminStart: {
+		menuOptions: ['Broadcast', 'Métricas', 'Sair do Admin'],
+		menuPostback: ['broadcast', 'metrics', 'goBackMenu'],
+	},
+	broadcast: {
+		menuOptions: ['Voltar', 'Sair do Admin'],
+		menuPostback: ['adminStart', 'goBackMenu'],
+	},
+	metrics: {
+		menuOptions: ['Broadcast', 'Voltar', 'Sair do Admin'],
+		menuPostback: ['broadcast', 'adminStart', 'goBackMenu'],
+	},
+	adminConfirm1: {
+		menuOptions: ['Sim', 'Não', 'Voltar'],
+		menuPostback: ['adminMessage', 'broadcast', 'goBackMenu'],
+	},
+	adminConfirm2: {
+		menuOptions: ['Voltar', 'Sair do Admin'],
+		menuPostback: ['broadcast', 'goBackMenu'],
+	},
+	adminConfirmText: {
+		menuOptions: ['Pode', 'Reescrever', 'Voltar'],
+		menuPostback: ['broadcastSent', 'adminMessage', 'adminStart'],
+	},
+	broadcastSent: {
+		menuOptions: ['Ok', 'Métricas', 'Sair do Admin'],
+		menuPostback: ['adminStart', 'metrics', 'adminStart'],
+	},
+	notificationDisable: {
+		menuOptions: ['Entendi'],
+		menuPostback: ['goBackMenu'],
+
 	},
 
 };

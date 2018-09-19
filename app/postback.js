@@ -1,45 +1,40 @@
-const Request = require('request');
+require('dotenv').config();
 
-const pageToken = process.env.ACCESS_TOKEN;
+const req = require('requisition');
 const flow = require('./flow');
 
-function createGetStarted() {
-	Request.post({
-		uri: `https://graph.facebook.com/v2.6/me/messenger_profile?access_token=${pageToken}`,
-		'content-type': 'application/json',
-		form: {
-			get_started: {
-				payload: 'greetings',
-			},
-			greeting: [
-				{
-					locale: 'default',
-					text: flow.greetings.getStarted,
-				},
-			],
-		},
-	}, (error, response, body) => {
-		console.log('\nMensagem de boas-vindas:');
-		console.log('error:', error);
-		console.log('body:', body);
-		console.log('statusCode:', response && response.statusCode);
-	});
+const { MessengerClient } = require('messaging-api-messenger');
+const config = require('./bottender.config').messenger;
+
+const client = MessengerClient.connect({
+	accessToken: config.accessToken,
+	appSecret: config.appSecret,
+});
+
+const pageToken = process.env.ACCESS_TOKEN;
+
+async function createGetStarted() { // eslint-disable-line no-unused-vars
+	console.log(await client.setGetStarted('greetings'));
+	console.log(await client.setGreeting([{
+		locale: 'default',
+		text: flow.greetings.getStarted,
+	}]));
 }
 
-function createPersistentMenu() {
-	Request.post({
-		uri: `https://graph.facebook.com/v2.6/me/messenger_profile?access_token=${pageToken}`,
-		'content-type': 'application/json',
-		form: {
-			persistent_menu: [
+async function createPersistentMenu() { // eslint-disable-line no-unused-vars
+	console.log(await client.setPersistentMenu([
+		{
+			locale: 'default',
+			call_to_actions: [
 				{
-					locale: 'default',
+					type: 'web_url',
+					title: 'Nosso site',
+					url: 'http://www.consperj.rj.gov.br/',
+				},
+				{
+					type: 'nested',
+					title: 'Menus',
 					call_to_actions: [
-						{
-							type: 'web_url',
-							title: 'Nosso site',
-							url: 'http://www.consperj.rj.gov.br/',
-						},
 						{
 							type: 'postback',
 							title: 'Ir para o Início',
@@ -48,27 +43,109 @@ function createPersistentMenu() {
 						{
 							type: 'postback',
 							title: 'Meu Conselho',
-							// payload: 'councilMenu',
-							payload: 'wannaKnowMembers',
+							payload: 'whichCCSMenu',
+						},
+					],
+				},
+				{
+					type: 'nested',
+					title: 'Notificações',
+					call_to_actions: [
+						{
+							type: 'postback',
+							title: 'Ativar Notificações',
+							payload: 'enableNotifications',
+						},
+						{
+							type: 'postback',
+							title: 'Desativar Notificações',
+							payload: 'disableNotifications',
 						},
 					],
 				},
 			],
 		},
-	}, (error, response, body) => {
-		console.log('\nMenu lateral:');
-		console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
-		console.log('body:', body);
-	});
+	]));
 }
 
-// Will be executed when imported
-// It's being imported on index.js, should be commented out after first execution (If both status_code aren't 200 you may want to run it again)
-async function load() {
-	await createGetStarted();
-	await createPersistentMenu();
+// Each of these functions should be ran from the terminal, with all changes being made right here on the code
+// Run it => node postback.js
+// createGetStarted();
+// createPersistentMenu();
+
+// creates a new label. Pass in the name of the label and add the return ID to the .env file
+// createNewLabel('example');
+async function createNewLabel(name) { // eslint-disable-line no-unused-vars
+	const res = await req.post(`https://graph.facebook.com/v2.11/me/custom_labels?access_token=${pageToken}`).query({ name });
+	const response = await res.json();
+	return response;
+}
+module.exports.createNewLabel = createNewLabel;
+
+// Associates user to a label. Pass in the custom label id and the user psid
+// associatesLabelToUser(process.env.LABEL_ADMIN, '123123');
+async function associatesLabelToUser(labelID, user) { // eslint-disable-line no-unused-vars
+	const res = await req.post(`https://graph.facebook.com/v2.11/${labelID}/label?access_token=${pageToken}`).query({ user });
+	const response = await res.json();
+	return response;
+}
+module.exports.associatesLabelToUser = associatesLabelToUser;
+
+// get every label
+async function listAllLabels() { // eslint-disable-line no-unused-vars
+	const res = await req.get(`https://graph.facebook.com/v2.11/me/custom_labels?fields=name&access_token=${pageToken}`);
+	const response = await res.json();
+	return response;
+}
+module.exports.listAllLabels = listAllLabels;
+
+async function getBroadcastMetrics(broadcastID) {
+	const res = await req.get(`https://graph.facebook.com/v2.11/${broadcastID}/insights/messages_sent?access_token=${pageToken}`);
+	const response = await res.json();
+	return response;
 }
 
-load();
+module.exports.getBroadcastMetrics = getBroadcastMetrics;
 
+async function dissociateLabelsFromUser(UserID) {
+	const userLabels = await client.getAssociatedLabels(UserID);
+	if (userLabels.data) {
+		await userLabels.data.forEach(async (element) => {
+			await client.dissociateLabel(UserID, element.id);
+		});
+		return true;
+	}
+	return false;
+}
+
+module.exports.dissociateLabelsFromUser = dissociateLabelsFromUser;
+
+async function addUserToBlackList(UserID) {
+	return client.associateLabel(UserID, process.env.LABEL_BLACKLIST);
+}
+
+module.exports.addUserToBlackList = addUserToBlackList;
+
+async function removeUserFromBlackList(UserID) {
+	return client.dissociateLabel(UserID, process.env.LABEL_BLACKLIST);
+}
+
+module.exports.removeUserFromBlackList = removeUserFromBlackList;
+
+async function checkUserOnLabel(UserID, labelID) { // checks if user is on the label
+	const userLabels = await client.getAssociatedLabels(UserID);
+	const theOneLabel = await userLabels.data.find(x => x.id === `${labelID}`); // find the one label with the name same
+
+	if (theOneLabel) {
+		return true;
+	}
+	return false;
+}
+
+module.exports.checkUserOnLabel = checkUserOnLabel;
+
+
+// async function test() {
+// 	console.log(await dissociateLabelsFromUser());
+// }
+// test();

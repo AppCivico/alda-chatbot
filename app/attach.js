@@ -58,7 +58,7 @@ async function sendCarousel(context, items) {
 		elements.push({
 			title: element.nome,
 			subtitle: element.cargo,
-			image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
 		});
 	});
 	await context.sendAttachment({
@@ -72,20 +72,46 @@ async function sendCarousel(context, items) {
 
 module.exports.sendCarousel = sendCarousel;
 
-// sends one card with an image
-async function sendCard(context, links) {
+async function sendCentro(context, items) {
+	const elements = [];
+
+	items.forEach((element, index) => {
+		elements.push({
+			title: `Região ${index + 1}`,
+			subtitle: `CCS ${element.id}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É esse!',
+				payload: `centro${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+}
+
+module.exports.sendCentro = sendCentro;
+
+// sends one card with an image and link
+module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url) {
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
 			template_type: 'generic',
 			elements: [
 				{
-					title: links.title,
-					subtitle: links.sub,
-					image_url: links.imageLink,
+					title: cardData.title,
+					subtitle: cardData.sub,
+					image_url: cardData.imageLink,
 					default_action: {
 						type: 'web_url',
-						url: links.link,
+						url,
 						messenger_extensions: 'false',
 						webview_height_ratio: 'full',
 					},
@@ -93,10 +119,30 @@ async function sendCard(context, links) {
 			],
 		},
 	});
-}
+};
 
+module.exports.sendCardWithout = async function sendCardWithLink(context, cardData) {
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements: [
+				{
+					title: cardData.title,
+					subtitle: cardData.sub,
+					image_url: cardData.imageLink,
+					// default_action: {
+					// 	type: 'web_url',
+					// 	url,
+					// 	messenger_extensions: 'false',
+					// 	webview_height_ratio: 'full',
+					// },
+				},
+			],
+		},
+	});
+};
 
-module.exports.sendCard = sendCard;
 
 // get quick_replies opject with elements array
 // supossed to be used with menuOptions and menuPostback for each dialog on flow.js
