@@ -1,9 +1,10 @@
 require('dotenv').config();
 
 const req = require('requisition');
+const flow = require('./flow');
+
 const { MessengerClient } = require('messaging-api-messenger');
 const config = require('./bottender.config').messenger;
-const flow = require('./flow');
 
 const client = MessengerClient.connect({
 	accessToken: config.accessToken,
@@ -11,9 +12,8 @@ const client = MessengerClient.connect({
 });
 
 const pageToken = process.env.ACCESS_TOKEN;
-// const flow = require('./flow');
 
-async function createGetStarted() {
+async function createGetStarted() { // eslint-disable-line no-unused-vars
 	console.log(await client.setGetStarted('greetings'));
 	console.log(await client.setGreeting([{
 		locale: 'default',
@@ -21,7 +21,7 @@ async function createGetStarted() {
 	}]));
 }
 
-async function createPersistentMenu() {
+async function createPersistentMenu() { // eslint-disable-line no-unused-vars
 	console.log(await client.setPersistentMenu([
 		{
 			locale: 'default',
@@ -47,23 +47,22 @@ async function createPersistentMenu() {
 						},
 					],
 				},
-				{
-					type: 'nested',
-					title: 'Notificações',
-					call_to_actions: [
-						{
-							type: 'postback',
-							title: 'Ativar Notificações',
-							payload: 'greetings',
-						},
-						{
-							type: 'postback',
-							title: 'Ativar Notificações',
-							payload: 'whichCCSMenu',
-						},
-					],
-				},
-
+				// {
+				// 	type: 'nested',
+				// 	title: 'Notificações',
+				// 	call_to_actions: [
+				// 		{
+				// 			type: 'postback',
+				// 			title: 'Ativar Notificações',
+				// 			payload: 'greetings',
+				// 		},
+				// 		{
+				// 			type: 'postback',
+				// 			title: 'Ativar Notificações',
+				// 			payload: 'whichCCSMenu',
+				// 		},
+				// 	],
+				// },
 			],
 		},
 	]));
@@ -71,9 +70,8 @@ async function createPersistentMenu() {
 
 // Each of these functions should be ran from the terminal, with all changes being made right here on the code
 // Run it => node postback.js
-createGetStarted();
-createPersistentMenu();
-
+// createGetStarted();
+// createPersistentMenu();
 
 // creates a new label. Pass in the name of the label and add the return ID to the .env file
 // createNewLabel('example');
@@ -83,7 +81,6 @@ async function createNewLabel(name) { // eslint-disable-line no-unused-vars
 	return response;
 }
 module.exports.createNewLabel = createNewLabel;
-
 
 // Associates user to a label. Pass in the custom label id and the user psid
 // associatesLabelToUser(process.env.LABEL_ADMIN, '123123');

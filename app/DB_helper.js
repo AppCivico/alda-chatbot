@@ -308,7 +308,7 @@ module.exports.updateAgendaNotification = async function updateAgendaNotificatio
 // get every open agenda to warn with a broadcast
 module.exports.getAgendaNotificationFromID = async function getAgendaNotificationFromID(PK) {
 	const result = await sequelize.query(`
-	SELECT user_id, data_hora, endereco, updated_at
+	SELECT user_id, data_hora, agendas_id, endereco, updated_at
 	FROM notificar_agenda
 	WHERE agendas_id = ${PK} AND NOT notificado;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars

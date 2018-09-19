@@ -276,7 +276,7 @@ module.exports = async (context) => {
 				await context.setState({ municipiosFound: '' });
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
 					await context.sendText(`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}. ` +
-							'Quer tentar de novo? ', await attach.getQR(flow.notFoundBairro));
+					'Quer tentar de novo? ', await attach.getQR(flow.notFoundBairro));
 				} else {
 					await context.sendText(
 						`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}.\n` +
@@ -361,7 +361,7 @@ module.exports = async (context) => {
 					); // if it's not we add it
 				}
 				// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
-				await help.linkUserToAgendaLabel(`agenda${context.state.CCS.id}`, context.session.user.id);
+				await help.linkUserToAgendaLabel(`agenda${context.state.calendario[0].id}`, context.session.user.id);
 				await context.typingOff();
 				break;
 			case 'subjects':
@@ -497,7 +497,7 @@ module.exports = async (context) => {
 				break;
 			case 'broadcastSent': {
 				await context.sendText('OK, estamos enviando...');
-				const result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.broadcastNumber}`);
+				const result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
 
 				if (result.broadcast_id) {
 					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso. (Métricas estão por fazer)`, await attach.getQR(flow.broadcastSent));

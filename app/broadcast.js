@@ -4,8 +4,6 @@ const { MessengerClient } = require('messaging-api-messenger');
 
 const config = require('./bottender.config').messenger;
 
-// const { getBroadcastMetrics } = require('./helpers');
-
 const client = MessengerClient.connect({
 	accessToken: config.accessToken,
 	appSecret: config.appSecret,
