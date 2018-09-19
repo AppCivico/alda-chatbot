@@ -8,6 +8,7 @@ const attach = require('./attach');
 const db = require('./DB_helper');
 const help = require('./helpers');
 const { sendAdminBroadcast } = require('./broadcast');
+const { getBroadcastMetrics } = require('./postback');
 
 const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
@@ -184,8 +185,22 @@ module.exports = async (context) => {
 					case 'adminMessage':
 						await context.setState({ broadcastText: context.event.message.text, dialog: 'adminConfirmText' });
 						break;
+					case 'metrics':
+						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
+						if (Number.isInteger(context.state.broadcastNumber)) { // check if it's integer
+							await context.setState({ metrics: await getBroadcastMetrics(context.state.broadcastNumber) });
+							if (context.state.metrics && context.state.metrics.data[0] && context.state.metrics.data[0].values) {
+								await context.sendText(`Sucesso! Esse broadcast atingiu ${context.state.metrics.data[0].values[0].value} usuário(s).`);
+							} else {
+								await context.sendText('Não achamos nenhum broadcast com esse número! Tente novamente.');
+							}
+						} else {
+							await context.sendText('Erro! Entrada inválida! Tente novamente.');
+						} // after this flow we return to the metrics dialog
+						break;
 					default: // regular text message
 						await context.setState({ dialog: 'errorText' });
+
 						break;
 					}
 				}
@@ -474,7 +489,7 @@ module.exports = async (context) => {
 			case 'adminMessage':
 			// here we need to check if there's any entry in notificacao_agenda that matches the ccs
 				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda[0].id) });
-				console.log(context.state.notification_agenda);
+				// console.log(context.state.notification_agenda);
 
 				if (!context.state.notification_agenda) { // error
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
@@ -508,6 +523,13 @@ module.exports = async (context) => {
 				}
 				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
 				break; }
+			case 'metrics':
+				await context.sendText(
+					'Insira o id do broadcast que você deseja. Exemplo: 332286104187677. Esse id é dado depois que você envia um broadcast. ' +
+					'Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
+					await attach.getQR(flow.metrics),
+				);
+				break;
 			} // dialog switch
 		} // try
 	} catch (err) {
