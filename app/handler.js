@@ -98,8 +98,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'councilMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
@@ -259,7 +259,10 @@ module.exports = async (context) => {
 					await context.setState({ retryCount: 0 });
 					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange)); // TODO: Could this be a card?
 				} else {
-					await context.sendText(flow.wantToType.firstMessage);
+					// await context.sendText(flow.wantToType.firstMessage);
+					// await context.sendText(flow.wantToType.firstMessage);
+
+
 				}
 				break;
 			case 'wantToType2': // asking for bairro
@@ -542,7 +545,9 @@ module.exports = async (context) => {
 		console.log(err);
 		console.log('\n');
 
-		await context.sendText(` Erro: ${flow.councilMenu.firstMessage}`, await attach.getQR(flow.whichCCS));
+		await context.sendText(' Ops. Tive um erro interno. Tente novamente.');
+		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+
 
 		// await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
 	}
