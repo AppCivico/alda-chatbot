@@ -388,7 +388,7 @@ module.exports = async (context) => {
 				await context.typingOff();
 				break;
 			case 'results':
-				await context.setState({ results: await db.getResults(context.state.calendario[0].id) });
+				await context.setState({ results: await db.getResults(context.state.CCS.id) });
 				// if we don't have any results or if result is not a valid url we send this default message
 				if (context.state.results === '' || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
@@ -542,7 +542,7 @@ module.exports = async (context) => {
 		console.log(err);
 		console.log('\n');
 
-		await context.sendText(` Erro: ${flow.councilMenu.firstMessage}`, await attach.getQR(flow.councilMenu));
+		await context.sendText(` Erro: ${flow.councilMenu.firstMessage}`, await attach.getQR(flow.whichCCS));
 
 		// await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
 	}
