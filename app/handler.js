@@ -259,10 +259,8 @@ module.exports = async (context) => {
 					await context.setState({ retryCount: 0 });
 					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange)); // TODO: Could this be a card?
 				} else {
-					// await context.sendText(flow.wantToType.firstMessage);
-					// await context.sendText(flow.wantToType.firstMessage);
-
-
+					await context.sendText(flow.wantToType.firstMessage);
+					// await context.sendText(flow.wantToType.firstMessage); // change here
 				}
 				break;
 			case 'wantToType2': // asking for bairro
