@@ -390,7 +390,7 @@ module.exports = async (context) => {
 			case 'results':
 				await context.setState({ results: await db.getResults(context.state.CCS.id) });
 				// if we don't have any results or if result is not a valid url we send this default message
-				if (context.state.results === '' || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
+				if (!context.state.results || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
 					await context.sendText('Disponibilizamos o resultado da ultima reunião em um arquivo que você pode baixar clicando abaixo.');
