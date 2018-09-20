@@ -98,8 +98,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'councilMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
@@ -259,7 +259,10 @@ module.exports = async (context) => {
 					await context.setState({ retryCount: 0 });
 					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange)); // TODO: Could this be a card?
 				} else {
-					await context.sendText(flow.wantToType.firstMessage);
+					// await context.sendText(flow.wantToType.firstMessage);
+					// await context.sendText(flow.wantToType.firstMessage);
+
+
 				}
 				break;
 			case 'wantToType2': // asking for bairro
@@ -390,7 +393,7 @@ module.exports = async (context) => {
 			case 'results':
 				await context.setState({ results: await db.getResults(context.state.CCS.id) });
 				// if we don't have any results or if result is not a valid url we send this default message
-				if (context.state.results === '' || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
+				if (!context.state.results || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
 					await context.sendText('Disponibilizamos o resultado da ultima reunião em um arquivo que você pode baixar clicando abaixo.');
@@ -542,7 +545,9 @@ module.exports = async (context) => {
 		console.log(err);
 		console.log('\n');
 
-		await context.sendText(` Erro: ${flow.councilMenu.firstMessage}`, await attach.getQR(flow.whichCCS));
+		await context.sendText(' Ops. Tive um erro interno. Tente novamente.');
+		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+
 
 		// await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
 	}

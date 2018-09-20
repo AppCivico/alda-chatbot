@@ -129,7 +129,7 @@ module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 	return result;
 };
 
-module.exports.getAgenda = async function getAgenda(CCS_ID) { // also known as calendário
+async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
 	SELECT id, create_at, endereco, updated_at
 	FROM agendas
@@ -142,7 +142,8 @@ module.exports.getAgenda = async function getAgenda(CCS_ID) { // also known as c
 		console.error('Error on getAgenda => ', err);
 	});
 	return result;
-};
+}
+module.exports.getAgenda = getAgenda;
 
 module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	const result = await sequelize.query(`
@@ -161,17 +162,24 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	});
 	return result;
 };
-module.exports.getResults = async function getResults(AgendaID) {
+module.exports.getResults = async function getResults(conselhoID) {
+	const agenda = await getAgenda(conselhoID);
+
 	const result = await sequelize.query(`
 	SELECT texto
 	FROM resultados
-	WHERE agenda_id = ${AgendaID} ;
+	WHERE agenda_id = ${agenda[0].id}
+	ORDER BY updated_at DESC;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Loaded resultados from ${AgendaID} successfully!`);
+		console.log(`Loaded last resultados from ${conselhoID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getResults => ', err);
 	});
+
+	if (result.length === 0) {
+		return undefined;
+	}
 	return result[0].texto;
 };
 

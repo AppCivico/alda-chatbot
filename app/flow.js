@@ -50,6 +50,9 @@ module.exports = {
 	wantToType: {
 		firstMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
 		secondMessage: 'Legal. Agora digite o bairro desse município:',
+		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
+		// menuPostback: ['advance', 'wantToChange'],
+
 	},
 	foundLocation: {
 		firstMessage: 'Encontrei o seguinte endereço:',
