@@ -98,8 +98,7 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'share' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
@@ -269,25 +268,25 @@ module.exports = async (context) => {
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
 
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
-					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
+					await context.sendText(`Legal. Agora digite o bairro da região ${context.state.municipiosFound[0].regiao}.`);
 				} else {
-					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}. `
+					await context.sendText(`Legal. Agora digite o bairro da região ${context.state.municipiosFound[0].regiao}. `
 					+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' ou')}.`);
 				}
 				break;
 			case 'municipioNotFound':
-				await context.sendText('Não consegui encontrar essa cidade. ' +
+				await context.sendText('Não consegui encontrar esse município. ' +
 					'Deseja tentar novamente? Você pode pesquisar por Interior, Capital, Grande Niterói e Baixada Fluminense.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound':
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
 				await context.setState({ municipiosFound: '' });
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
-					await context.sendText(`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}. ` +
+					await context.sendText(`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}. ` +
 					'Quer tentar de novo? ', await attach.getQR(flow.notFoundBairro));
 				} else {
 					await context.sendText(
-						`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}.\n` +
+						`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}.\n` +
 						`Quer tentar de novo? Exemplos de alguns bairros nesse municipio: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
 						await attach.getQR(flow.notFoundBairro),
 					);
@@ -295,7 +294,7 @@ module.exports = async (context) => {
 				break;
 			case 'confirmCentro':
 				await context.sendText(`Parece que você quer saber sobre o Centro da Capital do Rio! Temos ${context.state.bairro.length} ` +
-					'conselhos nessa cidade. Escolha qual dos seguintes complementos melhor se encaixa na sua cidade:');
+					'conselhos nessa região. Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
 				await attach.sendCentro(context, context.state.bairro);
 				break;
 			case 'foundLocation': // are we ever using this?
