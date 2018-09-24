@@ -48,8 +48,8 @@ module.exports = {
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
-		secondMessage: 'Legal. Agora digite o bairro desse município:',
+		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
 
@@ -76,7 +76,7 @@ module.exports = {
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver:',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],
@@ -181,7 +181,7 @@ module.exports = {
 		siteTitle: 'ITS Rio de Janeiro',
 		siteSubTitle: 'Venha participar!',
 		imageURL: 'https://www.lesconferences.ca/files/sites/97/2016/12/LogoITS.jpg',
-		siteURL: 'https://itsrio.org/pt/home/',
+		siteURL: 'https://www.facebook.com/aldaChatbot/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
