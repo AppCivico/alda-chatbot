@@ -208,8 +208,8 @@ module.exports = {
 		menuPostback: ['whatsApp', 'join'],
 	},
 	adminStart: {
-		menuOptions: ['Avisar Agenda', 'Métricas', 'Sair do Admin'],
-		menuPostback: ['warnCalendar', 'metrics', 'goBackMenu'],
+		menuOptions: ['Broadcast', 'Avisar Agenda', 'Métricas', 'Sair do Admin'],
+		menuPostback: ['broadcast', 'warnCalendar', 'metrics', 'goBackMenu'],
 	},
 	warnCalendar: {
 		menuOptions: ['Voltar', 'Sair do Admin'],
@@ -219,17 +219,17 @@ module.exports = {
 		menuOptions: ['Avisar Agenda', 'Voltar', 'Sair do Admin'],
 		menuPostback: ['warnCalendar', 'adminStart', 'goBackMenu'],
 	},
-	adminConfirm1: {
+	agendaConfirm1: {
 		menuOptions: ['Sim', 'Não', 'Voltar'],
-		menuPostback: ['adminMessage', 'warnCalendar', 'goBackMenu'],
+		menuPostback: ['agendaMessage', 'warnCalendar', 'goBackMenu'],
 	},
-	adminConfirm2: {
+	agendaConfirm2: {
 		menuOptions: ['Voltar', 'Sair do Admin'],
 		menuPostback: ['warnCalendar', 'goBackMenu'],
 	},
-	adminConfirmText: {
+	agendaConfirmText: {
 		menuOptions: ['Pode', 'Reescrever', 'Voltar'],
-		menuPostback: ['broadcastSent', 'adminMessage', 'adminStart'],
+		menuPostback: ['broadcastSent', 'agendaMessage', 'adminStart'],
 	},
 	broadcastSent: {
 		menuOptions: ['Ok', 'Métricas', 'Sair do Admin'],

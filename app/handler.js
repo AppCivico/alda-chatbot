@@ -158,6 +158,9 @@ module.exports = async (context) => {
 					case 'adminStart':
 						await context.sendText('Escolha uma das opções!');
 						break;
+					case 'broadcast':
+
+						break;
 					case 'warnCalendar': // admin typed ccs number
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
 						// checking if number if valid and present on database
@@ -174,8 +177,8 @@ module.exports = async (context) => {
 							await context.sendText('Número inválido. Tente novamente!');
 						} // not changing dialog --> admin goes back to 'broadcast'
 						break;
-					case 'adminMessage':
-						await context.setState({ broadcastText: context.event.message.text, dialog: 'adminConfirmText' });
+					case 'agendaMessage':
+						await context.setState({ broadcastText: context.event.message.text, dialog: 'agendaConfirmText' });
 						break;
 					case 'metrics':
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
@@ -484,20 +487,20 @@ module.exports = async (context) => {
 					} else { // check if the values have been updated on the database already
 						await context.sendText(`Temos uma reunião marcada nesse CCS que parece ter sido cancelada em ${help.formatDate(context.state.broadcastAgenda[0].updated_at)}`);
 					}
-					await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.adminConfirm1));
+					await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.agendaConfirm1));
 				} else {
-					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente ou entre em contato!', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
 					await context.setState({ dialog: 'broadcast' });
 				}
 				break;
-			case 'adminMessage':
+			case 'agendaMessage':
 			// here we need to check if there's any entry in notificacao_agenda that matches the ccs
 				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda[0].id) });
 				console.log(context.state.notification_agenda);
 
 				if (!context.state.notification_agenda) { // error
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
-					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
 				} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
 					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.adminConfirm2));
@@ -509,10 +512,14 @@ module.exports = async (context) => {
 					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
 				}
 				break;
-			case 'adminConfirmText':
+			case 'agendaConfirmText':
 				await context.sendText('Sua mensagem aparecerá assim:');
 				await context.sendText(context.state.broadcastText);
-				await context.sendText('Podemos envia-la?', await attach.getQR(flow.adminConfirmText));
+				await context.sendText('Podemos envia-la?', await attach.getQR(flow.agendaConfirmText));
+				break;
+			case 'broadcast':
+				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que se vincularam a um conselho.' +
+						'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
 			case 'broadcastSent': {
 				await context.sendText('OK, estamos enviando...');
