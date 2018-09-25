@@ -99,8 +99,8 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'councilMenu' });
-					// await context.setState({ dialog: 'calendar' });
+					// await context.setState({ dialog: 'councilMenu' });
+					await context.setState({ dialog: 'join' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -358,7 +358,7 @@ module.exports = async (context) => {
 			case 'calendar': // agenda
 				await context.typingOn();
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
-				if (context.state.agenda) { // check if we have an agenda to show
+				if (context.state.agenda || context.state.agenda === null) { // check if we have an agenda to show
 					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
 					await context.sendText(`🗓️ *Data*: ${help.formatDate(context.state.agenda[0].create_at)}\n` +
 						`🏠 *Local*: ${context.state.agenda[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
@@ -415,7 +415,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.share.secondMessage, await attach.getQR(flow.share));
 				break;
 			case 'followMedia':
-				await attach.sendCardWithLink(context, flow.followMedia);
+				await attach.sendCardWithLink(context, flow.followMedia, flow.followMedia.link);
 				// falls through
 			case 'userData':
 				await context.sendText(flow.userData.menuMessage, await attach.getQR(flow.userData));
@@ -515,7 +515,7 @@ module.exports = async (context) => {
 				const result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
 
 				if (result.broadcast_id) {
-					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso. (Métricas estão por fazer)`, await attach.getQR(flow.broadcastSent));
+					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso.`, await attach.getQR(flow.broadcastSent));
 				} else {
 					await context.sendText(`Ocorreu um erro, avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
 				}

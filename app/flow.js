@@ -99,17 +99,17 @@ module.exports = {
 	},
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
-		carousel: [
-			{
-				title: 'Nome Sobrenome',
-				subtitle: 'Função',
-				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
-			},
-			{
-				title: 'Nome Sobrenome',
-				subtitle: 'Função',
-				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
-			}],
+		// carousel: [
+		// 	{
+		// 		title: 'Nome Sobrenome',
+		// 		subtitle: 'Função',
+		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+		// 	},
+		// 	{
+		// 		title: 'Nome Sobrenome',
+		// 		subtitle: 'Função',
+		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
+		// 	}],
 		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
@@ -159,7 +159,7 @@ module.exports = {
 	},
 	join: {
 		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
-		menuOptions: ['Me manter informado', 'Sequir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
+		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
 		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
 	},
 	keepMe: {
@@ -190,7 +190,7 @@ module.exports = {
 		firstMessage: 'Curta a minha página! Sempre tem novidades por aqui!',
 		title: 'Facebook',
 		sub: 'Junte-se a nós.',
-		link: 'http://www.consperj.rj.gov.br/',
+		link: 'https://www.facebook.com/aldaChatbot/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
