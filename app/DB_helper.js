@@ -276,7 +276,7 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, 
 	});
 };
 
-// get every notification that wasn't already sent (including when the agendas.status is 1 or 0)
+// get every notification that wasn't already sent (including when the agendas.status is 1 or 4)
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
@@ -356,8 +356,8 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 
 /*
 	Agenda Status map:
-	0 -> no change in status
 	1 -> reunion was canceled
 	2 -> reunion was canceled and then changed
 	3 -> reunion was changed
+	4 -> reunion scheduled
 */

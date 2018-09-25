@@ -66,7 +66,7 @@ const agendaChange = new Cron.CronJob(
 
 		if (notifications.length !== 0) { // checking if there is any notification to send
 				for (const element of notifications) { // eslint-disable-line
-				if (date > element.new_datahora) { // checks if reunion already happened (create_at is 'behind' current time)
+				if (date > element.new_datahora) { // checks if reunion already happened (create_at is 'behind' current time) (date > new_datahora)
 					// updates notificado to TRUE (There's no need to warn the user anymore)
 					// It doesn't matter if there was a change to agendas.status or not
 					db.updateAgendaNotification(element.id);
@@ -78,7 +78,7 @@ const agendaChange = new Cron.CronJob(
 					if (theOneLabel) { // if we have that label (we should always have it) we delete it
 						await client.deleteLabel(theOneLabel.id);
 					}
-				} else if (element.status !== 0) { // checks if there was any change in agenda
+				} else if (element.status !== 4) { // checks if there was any change in agenda
 					let message = ''; // the message that will be sent to the user depending on the case
 					switch (element.status) {
 					case 1: // reunion was canceled
@@ -102,6 +102,8 @@ const agendaChange = new Cron.CronJob(
 					// unknow status?
 						break;
 					}
+					console.log(message);
+
 					if (message !== '') { // check if this is a known 'case'
 						if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
 							db.updateAgendaNotification(element.id); // table boolean gets updated if the message was sent succesfully
@@ -118,7 +120,7 @@ const agendaChange = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	true // eslint-disable-line comma-dangle
 );
 
 module.exports.agendaChange = agendaChange;
