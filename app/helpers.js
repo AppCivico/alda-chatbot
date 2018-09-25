@@ -62,22 +62,22 @@ module.exports.listBairros = function listBairros(ccs) {
 // link an user to an agendaLabel
 // each angendaLabel is 'agenda' + 'ID of the CCS' -> agenda1110
 // All of the are going to be created and associated
-async function linkUserToAgendaLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
+async function linkUserToCustomLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
 	const ourLabels = await postback.listAllLabels(); // get all labels we have
 	const theOneLabel = await ourLabels.data.find(x => x.name === labelName); // find the one label with the name same (we need the id)
 
 	if (theOneLabel) { // if we already have that label, all we have to do is associate the user to the id
-		return postback.associatesLabelToUser(theOneLabel.id, UserID);
+		return postback.associatesLabelToUser(UserID, theOneLabel.id);
 	}
 	// no theOneLabel exists so we have to create it
 	const newLabel = await postback.createNewLabel(labelName);
 	if (!newLabel.error) { // no errors, so we can add the user to the label
-		return postback.associatesLabelToUser(newLabel.id, UserID);
+		return postback.associatesLabelToUser(UserID, newLabel.id);
 	}
 	return newLabel;
 }
 
-module.exports.linkUserToAgendaLabel = linkUserToAgendaLabel;
+module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;

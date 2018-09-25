@@ -100,7 +100,7 @@ module.exports = async (context) => {
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'join' });
+					await context.setState({ dialog: 'nearestCouncil' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -261,7 +261,6 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange)); // TODO: Could this be a card?
 				} else {
 					await context.sendText(flow.wantToType.firstMessage);
-					// await context.sendText(flow.wantToType.firstMessage); // change here
 				}
 				break;
 			case 'wantToType2': // asking for bairro
@@ -288,7 +287,7 @@ module.exports = async (context) => {
 				} else {
 					await context.sendText(
 						`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}.\n` +
-						`Quer tentar de novo? Exemplos de alguns bairros nesse municipio: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
+						`Quer tentar de novo? Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
 						await attach.getQR(flow.notFoundBairro),
 					);
 				}
@@ -305,6 +304,9 @@ module.exports = async (context) => {
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
+				// link user to the correspondent ccs_tag
+				await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
+
 				await context.setState({ otherBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
 
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs
@@ -364,21 +366,22 @@ module.exports = async (context) => {
 					await context.sendText(`🗓️ *Data*: ${help.formatDate(context.state.agenda[0].create_at)}\n` +
 						`🏠 *Local*: ${context.state.agenda[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
 					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
-					// before adding the user+ccs on the table we check if it's already there
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda[0].id) !== true) {
+						// before adding the user+ccs on the table we check if it's already there
+						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda[0].id) === true) {
 							await db.addAgenda(
 								context.session.user.id, context.state.agenda[0].id,
 								context.state.agenda[0].endereco, context.state.agenda[0].create_at.toLocaleString(),
 							); // if it's not we add it
 						}
-						// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
-						await help.linkUserToAgendaLabel(`agenda${context.state.agenda[0].id}`, context.session.user.id);
+						// create an agendaLabel using agenda_id
+						await help.linkUserToCustomLabel(`agenda${context.state.agenda[0].id}`, context.session.user.id);
 					}
+					await context.typingOff();
 				} else {
 					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
+					await context.typingOff();
 				}
-				await context.typingOff();
 				break;
 			case 'subjects':
 				await context.typingOn();
