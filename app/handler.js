@@ -342,7 +342,7 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
 					await attach.sendCarousel(context, context.state.diretoriaAtual);
 				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
-					await context.sendText(`Não temos umm diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
+					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
 					await attach.sendCarousel(context, context.state.diretoria);
 				}
 				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up

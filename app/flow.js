@@ -83,7 +83,7 @@ module.exports = {
 	},
 	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
-		secondMessage: 'Então, o Conselho mais próximo de você é o da', // will be completed
+		secondMessage: 'Então, o Conselho mais próximo de você é o', // will be completed
 		secondMessage2: 'que engloba os bairros', // will be completed
 		secondMessage3: 'que engloba a região', // will be completed
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
