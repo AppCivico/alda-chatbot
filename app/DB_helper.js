@@ -305,7 +305,7 @@ module.exports.updateAgendaNotification = async function updateAgendaNotificatio
 	SET notificado = TRUE, updated_at = '${date}'
 	WHERE id = ${PK};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Updated row ${PK} successfully!`);
+		console.log(`Updated updateAgendaNotification on ${PK} successfully!`);
 	}).catch((err) => {
 		console.error('Error on updateAgendaNotification => ', err);
 	});
@@ -320,7 +320,7 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	FROM notificar_agenda
 	WHERE agendas_id = ${PK} AND NOT notificado;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Updated row ${PK} successfully!`);
+		console.log(`getAgendaNotificationFromID from ${PK} was successful!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getAgendaNotificationFromID => ', err);
@@ -360,4 +360,17 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	2 -> reunion was canceled and then changed
 	3 -> reunion was changed
 	4 -> reunion scheduled
+*/
+
+/*
+		Cada vez que um usuário vê o calendário/agenda do seu CCS, ele entra para a tabela notificar_agenda que guarda, além da agenda e do usuário em questão,
+		o endereço e a data da agenda no momento em que o usuário a consultou e se o aviso em questão já foi enviado(ou se ele precisa ser enviado ainda).
+		Existe um timer/crontab rodando de duas em duas horas, das 8h às 22h, de seg a sex que avisa aos usuários se houve alguma alteração no estado da agenda.
+		Temos 4 estados: 1 -> reunião cancelada; 2 -> reunião cancelada e modificada; 3 -> reunião modificada; 4 -> reunião marcada (normal).
+		Quando o timer inicia seu processo ele verifica se a data da reunião já passou. Se sim, não tem mais porque enviar essa notificação.
+		Se não, ele verifica o estado da agenda para mandar a mensagem adequada. Se a reunião foi cancelada (estado 1), uma nova notificação é adicionada a tabela,
+		para avisar caso ele seja remarcada (estado 2).
+		Da mesma forma, uma tag 'agenda<id_do_ccs>' é adicionada a cada usuário que visualize a agenda. Essa tag é removida somente quando a data da agenda já passou,
+		as notificações que são enviadas pelo timer não removem essa tag. No menu de administrador, se o admin clicar em "Avisar Agenda", será possível avisar
+		a quem possui essa tag que houve um cancelamento/mudança na reunião. Isso também não deleta a tag.
 */

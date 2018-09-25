@@ -153,11 +153,12 @@ module.exports = async (context) => {
 						}
 						break;
 					case 'adminConfirm':
-						// falls throught
-					case 'adminStart': // admin can type number on admin Start and it will fall to broadcast
-						await context.setState({ dialog: 'broadcast' });
-					// falls throught
-					case 'broadcast': // admin typed ccs number
+						await context.sendText('Escolha uma das opções!');
+						break;
+					case 'adminStart':
+						await context.sendText('Escolha uma das opções!');
+						break;
+					case 'warnCalendar': // admin typed ccs number
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
 						// checking if number if valid and present on database
 						if (Number.isInteger(context.state.broadcastNumber) && (context.state.broadcastNumber >= 1001 && context.state.broadcastNumber <= 1110)) {
@@ -468,9 +469,9 @@ module.exports = async (context) => {
 			case 'adminStart': // Admin flow ----------------------------------------------
 				await context.sendText('Bem-vindo ao painel de administrador do bot! Muito cuidado por aqui!\nO que deseja fazer?', await attach.getQR(flow.adminStart));
 				break;
-			case 'broadcast':
+			case 'warnCalendar':
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que visualizaram a agenda de um conselho.' +
-					'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.broadcast));
+					'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
 			case 'adminConfirm':
 				await context.setState({ broadcastAgenda: await db.getAgenda(context.state.broadcastNumber) });
@@ -489,7 +490,7 @@ module.exports = async (context) => {
 			case 'adminMessage':
 			// here we need to check if there's any entry in notificacao_agenda that matches the ccs
 				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda[0].id) });
-				// console.log(context.state.notification_agenda);
+				console.log(context.state.notification_agenda);
 
 				if (!context.state.notification_agenda) { // error
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
