@@ -82,17 +82,21 @@ const agendaChange = new Cron.CronJob(
 					let message = ''; // the message that will be sent to the user depending on the case
 					switch (element.status) {
 					case 1: // reunion was canceled
-						message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora)} no ${element.old_endereco} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
+						message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora)} no ${element.old_endereco} foi cancelada. ` +
+						'Ainda não há nova data, mas você será notificado quando houver.';
 						// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (Status agenda must be 2)
 						await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
 						break;
 					case 2: // reunion was canceled and changed
-						message = `Há uma nova data para a reunião do ${element.ccs} que foi cancelada. Atenção para a mudança: ` +
-						`\n\nData: ${help.formatDate(element.new_datahora)} \nLocal: ${element.new_endereco}`;
+						message = `Há uma nova data para a reunião do ${element.ccs} que foi cancelada. Atenção para a mudança:\n\n` +
+							`🗓️ *Nova Data*: ${help.formatDate(element.new_datahora)}\n` +
+							`🏠 *Novo Local*: ${element.new_endereco}`;
 						break;
 					case 3: // reunion was canceled and changed
 						message = `Alterado: A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora)} no ${element.old_endereco}, foi alterada. ` +
-						`\n\nAtenção para a mudança:\nNova data: ${help.formatDate(element.new_datahora)} \nNovo local: ${element.new_endereco}`;
+						'Atenção para a mudança:\n\n' +
+						`🗓️ *Nova Data*: ${help.formatDate(element.new_datahora)}\n` +
+						`🏠 *Novo Local*: ${element.new_endereco}`;
 						break;
 					default:
 					// unknow status?
