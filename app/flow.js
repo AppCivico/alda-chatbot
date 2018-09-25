@@ -221,11 +221,11 @@ module.exports = {
 	},
 	agendaConfirm1: {
 		menuOptions: ['Sim', 'Não', 'Voltar'],
-		menuPostback: ['agendaMessage', 'warnCalendar', 'goBackMenu'],
+		menuPostback: ['agendaMessage', 'warnCalendar', 'adminStart'],
 	},
 	agendaConfirm2: {
-		menuOptions: ['Voltar', 'Sair do Admin'],
-		menuPostback: ['warnCalendar', 'goBackMenu'],
+		menuOptions: ['Trocar CCS', 'Voltar', 'Sair do Admin'],
+		menuPostback: ['warnCalendar', 'adminStart', 'goBackMenu'],
 	},
 	agendaConfirmText: {
 		menuOptions: ['Pode', 'Reescrever', 'Voltar'],
@@ -238,7 +238,10 @@ module.exports = {
 	notificationDisable: {
 		menuOptions: ['Entendi'],
 		menuPostback: ['goBackMenu'],
-
+	},
+	confirmCCS: {
+		menuOptions: ['Sim', 'Não', 'Voltar'],
+		menuPostback: ['writeMessage', 'broadcast', 'goBackMenu'],
 	},
 
 };

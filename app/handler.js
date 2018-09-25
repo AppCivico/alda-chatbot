@@ -159,8 +159,10 @@ module.exports = async (context) => {
 						await context.sendText('Escolha uma das opções!');
 						break;
 					case 'broadcast':
+						await context.setState({ cameFromBroadcast: true }); // check if admin is sending a general broadcast
+						console.log('context.state.cameFromBroadcast', context.state.cameFromBroadcast);
 
-						break;
+						// falls throught
 					case 'warnCalendar': // admin typed ccs number
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
 						// checking if number if valid and present on database
@@ -168,15 +170,22 @@ module.exports = async (context) => {
 							await context.setState({ CCSBroadcast: await db.getNamefromCCS(context.state.broadcastNumber) });
 							if (context.state.CCSBroadcast) { // we found a CCS
 								await context.sendText(`Encontrei o ${context.state.CCSBroadcast}. É esse conselho que você quer?`);
-								await context.setState({ dialog: 'adminConfirm' });
+								if (context.state.cameFromBroadcast === true) {
+									await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.confirmCCS));
+									await context.setState({ dialog: '' });
+								} else {
+									await context.setState({ dialog: 'adminConfirm' });
+								}
 							} else {
 								await context.sendText(`Ops. Aconteceu um erro. Eu não consegui encontrar um CCS com ID ${context.state.broadcastNumber}. ` +
 								'Tente Novamente. Se o erro persistir, entre em contato com nossa equipe.');
 							}
 						} else {
 							await context.sendText('Número inválido. Tente novamente!');
-						} // not changing dialog --> admin goes back to 'broadcast'
+						} // not changing dialog --> admin goes back to 'warnCalendar'
 						break;
+					case 'writeMessage':
+					// falls throught
 					case 'agendaMessage':
 						await context.setState({ broadcastText: context.event.message.text, dialog: 'agendaConfirmText' });
 						break;
@@ -473,9 +482,11 @@ module.exports = async (context) => {
 				);
 				break;
 			case 'adminStart': // Admin flow ----------------------------------------------
+				await context.setState({ cameFromBroadcast: '' });
 				await context.sendText('Bem-vindo ao painel de administrador do bot! Muito cuidado por aqui!\nO que deseja fazer?', await attach.getQR(flow.adminStart));
 				break;
 			case 'warnCalendar':
+				await context.setState({ cameFromBroadcast: '' });
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que visualizaram a agenda de um conselho.' +
 					'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
@@ -503,13 +514,14 @@ module.exports = async (context) => {
 					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
 				} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
-					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi ' +
+						'marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.agendaConfirm2));
 				} else if (context.state.notification_agenda.length === 1) {
 					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada apenas para ${context.state.notification_agenda.length} usuário. ` +
-					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
+						'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
 				} else {
 					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para ${context.state.notification_agenda.length} usuários. ` +
-					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
+						'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
 				}
 				break;
 			case 'agendaConfirmText':
@@ -519,18 +531,29 @@ module.exports = async (context) => {
 				break;
 			case 'broadcast':
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que se vincularam a um conselho.' +
-						'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
+				'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
+				break;
+			case 'writeMessage':
+				await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para todos os usuários que visualizaram o CCS ${context.state.broadcastNumber}.`);
 				break;
 			case 'broadcastSent': {
 				await context.sendText('OK, estamos enviando...');
-				const result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
+				let result;
+				if (context.state.cameFromBroadcast === true) {
+					console.log('passei aqui');
+					console.log(`ccs${context.state.broadcastNumber}`);
+
+					result = await sendAdminBroadcast(context.state.broadcastText, `ccs${context.state.broadcastNumber}`);
+				} else {
+					result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
+				}
 
 				if (result.broadcast_id) {
 					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso.`, await attach.getQR(flow.broadcastSent));
 				} else {
 					await context.sendText(`Ocorreu um erro, avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
 				}
-				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '', cameFromBroadcast: '' }); // eslint-disable-line object-curly-newline
 				break; }
 			case 'metrics':
 				await context.sendText(
