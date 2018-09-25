@@ -98,8 +98,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
-					// await context.setState({ dialog: 'councilMenu' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
@@ -357,21 +357,25 @@ module.exports = async (context) => {
 				break;
 			case 'calendar': // agenda
 				await context.typingOn();
-				await context.setState({ calendario: await db.getAgenda(context.state.CCS.id) });
-				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
-					`${help.formatDate(context.state.calendario[0].create_at)} e vai acontecer no local ` +
-					`${context.state.calendario[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
-				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
-				// before adding the user+ccs on the table we check if it's already there
-				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-					if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
-						await db.addAgenda(
-							context.session.user.id, context.state.calendario[0].id,
-							context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
-						); // if it's not we add it
+				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+				if (context.state.agenda) { // check if we have an agenda to show
+					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+					await context.sendText(`🗓️ *Data*: ${help.formatDate(context.state.agenda[0].create_at)}\n` +
+						`🏠 *Local*: ${context.state.agenda[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
+					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
+					// before adding the user+ccs on the table we check if it's already there
+					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda[0].id) !== true) {
+							await db.addAgenda(
+								context.session.user.id, context.state.agenda[0].id,
+								context.state.agenda[0].endereco, context.state.agenda[0].create_at.toLocaleString(),
+							); // if it's not we add it
+						}
+						// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
+						await help.linkUserToAgendaLabel(`agenda${context.state.agenda[0].id}`, context.session.user.id);
 					}
-					// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
-					await help.linkUserToAgendaLabel(`agenda${context.state.calendario[0].id}`, context.session.user.id);
+				} else {
+					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
 				}
 				await context.typingOff();
 				break;
