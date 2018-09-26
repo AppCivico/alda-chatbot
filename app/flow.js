@@ -31,7 +31,6 @@ module.exports = {
 			'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
 		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/38194146_527032771061721_6108443346118639616_n.jpg?_nc_cat=108&oh=2088b0ddfa5ad8c064aeca951f507c44&oe=5C5AC3E6',
-		// CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
