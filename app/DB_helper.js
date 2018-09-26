@@ -200,7 +200,7 @@ module.exports.checkNotificationAtivacao = async function checkNotificationAtiva
 };
 
 // adds a future notification if the user searched for a not-active ccs
-module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
+async function addNotActive(UserID, CCS_COD) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -212,7 +212,9 @@ module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 	}).catch((err) => {
 		console.error('Error on addNotActive => ', err);
 	});
-};
+}
+module.exports.addNotActive = addNotActive;
+// addNotActive('1864330513659814', 1017); // to test: change status of ccs_1017 to ativo and then back to inativo
 
 // get every notification that wasn't already sent but only if the status of the ccs is now 'Ativo'
 module.exports.getActivatedNotification = async function getActivatedNotification() {
@@ -263,7 +265,7 @@ module.exports.checkNotificationAgenda = async function checkNotificationAgenda(
 };
 
 // adds a future notification_agenda if the user searched the agenda for that ccs
-module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, dataHora) {
+async function addAgenda(UserID, agendaID, endereco, dataHora) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -275,18 +277,20 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, 
 	}).catch((err) => {
 		console.error('Error on addAgenda => ', err);
 	});
-};
+}
+module.exports.addAgenda = addAgenda;
+// addAgenda('1864330513659814', '1', 'Na rua tal e tal', '2018-04-10 00:00:00'); // test
 
-// get every notification that wasn't already sent (including when the agendas.status is 1 or 4)
+// get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status, AGENDAS.data_hora as new_datahora, AGENDAS.endereco as new_endereco, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data_hora as new_datahora, AGENDAS.endereco_old as new_endereco, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
 	WHERE NOT NOTIFICATION.notificado
-	ORDER BY AGENDAS.status;
+	ORDER BY AGENDAS.status_id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log('Loaded notifications successfully!');
 		return results;
