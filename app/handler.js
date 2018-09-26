@@ -371,14 +371,12 @@ module.exports = async (context) => {
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar': // agenda
-			// Date(startDate + ' ' + startTime);
+				// TODO: so far, we show the most recent agenda without caring if the date has already passed. We also don't show any different status in the agenda.
 				await context.typingOn();
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
-				console.log(context.state.agenda);
 
 				if (context.state.agenda) { // check if we have an agenda to show
 					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
-					// building the message to the user. Olny data and local are obligatory.
 					await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
 					await context.sendText(context.state.ageMsg);
 					await context.setState({ ageMsg: '' });
