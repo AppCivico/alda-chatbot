@@ -163,14 +163,35 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	});
 	return result;
 };
-module.exports.getResults = async function getResults(conselhoID) {
-	const agenda = await getAgenda(conselhoID);
+// module.exports.getResults = async function getResults(conselhoID) {
+// 	const agenda = await getAgenda(conselhoID);
 
+// 	const result = await sequelize.query(`
+// 	SELECT texto
+// 	FROM resultados
+// 	WHERE agenda_id = ${agenda[0].id}
+// 	ORDER BY updated_at DESC;
+// 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+// 		console.log(`Loaded last resultados from ${conselhoID} successfully!`);
+// 		return results;
+// 	}).catch((err) => {
+// 		console.error('Error on getResults => ', err);
+// 	});
+
+// 	if (result.length === 0) {
+// 		return undefined;
+// 	}
+// 	return result[0].texto;
+// };
+
+async function getResults(conselhoID) {
 	const result = await sequelize.query(`
-	SELECT texto
-	FROM resultados
-	WHERE agenda_id = ${agenda[0].id}
-	ORDER BY updated_at DESC;
+	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data
+	FROM resultados RESULTADO
+	INNER JOIN agendas AGENDAS ON RESULTADO.agenda_id = AGENDAS.id
+	WHERE AGENDAS.conselho_id = '${conselhoID}'
+	ORDER BY AGENDAS.updated_at DESC
+	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded last resultados from ${conselhoID} successfully!`);
 		return results;
@@ -181,8 +202,10 @@ module.exports.getResults = async function getResults(conselhoID) {
 	if (result.length === 0) {
 		return undefined;
 	}
-	return result[0].texto;
-};
+	return result[0];
+}
+
+module.exports.getResults = getResults;
 
 // notificar_ativacao -------------------------------------------------------------------------------
 

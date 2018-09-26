@@ -99,7 +99,7 @@ async function sendCentro(context, items) {
 module.exports.sendCentro = sendCentro;
 
 // sends one card with an image and link
-module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url) {
+module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url, text) {
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
@@ -107,7 +107,7 @@ module.exports.sendCardWithLink = async function sendCardWithLink(context, cardD
 			elements: [
 				{
 					title: cardData.title,
-					subtitle: cardData.sub,
+					subtitle: (text && text !== '') ? text : cardData.sub,
 					image_url: cardData.imageLink,
 					default_action: {
 						type: 'web_url',

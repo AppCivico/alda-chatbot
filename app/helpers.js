@@ -11,6 +11,9 @@ module.exports.urlExists = util.promisify(require('url-exists'));
 module.exports.formatDate = function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
 };
+module.exports.formatDateDay = function formatDateDay(date) {
+	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
+};
 
 module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
 	const theBairros = [];

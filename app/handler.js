@@ -100,7 +100,7 @@ module.exports = async (context) => {
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'nearestCouncil' });
+					await context.setState({ dialog: 'results' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -409,13 +409,17 @@ module.exports = async (context) => {
 				await context.typingOff();
 				break;
 			case 'results':
+				// showing the results of the most recent reunião based of agenda.
+				// If we have an agenda but no results for that agenda we show the results from the most recent agenda.
 				await context.setState({ results: await db.getResults(context.state.CCS.id) });
 				// if we don't have any results or if result is not a valid url we send this default message
-				if (!context.state.results || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
+				if (!context.state.results || context.state.results === null
+					|| context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
-					await context.sendText('Disponibilizamos o resultado da ultima reunião em um arquivo que você pode baixar clicando abaixo.');
-					await attach.sendCardWithLink(context, flow.results, context.state.results);
+					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} ` +
+					'no arquivo que você pode baixar clicando abaixo. 👇');
+					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download, context.state.results.texto);
 				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
