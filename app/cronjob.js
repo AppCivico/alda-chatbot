@@ -68,7 +68,7 @@ const agendaChange = new Cron.CronJob(
 		if (notifications) { // if there was any result
 			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 				for (const element of notifications) { // eslint-disable-line
-					if (date > element.new_datahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > new_datahora)
+					if (date < element.new_datahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > new_datahora)
 					// updates notificado to TRUE (There's no need to warn the user anymore)
 					// It doesn't matter if there was a change to agendas.status_id or not
 						db.updateAgendaNotification(element.id);
@@ -95,10 +95,11 @@ const agendaChange = new Cron.CronJob(
 							`🏠 *Novo Local*: ${element.new_endereco}`;
 							break;
 						case 3: // reunion was canceled and changed
-							message = `Alterado: A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora)} no ${element.old_endereco}, foi alterada. ` +
+							message = `Alterado: A reunião do ${element.ccs} agendada para *${help.formatDate(element.old_datahora)}* no *${element.old_endereco}*, foi alterada. ` +
 						'Atenção para a mudança:\n\n' +
 						`🗓️ *Nova Data*: ${help.formatDate(element.new_datahora)}\n` +
-						`🏠 *Novo Local*: ${element.new_endereco}`;
+						`🏠 *Novo Local*: ${element.new_endereco}` +
+							`🏠 *Novo Local*: ${element.new_endereco}`;
 							break;
 						default:
 							// unknow status_id?

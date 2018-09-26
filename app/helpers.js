@@ -8,9 +8,11 @@ module.exports.moment = moment;
 
 module.exports.urlExists = util.promisify(require('url-exists'));
 
-module.exports.formatDate = function formatDate(date) {
+function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
-};
+}
+module.exports.formatDate = formatDate;
+
 module.exports.formatDateDay = function formatDateDay(date) {
 	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 };
@@ -43,6 +45,15 @@ function getRandom(arr, n) {
 	}
 	return result;
 }
+
+module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
+	let message = '';
+	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `🗓️ *Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	return message;
+};
 
 module.exports.getNeighborhood = function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('political'));

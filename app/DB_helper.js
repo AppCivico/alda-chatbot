@@ -132,17 +132,22 @@ module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT id, data_hora, endereco, updated_at
+	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
 	WHERE conselho_id = ${CCS_ID}
-	ORDER BY data_hora DESC;
+	ORDER BY data_hora DESC
+	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getAgenda => ', err);
 	});
-	return result;
+
+	if (result.length === 0) {
+		return undefined;
+	}
+	return result[0];
 }
 module.exports.getAgenda = getAgenda;
 
@@ -163,26 +168,6 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	});
 	return result;
 };
-// module.exports.getResults = async function getResults(conselhoID) {
-// 	const agenda = await getAgenda(conselhoID);
-
-// 	const result = await sequelize.query(`
-// 	SELECT texto
-// 	FROM resultados
-// 	WHERE agenda_id = ${agenda[0].id}
-// 	ORDER BY updated_at DESC;
-// 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-// 		console.log(`Loaded last resultados from ${conselhoID} successfully!`);
-// 		return results;
-// 	}).catch((err) => {
-// 		console.error('Error on getResults => ', err);
-// 	});
-
-// 	if (result.length === 0) {
-// 		return undefined;
-// 	}
-// 	return result[0].texto;
-// };
 
 async function getResults(conselhoID) {
 	const result = await sequelize.query(`
@@ -308,7 +293,7 @@ module.exports.addAgenda = addAgenda;
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data_hora as new_datahora, AGENDAS.endereco_old as new_endereco, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data_hora as new_datahora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.complemento, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id

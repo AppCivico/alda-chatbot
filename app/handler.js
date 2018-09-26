@@ -100,7 +100,7 @@ module.exports = async (context) => {
 					// await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'results' });
+					await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -371,23 +371,27 @@ module.exports = async (context) => {
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar': // agenda
+			// Date(startDate + ' ' + startTime);
 				await context.typingOn();
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+				console.log(context.state.agenda);
+
 				if (context.state.agenda || context.state.agenda === null) { // check if we have an agenda to show
 					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
-					await context.sendText(`🗓️ *Data*: ${help.formatDate(context.state.agenda[0].data_hora)}\n` +
-						`🏠 *Local*: ${context.state.agenda[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
+					// building the message to the user. Olny data and local are obligatory.
+					await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+					await context.sendText(context.state.ageMsg);
+					await context.setState({ ageMsg: '' });
 					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
 						// before adding the user+ccs on the table we check if it's already there
-						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda[0].id) === true) {
+						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
 							await db.addAgenda(
-								context.session.user.id, context.state.agenda[0].id,
-								context.state.agenda[0].endereco, context.state.agenda[0].data_hora.toLocaleString(),
+								context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
+								new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
 							); // if it's not we add it
 						}
-						// create an agendaLabel using agenda_id
-						await help.linkUserToCustomLabel(`agenda${context.state.agenda[0].id}`, context.session.user.id);
+						await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
 					}
 					await context.typingOff();
 				} else {
