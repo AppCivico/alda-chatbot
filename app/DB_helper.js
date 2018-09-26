@@ -293,7 +293,7 @@ module.exports.addAgenda = addAgenda;
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data_hora as new_datahora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.complemento, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
@@ -309,13 +309,13 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 };
 
 // updates value of notificado from PK
-module.exports.updateAgendaNotification = async function updateAgendaNotification(PK) {
+module.exports.updateAgendaNotification = async function updateAgendaNotification(PK, boolean) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 	await sequelize.query(`
 	UPDATE notificar_agenda
-	SET notificado = TRUE, updated_at = '${date}'
+	SET notificado = ${boolean}, updated_at = '${date}'
 	WHERE id = ${PK};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Updated updateAgendaNotification on ${PK} successfully!`);

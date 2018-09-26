@@ -376,7 +376,7 @@ module.exports = async (context) => {
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
 				console.log(context.state.agenda);
 
-				if (context.state.agenda || context.state.agenda === null) { // check if we have an agenda to show
+				if (context.state.agenda) { // check if we have an agenda to show
 					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
 					// building the message to the user. Olny data and local are obligatory.
 					await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });

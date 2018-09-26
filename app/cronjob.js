@@ -62,16 +62,15 @@ const agendaChange = new Cron.CronJob(
 	'00 00 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 00 8-22/2 * * 1-5
 		const notifications = await db.getAgendaNotification();
 
-		console.log(notifications);
-
 		const date = new Date();
 		if (notifications) { // if there was any result
 			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 				for (const element of notifications) { // eslint-disable-line
-					if (date < element.new_datahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > new_datahora)
+					const newDatahora = new Date(`${element.data} ${element.hora}`);
+					if (date > newDatahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > newDatahora)
 					// updates notificado to TRUE (There's no need to warn the user anymore)
 					// It doesn't matter if there was a change to agendas.status_id or not
-						db.updateAgendaNotification(element.id);
+						db.updateAgendaNotification(element.id, 'TRUE');
 
 						// finding labelAgenda_id from name
 						const ourLabels = await client.getLabelList(); // get all labels we have
@@ -84,32 +83,34 @@ const agendaChange = new Cron.CronJob(
 						let message = ''; // the message that will be sent to the user depending on the case
 						switch (element.status_id) {
 						case 1: // reunion was canceled
-							message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora)} no ${element.old_endereco} foi cancelada. ` +
-						'Ainda não há nova data, mas você será notificado quando houver.';
+							message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no ` +
+							`${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
 							// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (status_id agenda must be 2)
 							await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
 							break;
 						case 2: // reunion was canceled and changed
 							message = `Há uma nova data para a reunião do ${element.ccs} que foi cancelada. Atenção para a mudança:\n\n` +
-							`🗓️ *Nova Data*: ${help.formatDate(element.new_datahora)}\n` +
-							`🏠 *Novo Local*: ${element.new_endereco}`;
+								`🗓️ *Nova Data*: ${help.formatDate(newDatahora).toLocaleString()}\n` +
+							`🏘️ *Novo Bairro*: ${element.bairro}\n` +
+							`🏠 *Novo Local*: ${element.endereco}\n` +
+							`📍 *Ponto de Referência*: ${element.ponto_referencia}`;
 							break;
 						case 3: // reunion was canceled and changed
 							message = `Alterado: A reunião do ${element.ccs} agendada para *${help.formatDate(element.old_datahora)}* no *${element.old_endereco}*, foi alterada. ` +
-						'Atenção para a mudança:\n\n' +
-						`🗓️ *Nova Data*: ${help.formatDate(element.new_datahora)}\n` +
-						`🏠 *Novo Local*: ${element.new_endereco}` +
-							`🏠 *Novo Local*: ${element.new_endereco}`;
+							'Atenção para a mudança:\n\n' +
+								`🗓️ *Nova Data*: ${help.formatDate(newDatahora).toLocaleString()}\n` +
+							`🏘️ *Novo Bairro*: ${element.bairro}\n` +
+							`🏠 *Novo Local*: ${element.endereco}\n` +
+							`📍 *Ponto de Referência*: ${element.ponto_referencia}`;
 							break;
 						default:
 							// unknow status_id?
 							break;
 						}
-						console.log(message);
 
 						if (message !== '') { // check if this is a known 'case'
 							if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
-								db.updateAgendaNotification(element.id); // table boolean gets updated if the message was sent succesfully
+								db.updateAgendaNotification(element.id, 'TRUE'); // table boolean gets updated if the message was sent succesfully
 							}
 						}
 					// sending the messages to the user
