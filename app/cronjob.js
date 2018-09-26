@@ -66,7 +66,7 @@ const agendaChange = new Cron.CronJob(
 
 		if (notifications.length !== 0) { // checking if there is any notification to send
 				for (const element of notifications) { // eslint-disable-line
-				if (date > element.new_datahora) { // checks if reunion already happened (create_at is 'behind' current time) (date > new_datahora)
+				if (date > element.new_datahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > new_datahora)
 					// updates notificado to TRUE (There's no need to warn the user anymore)
 					// It doesn't matter if there was a change to agendas.status or not
 					db.updateAgendaNotification(element.id);
@@ -124,3 +124,22 @@ const agendaChange = new Cron.CronJob(
 );
 
 module.exports.agendaChange = agendaChange;
+
+// const DockerTest = new Cron.CronJob(
+// 	'*/5 * * * * 1-5', async () => {
+// 		console.log('Rodando o docker');
+// 		// console.log(await db.getAgenda(1087));
+
+// 		await broadcast.sendAgendaNotification('1864330513659814', 'Teste do docker');
+// 	}, (() => {
+// 		console.log('Crontab \'agendaChange\' stopped.');
+// 	}),
+// 	true, /* Starts the job right now (no need for MissionTimer.start()) */
+// 	'America/Sao_Paulo',
+// 	false, // context
+// 	// Below: runOnInit => true is useful only for tests
+// 	true // eslint-disable-line comma-dangle
+// );
+
+// module.exports.DockerTest = DockerTest;
+

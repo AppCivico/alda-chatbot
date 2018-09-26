@@ -375,7 +375,7 @@ module.exports = async (context) => {
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
 				if (context.state.agenda || context.state.agenda === null) { // check if we have an agenda to show
 					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
-					await context.sendText(`🗓️ *Data*: ${help.formatDate(context.state.agenda[0].create_at)}\n` +
+					await context.sendText(`🗓️ *Data*: ${help.formatDate(context.state.agenda[0].data_hora)}\n` +
 						`🏠 *Local*: ${context.state.agenda[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
 					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
@@ -383,7 +383,7 @@ module.exports = async (context) => {
 						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda[0].id) === true) {
 							await db.addAgenda(
 								context.session.user.id, context.state.agenda[0].id,
-								context.state.agenda[0].endereco, context.state.agenda[0].create_at.toLocaleString(),
+								context.state.agenda[0].endereco, context.state.agenda[0].data_hora.toLocaleString(),
 							); // if it's not we add it
 						}
 						// create an agendaLabel using agenda_id
@@ -493,8 +493,8 @@ module.exports = async (context) => {
 			case 'adminConfirm':
 				await context.setState({ broadcastAgenda: await db.getAgenda(context.state.broadcastNumber) });
 				if (context.state.broadcastAgenda[0]) { // check if we have an agenda for this CCS
-					if (context.state.broadcastAgenda[0].create_at && context.state.broadcastAgenda[0].create_at !== '' && context.state.broadcastAgenda[0].endereco && context.state.broadcastAgenda[0].endereco !== '') {
-						await context.sendText(`Temos uma reunião marcada nesse CCS em ${help.formatDate(context.state.broadcastAgenda[0].create_at)} no ${context.state.broadcastAgenda[0].endereco}`);
+					if (context.state.broadcastAgenda[0].data_hora && context.state.broadcastAgenda[0].data_hora !== '' && context.state.broadcastAgenda[0].endereco && context.state.broadcastAgenda[0].endereco !== '') {
+						await context.sendText(`Temos uma reunião marcada nesse CCS em ${help.formatDate(context.state.broadcastAgenda[0].data_hora)} no ${context.state.broadcastAgenda[0].endereco}`);
 					} else { // check if the values have been updated on the database already
 						await context.sendText(`Temos uma reunião marcada nesse CCS que parece ter sido cancelada em ${help.formatDate(context.state.broadcastAgenda[0].updated_at)}`);
 					}

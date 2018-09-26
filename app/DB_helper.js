@@ -129,12 +129,13 @@ module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 	return result;
 };
 
+
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT id, create_at, endereco, updated_at
+	SELECT id, data_hora, endereco, updated_at
 	FROM agendas
 	WHERE conselho_id = ${CCS_ID}
-	ORDER BY create_at DESC;
+	ORDER BY data_hora DESC;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
 		return results;
@@ -280,7 +281,7 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, 
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status, AGENDAS.create_at as new_datahora, AGENDAS.endereco as new_endereco, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status, AGENDAS.data_hora as new_datahora, AGENDAS.endereco as new_endereco, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
