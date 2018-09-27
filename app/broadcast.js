@@ -3,6 +3,8 @@ require('dotenv').config();
 const { MessengerClient } = require('messaging-api-messenger');
 
 const config = require('./bottender.config').messenger;
+const { broadcastMenu } = require('./flow');
+const { getLabelID } = require('./helpers');
 
 const client = MessengerClient.connect({
 	accessToken: config.accessToken,
@@ -79,13 +81,15 @@ module.exports.sendAgendaNotification = async function sendAgendaNotification(US
 
 // creates and send an admin broadcast
 async function sendAdminBroadcast(text, label) {
+	const labelID = await getLabelID(label);
 	const results = await client.createMessageCreative([
 		{
 			text,
+			quick_replies: broadcastMenu,
 			// fallback_text: 'Hello friend!',
 		},
 	]).then(async (result) => {
-		const broadcastResult = await client.sendBroadcastMessage(result.message_creative_id, label);
+		const broadcastResult = await client.sendBroadcastMessage(result.message_creative_id, { custom_label_id: labelID });
 		return broadcastResult;
 	}).catch((error) => {
 		console.log("Couldn't create new message => ", error);

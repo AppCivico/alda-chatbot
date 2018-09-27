@@ -233,7 +233,7 @@ module.exports = {
 	},
 	broadcastSent: {
 		menuOptions: ['Ok', 'Métricas', 'Sair do Admin'],
-		menuPostback: ['adminStart', 'metrics', 'adminStart'],
+		menuPostback: ['adminStart', 'metrics', 'goBackMenu'],
 	},
 	notificationDisable: {
 		menuOptions: ['Entendi'],
@@ -241,8 +241,19 @@ module.exports = {
 	},
 	confirmCCS: {
 		menuOptions: ['Sim', 'Não', 'Voltar'],
-		menuPostback: ['writeMessage', 'broadcast', 'goBackMenu'],
+		menuPostback: ['writeMessage', 'broadcast', 'adminStart'],
 	},
-
+	broadcastMenu: [
+		{
+			content_type: 'text',
+			title: 'Meu Conselho',
+			payload: 'whichCCSMenu',
+		},
+		{
+			content_type: 'text',
+			title: 'Parar Notificações',
+			payload: 'disableNotifications',
+		},
+	],
 };
 

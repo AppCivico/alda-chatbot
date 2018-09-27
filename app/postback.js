@@ -145,9 +145,25 @@ async function associatesLabelToUser(userID, labelID) { // eslint-disable-line n
 }
 module.exports.associatesLabelToUser = associatesLabelToUser;
 
+async function getLabelID(labelName) {
+	const labelList = await client.getLabelList();
+
+	const theOneLabel = await labelList.data.find(x => x.name === `${labelName}`);
+	if (theOneLabel && theOneLabel.id) { // check if label exists
+		return theOneLabel.id;
+	}
+	const newLabel = await client.createLabel(labelName);
+	if (newLabel) {
+		return newLabel.id;
+	}
+	return undefined;
+}
+
+module.exports.getLabelID = getLabelID;
+
 
 // async function test() {
-// 	console.log(await dissociateLabelsFromUser());
+// 	console.log(await getLabelID('blacffffklist'));
 // }
 // test();
 

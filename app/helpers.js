@@ -99,3 +99,4 @@ module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.addUserToBlackList = postback.addUserToBlackList;
 module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
 module.exports.checkUserOnLabel = postback.checkUserOnLabel;
+module.exports.getLabelID = postback.getLabelID;
