@@ -98,9 +98,9 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'calendar' });
+					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -135,7 +135,7 @@ module.exports = async (context) => {
 							await context.setState({ dialog: 'bairroNotFound' });
 						} else if (context.state.bairro[0].bairro === 'Centro') { // this means we are on bairro "centro"
 							await context.setState({ dialog: 'confirmCentro', municipiosFound: '' });
-						} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
+						} else if (context.state.bairro.length >= 1) { // we found exactly one bairro with what was typed by the user
 							await context.setState({ CCS: context.state.bairro[0] });
 							await context.setState({ dialog: 'nearestCouncil', municipiosFound: '' });
 						} // what happens if we find more than one bairro?
@@ -275,8 +275,10 @@ module.exports = async (context) => {
 				break;
 			case 'wantToType2': // asking for bairro
 				await context.setState({ retryCount: 0 });
-				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
-
+				await context.setState({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
+				await context.setState({
+					sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
+				}); // get other bairros on this ccs
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
 					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
 				} else {
@@ -317,7 +319,10 @@ module.exports = async (context) => {
 				// link user to the correspondent ccs_tag
 				await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
 
-				await context.setState({ otherBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
+				await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
+				await context.setState({
+					otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
+				}); // get other bairros on this ccs
 
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs
 					await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
