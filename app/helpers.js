@@ -8,8 +8,13 @@ module.exports.moment = moment;
 
 module.exports.urlExists = util.promisify(require('url-exists'));
 
-module.exports.formatDate = function formatDate(date) {
+function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
+}
+module.exports.formatDate = formatDate;
+
+module.exports.formatDateDay = function formatDateDay(date) {
+	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 };
 
 module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
@@ -41,6 +46,15 @@ function getRandom(arr, n) {
 	return result;
 }
 
+module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
+	let message = '';
+	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `🗓️ *Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	return message;
+};
+
 module.exports.getNeighborhood = function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('political'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality')); }
@@ -62,22 +76,22 @@ module.exports.listBairros = function listBairros(ccs) {
 // link an user to an agendaLabel
 // each angendaLabel is 'agenda' + 'ID of the CCS' -> agenda1110
 // All of the are going to be created and associated
-async function linkUserToAgendaLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
+async function linkUserToCustomLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
 	const ourLabels = await postback.listAllLabels(); // get all labels we have
 	const theOneLabel = await ourLabels.data.find(x => x.name === labelName); // find the one label with the name same (we need the id)
 
 	if (theOneLabel) { // if we already have that label, all we have to do is associate the user to the id
-		return postback.associatesLabelToUser(theOneLabel.id, UserID);
+		return postback.associatesLabelToUser(UserID, theOneLabel.id);
 	}
 	// no theOneLabel exists so we have to create it
 	const newLabel = await postback.createNewLabel(labelName);
 	if (!newLabel.error) { // no errors, so we can add the user to the label
-		return postback.associatesLabelToUser(newLabel.id, UserID);
+		return postback.associatesLabelToUser(UserID, newLabel.id);
 	}
 	return newLabel;
 }
 
-module.exports.linkUserToAgendaLabel = linkUserToAgendaLabel;
+module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
@@ -85,3 +99,4 @@ module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.addUserToBlackList = postback.addUserToBlackList;
 module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
 module.exports.checkUserOnLabel = postback.checkUserOnLabel;
+module.exports.getLabelID = postback.getLabelID;

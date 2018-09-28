@@ -98,9 +98,9 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					// await context.setState({ dialog: 'calendar' });
+					await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -153,28 +153,39 @@ module.exports = async (context) => {
 						}
 						break;
 					case 'adminConfirm':
+						await context.sendText('Escolha uma das opções!');
+						break;
+					case 'adminStart':
+						await context.sendText('Escolha uma das opções!');
+						break;
+					case 'broadcast':
+						await context.setState({ cameFromBroadcast: true }); // check if admin is sending a general broadcast
 						// falls throught
-					case 'adminStart': // admin can type number on admin Start and it will fall to broadcast
-						await context.setState({ dialog: 'broadcast' });
-					// falls throught
-					case 'broadcast': // admin typed ccs number
+					case 'warnCalendar': // admin typed ccs number
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
 						// checking if number if valid and present on database
 						if (Number.isInteger(context.state.broadcastNumber) && (context.state.broadcastNumber >= 1001 && context.state.broadcastNumber <= 1110)) {
 							await context.setState({ CCSBroadcast: await db.getNamefromCCS(context.state.broadcastNumber) });
 							if (context.state.CCSBroadcast) { // we found a CCS
-								await context.sendText(`Encontrei o ${context.state.CCSBroadcast}. É esse conselho que você quer?`);
-								await context.setState({ dialog: 'adminConfirm' });
+								await context.sendText(`Encontrei o ${context.state.CCSBroadcast}.`);
+								if (context.state.cameFromBroadcast === true) {
+									await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.confirmCCS));
+									await context.setState({ dialog: '' });
+								} else {
+									await context.setState({ dialog: 'adminConfirm' });
+								}
 							} else {
 								await context.sendText(`Ops. Aconteceu um erro. Eu não consegui encontrar um CCS com ID ${context.state.broadcastNumber}. ` +
 								'Tente Novamente. Se o erro persistir, entre em contato com nossa equipe.');
 							}
 						} else {
 							await context.sendText('Número inválido. Tente novamente!');
-						} // not changing dialog --> admin goes back to 'broadcast'
+						} // not changing dialog --> admin goes back to 'warnCalendar'
 						break;
-					case 'adminMessage':
-						await context.setState({ broadcastText: context.event.message.text, dialog: 'adminConfirmText' });
+					case 'writeMessage':
+					// falls throught
+					case 'agendaMessage':
+						await context.setState({ broadcastText: context.event.message.text, dialog: 'agendaConfirmText' });
 						break;
 					case 'metrics':
 						await context.setState({ broadcastNumber: await parseInt(context.event.message.text, 10) });
@@ -260,7 +271,6 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange)); // TODO: Could this be a card?
 				} else {
 					await context.sendText(flow.wantToType.firstMessage);
-					// await context.sendText(flow.wantToType.firstMessage); // change here
 				}
 				break;
 			case 'wantToType2': // asking for bairro
@@ -268,33 +278,33 @@ module.exports = async (context) => {
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
 
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
-					await context.sendText(`Legal. Agora digite o bairro da região ${context.state.municipiosFound[0].regiao}.`);
+					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
 				} else {
-					await context.sendText(`Legal. Agora digite o bairro da região ${context.state.municipiosFound[0].regiao}. `
+					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}. `
 					+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' ou')}.`);
 				}
 				break;
 			case 'municipioNotFound':
-				await context.sendText('Não consegui encontrar esse município. ' +
+				await context.sendText('Não consegui encontrar essa cidade. ' +
 					'Deseja tentar novamente? Você pode pesquisar por Interior, Capital, Grande Niterói e Baixada Fluminense.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound':
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
 				await context.setState({ municipiosFound: '' });
 				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
-					await context.sendText(`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}. ` +
+					await context.sendText(`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}. ` +
 					'Quer tentar de novo? ', await attach.getQR(flow.notFoundBairro));
 				} else {
 					await context.sendText(
-						`Não consegui encontrar esse bairro na região ${context.state.municipiosFound[0].regiao}.\n` +
-						`Quer tentar de novo? Exemplos de alguns bairros nesse municipio: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
+						`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}.\n` +
+						`Quer tentar de novo? Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
 						await attach.getQR(flow.notFoundBairro),
 					);
 				}
 				break;
 			case 'confirmCentro':
 				await context.sendText(`Parece que você quer saber sobre o Centro da Capital do Rio! Temos ${context.state.bairro.length} ` +
-					'conselhos nessa região. Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
+					'conselhos nessa cidade. Escolha qual dos seguintes complementos melhor se encaixa na sua cidade:');
 				await attach.sendCentro(context, context.state.bairro);
 				break;
 			case 'foundLocation': // are we ever using this?
@@ -304,6 +314,9 @@ module.exports = async (context) => {
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
+				// link user to the correspondent ccs_tag
+				await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
+
 				await context.setState({ otherBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
 
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs
@@ -342,7 +355,7 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
 					await attach.sendCarousel(context, context.state.diretoriaAtual);
 				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
-					await context.sendText(`Não temos umm diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
+					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
 					await attach.sendCarousel(context, context.state.diretoria);
 				}
 				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
@@ -356,24 +369,31 @@ module.exports = async (context) => {
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar': // agenda
+				// TODO: so far, we show the most recent agenda without caring if the date has already passed. We also don't show any different status in the agenda.
 				await context.typingOn();
-				await context.setState({ calendario: await db.getAgenda(context.state.CCS.id) });
-				await context.sendText(`A próxima reunião do ${context.state.CCS.ccs} será ` +
-					`${help.formatDate(context.state.calendario[0].create_at)} e vai acontecer no local ` +
-					`${context.state.calendario[0].endereco}`); // TODO: review endereço (we are waiting for the database changes)
-				await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
-				// before adding the user+ccs on the table we check if it's already there
-				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-					if (await db.checkNotificationAgenda(context.session.user.id, context.state.calendario[0].id) !== true) {
-						await db.addAgenda(
-							context.session.user.id, context.state.calendario[0].id,
-							context.state.calendario[0].endereco, context.state.calendario[0].create_at.toLocaleString(),
-						); // if it's not we add it
+				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+
+				if (context.state.agenda) { // check if we have an agenda to show
+					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+					await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+					await context.sendText(context.state.ageMsg);
+					await context.setState({ ageMsg: '' });
+					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
+					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+						// before adding the user+ccs on the table we check if it's already there
+						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
+							await db.addAgenda(
+								context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
+								new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
+							); // if it's not we add it
+						}
+						await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
 					}
-					// create an agendaLabel using CCS_ID because we don't know if there's a rate limit TODO change to agenda and delete it on the agenda timer
-					await help.linkUserToAgendaLabel(`agenda${context.state.calendario[0].id}`, context.session.user.id);
+					await context.typingOff();
+				} else {
+					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
+					await context.typingOff();
 				}
-				await context.typingOff();
 				break;
 			case 'subjects':
 				await context.typingOn();
@@ -389,13 +409,17 @@ module.exports = async (context) => {
 				await context.typingOff();
 				break;
 			case 'results':
+				// showing the results of the most recent reunião based of agenda.
+				// If we have an agenda but no results for that agenda we show the results from the most recent agenda.
 				await context.setState({ results: await db.getResults(context.state.CCS.id) });
 				// if we don't have any results or if result is not a valid url we send this default message
-				if (!context.state.results || context.state.results === null || (await help.urlExists(context.state.results)) === false) {
+				if (!context.state.results || context.state.results === null
+					|| context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
-					await context.sendText('Disponibilizamos o resultado da ultima reunião em um arquivo que você pode baixar clicando abaixo.');
-					await attach.sendCardWithLink(context, flow.results, context.state.results);
+					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} ` +
+					'no arquivo que você pode baixar clicando abaixo. 👇');
+					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download, context.state.results.texto);
 				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
@@ -411,7 +435,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.share.secondMessage, await attach.getQR(flow.share));
 				break;
 			case 'followMedia':
-				await attach.sendCardWithLink(context, flow.followMedia);
+				await attach.sendCardWithLink(context, flow.followMedia, flow.followMedia.link);
 				// falls through
 			case 'userData':
 				await context.sendText(flow.userData.menuMessage, await attach.getQR(flow.userData));
@@ -462,60 +486,74 @@ module.exports = async (context) => {
 				);
 				break;
 			case 'adminStart': // Admin flow ----------------------------------------------
+				await context.setState({ cameFromBroadcast: '' });
 				await context.sendText('Bem-vindo ao painel de administrador do bot! Muito cuidado por aqui!\nO que deseja fazer?', await attach.getQR(flow.adminStart));
 				break;
-			case 'broadcast':
+			case 'warnCalendar':
+				await context.setState({ cameFromBroadcast: '' });
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que visualizaram a agenda de um conselho.' +
-					'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.broadcast));
+					'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
 			case 'adminConfirm':
 				await context.setState({ broadcastAgenda: await db.getAgenda(context.state.broadcastNumber) });
-				if (context.state.broadcastAgenda[0]) { // check if we have an agenda for this CCS
-					if (context.state.broadcastAgenda[0].create_at && context.state.broadcastAgenda[0].create_at !== '' && context.state.broadcastAgenda[0].endereco && context.state.broadcastAgenda[0].endereco !== '') {
-						await context.sendText(`Temos uma reunião marcada nesse CCS em ${help.formatDate(context.state.broadcastAgenda[0].create_at)} no ${context.state.broadcastAgenda[0].endereco}`);
+				if (context.state.broadcastAgenda) { // check if we have an agenda for this CCS
+					if (context.state.broadcastAgenda.data && context.state.broadcastAgenda.data !== '' &&
+					context.state.broadcastAgenda.endereco && context.state.broadcastAgenda.endereco !== '') {
+						await context.sendText(`Temos uma reunião marcada nesse CCS em *${help.formatDate(context.state.broadcastAgenda.data)}* ` +
+						`em *${context.state.broadcastAgenda.endereco}*.`);
 					} else { // check if the values have been updated on the database already
-						await context.sendText(`Temos uma reunião marcada nesse CCS que parece ter sido cancelada em ${help.formatDate(context.state.broadcastAgenda[0].updated_at)}`);
+						await context.sendText(`Temos uma reunião marcada nesse CCS que parece ter sido cancelada em ${help.formatDate(context.state.broadcastAgenda.updated_at)}`);
 					}
-					await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.adminConfirm1));
+					await context.sendText('Isso está correto? Podemos continuar?', await attach.getQR(flow.agendaConfirm1));
 				} else {
-					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente ou entre em contato!', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Não encontrei nenhuma agenda nesse CCS. Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
 					await context.setState({ dialog: 'broadcast' });
 				}
 				break;
-			case 'adminMessage':
+			case 'agendaMessage':
 			// here we need to check if there's any entry in notificacao_agenda that matches the ccs
-				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda[0].id) });
-				// console.log(context.state.notification_agenda);
-
+				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda.id) });
 				if (!context.state.notification_agenda) { // error
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
-					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
 				} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
-					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.adminConfirm2));
+					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi ' +
+						'marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.agendaConfirm2));
 				} else if (context.state.notification_agenda.length === 1) {
 					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada apenas para ${context.state.notification_agenda.length} usuário. ` +
-					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
+						'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
 				} else {
 					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para ${context.state.notification_agenda.length} usuários. ` +
-					'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.adminConfirm2));
+						'Antes de envia-la, iremos mostrar como ficou a mensagem e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
 				}
 				break;
-			case 'adminConfirmText':
+			case 'agendaConfirmText':
 				await context.sendText('Sua mensagem aparecerá assim:');
 				await context.sendText(context.state.broadcastText);
-				await context.sendText('Podemos envia-la?', await attach.getQR(flow.adminConfirmText));
+				await context.sendText('Podemos envia-la?', await attach.getQR(flow.agendaConfirmText));
+				break;
+			case 'broadcast':
+				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que se vincularam a um conselho.' +
+				'\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
+				break;
+			case 'writeMessage':
+				await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para todos os usuários que visualizaram o CCS ${context.state.broadcastNumber}.`);
 				break;
 			case 'broadcastSent': {
 				await context.sendText('OK, estamos enviando...');
-				const result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
-
-				if (result.broadcast_id) {
-					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso. (Métricas estão por fazer)`, await attach.getQR(flow.broadcastSent));
+				let result;
+				if (context.state.cameFromBroadcast === true) {
+					result = await sendAdminBroadcast(context.state.broadcastText, `ccs${context.state.broadcastNumber}`);
 				} else {
-					await context.sendText(`Ocorreu um erro, avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
+					result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
 				}
-				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+				if (result.broadcast_id) {
+					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso.`, await attach.getQR(flow.broadcastSent));
+				} else {
+					await context.sendText(`Ocorreu um erro na hora de enviar! Avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
+				}
+				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '', cameFromBroadcast: '' }); // eslint-disable-line object-curly-newline
 				break; }
 			case 'metrics':
 				await context.sendText(
@@ -527,12 +565,14 @@ module.exports = async (context) => {
 			case 'disableNotifications': // Notifications flow ----------------------------------------------
 				if (await help.dissociateLabelsFromUser(context.session.user.id)) { // remove every label from user
 					await help.addUserToBlackList(context.session.user.id); // add user to the 'blacklist'
-					await context.sendText('Tudo bem. Não estarei mais te enviando nenhuma notificação.', await attach.getQR(flow.notificationDisable));
+					await context.sendText('Você quem manda. Não estarei mais te enviando nenhuma notificação. Se quiser voltar a receber nossas novidades, ' +
+						'clique na opção "Ativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
 				}
 				break;
 			case 'enableNotifications':
 				if (await help.removeUserFromBlackList(context.session.user.id)) { // remove blacklist label from user
-					await context.sendText('Legal! Estarei te interando das novidades!', await attach.getQR(flow.notificationDisable));
+					await context.sendText('Legal! Estarei te interando das novidades! Se quiser parar de receber nossas novidades, ' +
+					'clique na opção "Desativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
 				}
 				break;
 			} // dialog switch

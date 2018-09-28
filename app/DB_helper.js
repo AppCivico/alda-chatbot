@@ -129,19 +129,25 @@ module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
 	return result;
 };
 
+
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT id, create_at, endereco, updated_at
+	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
 	WHERE conselho_id = ${CCS_ID}
-	ORDER BY create_at DESC;
+	ORDER BY data_hora DESC
+	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getAgenda => ', err);
 	});
-	return result;
+
+	if (result.length === 0) {
+		return undefined;
+	}
+	return result[0];
 }
 module.exports.getAgenda = getAgenda;
 
@@ -162,14 +168,15 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	});
 	return result;
 };
-module.exports.getResults = async function getResults(conselhoID) {
-	const agenda = await getAgenda(conselhoID);
 
+async function getResults(conselhoID) {
 	const result = await sequelize.query(`
-	SELECT texto
-	FROM resultados
-	WHERE agenda_id = ${agenda[0].id}
-	ORDER BY updated_at DESC;
+	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data
+	FROM resultados RESULTADO
+	INNER JOIN agendas AGENDAS ON RESULTADO.agenda_id = AGENDAS.id
+	WHERE AGENDAS.conselho_id = '${conselhoID}'
+	ORDER BY AGENDAS.updated_at DESC
+	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded last resultados from ${conselhoID} successfully!`);
 		return results;
@@ -180,8 +187,10 @@ module.exports.getResults = async function getResults(conselhoID) {
 	if (result.length === 0) {
 		return undefined;
 	}
-	return result[0].texto;
-};
+	return result[0];
+}
+
+module.exports.getResults = getResults;
 
 // notificar_ativacao -------------------------------------------------------------------------------
 
@@ -199,7 +208,7 @@ module.exports.checkNotificationAtivacao = async function checkNotificationAtiva
 };
 
 // adds a future notification if the user searched for a not-active ccs
-module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
+async function addNotActive(UserID, CCS_COD) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -211,7 +220,9 @@ module.exports.addNotActive = async function addNotActive(UserID, CCS_COD) {
 	}).catch((err) => {
 		console.error('Error on addNotActive => ', err);
 	});
-};
+}
+module.exports.addNotActive = addNotActive;
+// addNotActive('1864330513659814', 1017); // to test: change status of ccs_1017 to ativo and then back to inativo
 
 // get every notification that wasn't already sent but only if the status of the ccs is now 'Ativo'
 module.exports.getActivatedNotification = async function getActivatedNotification() {
@@ -262,7 +273,7 @@ module.exports.checkNotificationAgenda = async function checkNotificationAgenda(
 };
 
 // adds a future notification_agenda if the user searched the agenda for that ccs
-module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, dataHora) {
+async function addAgenda(UserID, agendaID, endereco, dataHora) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -274,18 +285,20 @@ module.exports.addAgenda = async function addAgenda(UserID, agendaID, endereco, 
 	}).catch((err) => {
 		console.error('Error on addAgenda => ', err);
 	});
-};
+}
+module.exports.addAgenda = addAgenda;
+// addAgenda('1864330513659814', '1', 'Na rua tal e tal', '2018-04-10 00:00:00'); // test
 
-// get every notification that wasn't already sent (including when the agendas.status is 1 or 0)
+// get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
 module.exports.getAgendaNotification = async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status, AGENDAS.create_at as new_datahora, AGENDAS.endereco as new_endereco, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
 	WHERE NOT NOTIFICATION.notificado
-	ORDER BY AGENDAS.status;
+	ORDER BY AGENDAS.status_id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log('Loaded notifications successfully!');
 		return results;
@@ -296,16 +309,16 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 };
 
 // updates value of notificado from PK
-module.exports.updateAgendaNotification = async function updateAgendaNotification(PK) {
+module.exports.updateAgendaNotification = async function updateAgendaNotification(PK, boolean) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 	await sequelize.query(`
 	UPDATE notificar_agenda
-	SET notificado = TRUE, updated_at = '${date}'
+	SET notificado = ${boolean}, updated_at = '${date}'
 	WHERE id = ${PK};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Updated row ${PK} successfully!`);
+		console.log(`Updated updateAgendaNotification on ${PK} successfully!`);
 	}).catch((err) => {
 		console.error('Error on updateAgendaNotification => ', err);
 	});
@@ -320,7 +333,7 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	FROM notificar_agenda
 	WHERE agendas_id = ${PK} AND NOT notificado;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Updated row ${PK} successfully!`);
+		console.log(`getAgendaNotificationFromID from ${PK} was successful!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getAgendaNotificationFromID => ', err);
@@ -356,8 +369,21 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 
 /*
 	Agenda Status map:
-	0 -> no change in status
 	1 -> reunion was canceled
 	2 -> reunion was canceled and then changed
 	3 -> reunion was changed
+	4 -> reunion scheduled
+*/
+
+/*
+		Cada vez que um usuário vê o calendário/agenda do seu CCS, ele entra para a tabela notificar_agenda que guarda, além da agenda e do usuário em questão,
+		o endereço e a data da agenda no momento em que o usuário a consultou e se o aviso em questão já foi enviado(ou se ele precisa ser enviado ainda).
+		Existe um timer/crontab rodando de duas em duas horas, das 8h às 22h, de seg a sex que avisa aos usuários se houve alguma alteração no estado da agenda.
+		Temos 4 estados: 1 -> reunião cancelada; 2 -> reunião cancelada e modificada; 3 -> reunião modificada; 4 -> reunião marcada (normal).
+		Quando o timer inicia seu processo ele verifica se a data da reunião já passou. Se sim, não tem mais porque enviar essa notificação.
+		Se não, ele verifica o estado da agenda para mandar a mensagem adequada. Se a reunião foi cancelada (estado 1), uma nova notificação é adicionada a tabela,
+		para avisar caso ele seja remarcada (estado 2).
+		Da mesma forma, uma tag 'agenda<id_do_ccs>' é adicionada a cada usuário que visualize a agenda. Essa tag é removida somente quando a data da agenda já passou,
+		as notificações que são enviadas pelo timer não removem essa tag. No menu de administrador, se o admin clicar em "Avisar Agenda", será possível avisar
+		a quem possui essa tag que houve um cancelamento/mudança na reunião. Isso também não deleta a tag.
 */

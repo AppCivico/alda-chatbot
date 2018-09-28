@@ -2,55 +2,6 @@
 // context is the context from bot.onEvent
 // links is the object from flow.js from the respective dialog
 
-// function sendMenu(context, links) {
-// 	context.sendAttachment({
-// 		type: 'template',
-// 		payload: {
-// 			template_type: 'generic',
-// 			elements: [
-// 				{
-// 					title: links.siteTitle,
-// 					image_url: links.imageURL,
-// 					// subtitle: 'dasd',
-// 					default_action: {
-// 						type: 'web_url',
-// 						url: links.siteURL,
-// 						messenger_extensions: 'false',
-// 						webview_height_ratio: 'full',
-// 					// fallback_url: 'www.google.com',
-// 					},
-// 					buttons: [
-// 					// {
-// 					// 	type: 'web_url',
-// 					// 	url: 'www.google.com',
-// 					// 	title: 'Ver site',
-// 					// }, {
-// 						{
-// 							type: 'postback',
-// 							title: 'Entendi',
-// 							payload: 'mainMenu',
-// 						},
-// 					],
-// 				},
-// 			],
-// 		},
-// 	});
-// }
-
-// module.exports.sendMenu = sendMenu;
-
-// async function sendCarousel(context, links) {
-// 	await context.sendAttachment({
-// 		type: 'template',
-// 		payload: {
-// 			template_type: 'generic',
-// 			elements: links,
-// 		},
-// 	});
-// }
-
-// module.exports.sendCarousel = sendCarousel;
-
 async function sendCarousel(context, items) {
 	const elements = [];
 
@@ -99,7 +50,7 @@ async function sendCentro(context, items) {
 module.exports.sendCentro = sendCentro;
 
 // sends one card with an image and link
-module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url) {
+module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url, text) {
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
@@ -107,7 +58,7 @@ module.exports.sendCardWithLink = async function sendCardWithLink(context, cardD
 			elements: [
 				{
 					title: cardData.title,
-					subtitle: cardData.sub,
+					subtitle: (text && text !== '') ? text : cardData.sub,
 					image_url: cardData.imageLink,
 					default_action: {
 						type: 'web_url',

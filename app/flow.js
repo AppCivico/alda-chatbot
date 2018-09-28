@@ -30,7 +30,7 @@ module.exports = {
 		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e soluções para reduzir ' +
 			'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
-		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/34072623_365710203936336_4290997827095494656_n.jpg?_nc_cat=0&_nc_eui2=AeEkeMFw8FUYVOWc8Wog_tQznUM83l4JSI-B1esmOAcRKYZ8lp2x5jCX5OdzZaV9zp0F4NV0ufGe-be6LdXGhFMv8VVWAQOzh2mveowAXlRcdA&oh=ded50dc788ad92a8d66a8df2ec510822&oe=5BA70F73',
+		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/38194146_527032771061721_6108443346118639616_n.jpg?_nc_cat=108&oh=2088b0ddfa5ad8c064aeca951f507c44&oe=5C5AC3E6',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
 		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
@@ -48,8 +48,8 @@ module.exports = {
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
-		secondMessage: 'Legal. Agora digite o bairro desse município:',
+		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
 
@@ -76,14 +76,14 @@ module.exports = {
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite o município do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver:',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],
 	},
 	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
-		secondMessage: 'Então, o Conselho mais próximo de você é o da', // will be completed
+		secondMessage: 'Então, o Conselho mais próximo de você é o', // will be completed
 		secondMessage2: 'que engloba os bairros', // will be completed
 		secondMessage3: 'que engloba a região', // will be completed
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
@@ -99,17 +99,17 @@ module.exports = {
 	},
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
-		carousel: [
-			{
-				title: 'Nome Sobrenome',
-				subtitle: 'Função',
-				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
-			},
-			{
-				title: 'Nome Sobrenome',
-				subtitle: 'Função',
-				image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
-			}],
+		// carousel: [
+		// 	{
+		// 		title: 'Nome Sobrenome',
+		// 		subtitle: 'Função',
+		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+		// 	},
+		// 	{
+		// 		title: 'Nome Sobrenome',
+		// 		subtitle: 'Função',
+		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
+		// 	}],
 		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
@@ -159,7 +159,7 @@ module.exports = {
 	},
 	join: {
 		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
-		menuOptions: ['Me manter informado', 'Sequir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
+		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
 		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
 	},
 	keepMe: {
@@ -181,7 +181,7 @@ module.exports = {
 		siteTitle: 'ITS Rio de Janeiro',
 		siteSubTitle: 'Venha participar!',
 		imageURL: 'https://www.lesconferences.ca/files/sites/97/2016/12/LogoITS.jpg',
-		siteURL: 'https://itsrio.org/pt/home/',
+		siteURL: 'https://www.facebook.com/aldaChatbot/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
@@ -190,7 +190,7 @@ module.exports = {
 		firstMessage: 'Curta a minha página! Sempre tem novidades por aqui!',
 		title: 'Facebook',
 		sub: 'Junte-se a nós.',
-		link: 'http://www.consperj.rj.gov.br/',
+		link: 'https://www.facebook.com/aldaChatbot/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Fazer parte', 'Voltar para o Menu'],
 		menuPostback: ['join', 'goBackMenu'],
@@ -208,38 +208,52 @@ module.exports = {
 		menuPostback: ['whatsApp', 'join'],
 	},
 	adminStart: {
-		menuOptions: ['Broadcast', 'Métricas', 'Sair do Admin'],
-		menuPostback: ['broadcast', 'metrics', 'goBackMenu'],
+		menuOptions: ['Broadcast', 'Avisar Agenda', 'Métricas', 'Sair do Admin'],
+		menuPostback: ['broadcast', 'warnCalendar', 'metrics', 'goBackMenu'],
 	},
-	broadcast: {
+	warnCalendar: {
 		menuOptions: ['Voltar', 'Sair do Admin'],
 		menuPostback: ['adminStart', 'goBackMenu'],
 	},
 	metrics: {
-		menuOptions: ['Broadcast', 'Voltar', 'Sair do Admin'],
-		menuPostback: ['broadcast', 'adminStart', 'goBackMenu'],
+		menuOptions: ['Avisar Agenda', 'Voltar', 'Sair do Admin'],
+		menuPostback: ['warnCalendar', 'adminStart', 'goBackMenu'],
 	},
-	adminConfirm1: {
+	agendaConfirm1: {
 		menuOptions: ['Sim', 'Não', 'Voltar'],
-		menuPostback: ['adminMessage', 'broadcast', 'goBackMenu'],
+		menuPostback: ['agendaMessage', 'warnCalendar', 'adminStart'],
 	},
-	adminConfirm2: {
-		menuOptions: ['Voltar', 'Sair do Admin'],
-		menuPostback: ['broadcast', 'goBackMenu'],
+	agendaConfirm2: {
+		menuOptions: ['Trocar CCS', 'Voltar', 'Sair do Admin'],
+		menuPostback: ['warnCalendar', 'adminStart', 'goBackMenu'],
 	},
-	adminConfirmText: {
+	agendaConfirmText: {
 		menuOptions: ['Pode', 'Reescrever', 'Voltar'],
-		menuPostback: ['broadcastSent', 'adminMessage', 'adminStart'],
+		menuPostback: ['broadcastSent', 'agendaMessage', 'adminStart'],
 	},
 	broadcastSent: {
 		menuOptions: ['Ok', 'Métricas', 'Sair do Admin'],
-		menuPostback: ['adminStart', 'metrics', 'adminStart'],
+		menuPostback: ['adminStart', 'metrics', 'goBackMenu'],
 	},
 	notificationDisable: {
 		menuOptions: ['Entendi'],
 		menuPostback: ['goBackMenu'],
-
 	},
-
+	confirmCCS: {
+		menuOptions: ['Sim', 'Não', 'Voltar'],
+		menuPostback: ['writeMessage', 'broadcast', 'adminStart'],
+	},
+	broadcastMenu: [
+		{
+			content_type: 'text',
+			title: 'Meu Conselho',
+			payload: 'whichCCSMenu',
+		},
+		{
+			content_type: 'text',
+			title: 'Parar Notificações',
+			payload: 'disableNotifications',
+		},
+	],
 };
 

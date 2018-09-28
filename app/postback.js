@@ -82,15 +82,6 @@ async function createNewLabel(name) { // eslint-disable-line no-unused-vars
 }
 module.exports.createNewLabel = createNewLabel;
 
-// Associates user to a label. Pass in the custom label id and the user psid
-// associatesLabelToUser(process.env.LABEL_ADMIN, '123123');
-async function associatesLabelToUser(labelID, user) { // eslint-disable-line no-unused-vars
-	const res = await req.post(`https://graph.facebook.com/v2.11/${labelID}/label?access_token=${pageToken}`).query({ user });
-	const response = await res.json();
-	return response;
-}
-module.exports.associatesLabelToUser = associatesLabelToUser;
-
 // get every label
 async function listAllLabels() { // eslint-disable-line no-unused-vars
 	const res = await req.get(`https://graph.facebook.com/v2.11/me/custom_labels?fields=name&access_token=${pageToken}`);
@@ -136,7 +127,7 @@ async function checkUserOnLabel(UserID, labelID) { // checks if user is on the l
 	const userLabels = await client.getAssociatedLabels(UserID);
 	const theOneLabel = await userLabels.data.find(x => x.id === `${labelID}`); // find the one label with the name same
 
-	if (theOneLabel) {
+	if (theOneLabel) { // if we found the label on the user
 		return true;
 	}
 	return false;
@@ -144,8 +135,38 @@ async function checkUserOnLabel(UserID, labelID) { // checks if user is on the l
 
 module.exports.checkUserOnLabel = checkUserOnLabel;
 
+// Associates user to a label. Pass in the custom label id and the user psid
+// associatesLabelToUser('123123', process.env.LABEL_ADMIN);
+async function associatesLabelToUser(userID, labelID) { // eslint-disable-line no-unused-vars
+	if (await checkUserOnLabel(userID, labelID) === true) {
+		return true;
+	}
+	return client.associateLabel(userID, labelID);
+}
+module.exports.associatesLabelToUser = associatesLabelToUser;
+
+async function getLabelID(labelName) {
+	const labelList = await client.getLabelList();
+
+	const theOneLabel = await labelList.data.find(x => x.name === `${labelName}`);
+	if (theOneLabel && theOneLabel.id) { // check if label exists
+		return theOneLabel.id;
+	}
+	const newLabel = await client.createLabel(labelName);
+	if (newLabel) {
+		return newLabel.id;
+	}
+	return undefined;
+}
+
+module.exports.getLabelID = getLabelID;
+
 
 // async function test() {
-// 	console.log(await dissociateLabelsFromUser());
+// 	console.log(await getLabelID('blacffffklist'));
 // }
 // test();
+
+// const res = await req.post(`https://graph.facebook.com/v2.11/${labelID}/label?access_token=${pageToken}`).query({ user });
+// const response = await res.json();
+// return response;
