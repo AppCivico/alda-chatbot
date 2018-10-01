@@ -255,7 +255,7 @@ module.exports = async (context) => {
 				break;
 			case 'wantToChange': // comes from sendLocation flow
 				await context.setState({ geoLocation: undefined, bairro: undefined });
-				await context.sendText(flow.wantToChange.firstMessage);
+				await context.sendText(flow.wantToChange.firstMessage); // Ih, errei. Me ajuda, então?
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
 			case 'retryType': // comes from text flow
@@ -269,7 +269,7 @@ module.exports = async (context) => {
 					await context.setState({ retryCount: 0 });
 					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange)); // TODO: Could this be a card?
 				} else {
-					await context.sendText(flow.wantToType.firstMessage);
+					await context.sendText(flow.wantToType.firstMessage); // Digite a cidade do Rio de Janeiro que você gostaria de ver.
 				}
 				break;
 			case 'wantToType2': // asking for bairro
@@ -287,7 +287,7 @@ module.exports = async (context) => {
 				break;
 			case 'municipioNotFound':
 				await context.sendText('Não consegui encontrar essa cidade. ' +
-					'Deseja tentar novamente? Você pode pesquisar por Interior, Capital, Grande Niterói e Baixada Fluminense.', await attach.getQR(flow.notFoundMunicipio));
+					'Deseja tentar novamente? Você pode pesquisar por Capital, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound':
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros

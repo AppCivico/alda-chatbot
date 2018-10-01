@@ -342,7 +342,16 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	return result;
 };
 
+/* creating unaccent dictionary funcion
+	user=> CREATE EXTENSION unaccent;
+	CREATE EXTENSION
+	user=> select unaccent('Cajú');
+	unaccent
+	----------
+	Caju
+	(1 row)
 
+*/
 /*
 	CREATE TABLE notificar_ativacao(
 	ID SERIAL PRIMARY KEY,
