@@ -96,8 +96,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
-					// await context.setState({ dialog: 'sendLocation' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'wantToType2' });
 					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
@@ -119,15 +119,25 @@ module.exports = async (context) => {
 					// falls through
 					case 'municipioNotFound':
 					// falls through
-					case 'wantToType1':
-						await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.event.message.text.toLowerCase()) });
-						if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
-							await context.setState({ dialog: 'municipioNotFound' });
+					case 'wantToType1': // user entered city text
+						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
+						if (context.state.userInput.length <= 2) { // input limit
+							await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
 						} else {
-							await context.setState({ dialog: 'wantToType2' });
+							if ('rio de janeiro'.includes(context.state.userInput)) { // check if user wrote 'rio de janeiro' instead of 'capital'
+								await context.setState({ userInput: 'capital' }); // replace input to match on database
+							}
+							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+							console.log('municipiosFound', context.state.municipiosFound);
+
+							if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
+								await context.setState({ dialog: 'municipioNotFound' });
+							} else {
+								await context.setState({ dialog: 'wantToType2' });
+							}
 						}
 						break;
-					case 'wantToType2':
+					case 'wantToType2': // user entered bairro text
 					// TODO Make this better (Ver questão com usuário ter que digitar o nome completo do bairro)
 						await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.event.message.text) });
 						if (!context.state.bairro || context.state.bairro === 0) {
@@ -241,7 +251,7 @@ module.exports = async (context) => {
 				// await context.setState({ municipiosFound: '', bairro: '' });
 				await context.setState({ retryCount: 0 });
 				// if we don't have a CCS linked to a user already we ask for it
-				if (!context.state.CCS || !context.state.bairro) {
+				if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else {
 					await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
@@ -601,12 +611,6 @@ module.exports = async (context) => {
 		const date = new Date();
 		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 		console.log(err);
-		console.log('\n');
-
-		await context.sendText(' Ops. Tive um erro interno. Tente novamente.');
-		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-
-
-		// await context.sendText(`Erro: ${flow.whichCCS.thirdMessage}`, await attach.getQR(flow.whichCCS));
+		await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.whichCCS));
 	}
 };

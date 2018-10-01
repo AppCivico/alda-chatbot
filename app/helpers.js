@@ -74,14 +74,13 @@ module.exports.listBairros = function listBairros(ccs) {
 };
 
 async function formatString(text) {
-	let result = text.toLowerCase().trim();
+	let result = text.toLowerCase();
 	result = await result.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF])/g, '');
 	result = await result.replace(/ç/g, 'c');
 	result = await result.replace(/´|~|\^|`|'|0|1|2|3|4|5|6|7|8|9|/g, '');
 	result = await accents.remove(result);
-	return result;
+	return result.trim();
 }
-
 module.exports.formatString = formatString;
 
 // link an user to an agendaLabel

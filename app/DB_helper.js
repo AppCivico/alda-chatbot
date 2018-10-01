@@ -37,7 +37,7 @@ module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Munici
     SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
-	WHERE LOWER(LOCATION.regiao) LIKE '%' || '${Municipio}' || '%'
+	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Municipio}' || '%'
 	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element) => {
