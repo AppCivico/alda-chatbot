@@ -9,7 +9,6 @@ const db = require('./DB_helper');
 const help = require('./helpers');
 const { sendAdminBroadcast } = require('./broadcast');
 
-const tempAuxObject = {}; // helps us store the value of the bairro somewhere because we can't setState inside of GoogleMaps Api callback
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 
 const timeLimit = 1000 * 60 * 60 * 12; // 60 minutes * 12 hours => 1000 * 60 * 60 * 12
@@ -52,12 +51,11 @@ module.exports = async (context) => {
 					await context.sendText(flow.whichCCS.notNow);
 					await context.setState({ dialog: 'whichCCSMenu' });
 					break;
+				case 'preNearestCouncil': // came from geo
+					await context.setState({ bairro: context.state.mapsBairro.long_name }); // saves the name of the bairro from googleMaps
+					// TODO Ver opção "Trocar Bairro" (de quando não está ativo) no caso de termos vindo do fluxo GEO
+					// falls through
 				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation
-					if (!context.state.bairro || tempAuxObject[context.session.user.id]) { // we still don't have a CCS found or data is still on the auxObject
-						await context.setState({ bairro: tempAuxObject[context.session.user.id].long_name }); // saves obj-stored bairro-long-name on context
-						delete tempAuxObject[context.session.user.id];
-					} // ----- don't put an 'else' here
-
 					if (context.state.bairro) { // check if bairro is centro
 						if (context.state.bairro === 'Centro') { // test with Paraíso
 							await context.setState({ dialog: 'confirmCentro' });
@@ -67,7 +65,7 @@ module.exports = async (context) => {
 								await context.setState({ CCS: context.state.CCS[0] }); // load CCS from bairro
 								// db return an array and we grab the first object/bairro.
 								await context.setState({ dialog: 'nearestCouncil' });
-							} else {
+							} else { // didn't found anything
 								await context.setState({ dialog: 'notFoundFromGeo' });
 							}
 						}
@@ -502,7 +500,8 @@ module.exports = async (context) => {
 				break; }
 			case 'notFoundFromGeo':
 				await context.sendText(
-					`Não encontrei nenhum conselho no bairro ${context.state.mapsResults}. Quer tentar novamente?`,
+					`Não encontrei nenhum conselho no bairro ${context.state.mapsBairro.long_name ? context.state.mapsBairro.long_name : 'em questão'}. ` +
+					'Quer tentar novamente?',
 					await attach.getQR(flow.whichCCS),
 				);
 				break;

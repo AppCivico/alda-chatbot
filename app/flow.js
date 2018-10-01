@@ -58,7 +58,7 @@ module.exports = {
 		firstMessage: 'Encontrei o seguinte bairro:',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['nearestCouncil', 'wantToChange'],
+		menuPostback: ['preNearestCouncil', 'wantToChange'],
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
 		noSecond: 'Deseja tentar novamente? Você pode tentar me enviar sua localização de novo ou digitar a cidade em que você se encontra.',
 	},
