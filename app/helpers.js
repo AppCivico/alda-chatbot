@@ -18,19 +18,18 @@ module.exports.formatDateDay = function formatDateDay(date) {
 	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 };
 
-module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
+// find every object on municipios array with the same bairro (may be duplicated)
+module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairro) {
 	const theBairros = [];
-
-	sameMunicipio.forEach((element) => {
-		if (element.bairro.toLowerCase() === (bairro.trim().toLowerCase())) {
+	const duplicated = [];
+	await sameMunicipio.forEach(async (element) => {
+		element.bairro = await accents.remove(element.bairro).toLowerCase(); // eslint-disable-line no-param-reassign
+		if (element.bairro.includes(bairro) && !duplicated.includes(element.bairro)) {
 			theBairros.push(element);
+			duplicated.push(element.bairro);
 		}
 	});
-
-	if (theBairros.length > 0) {
-		return theBairros;
-	}
-	return undefined;
+	return theBairros;
 };
 
 // get n number of random elements from arr
@@ -66,11 +65,14 @@ module.exports.getNeighborhood = function getNeighborhood(results) {
 module.exports.listBairros = function listBairros(ccs) {
 	let bairros = [];
 
-	ccs.forEach((element) => {
-		bairros.push(element.bairro);
-	});
-	bairros = getRandom(bairros, 5);
-	return [...new Set(bairros)]; // set stores only unique values
+	if (ccs && ccs.length > 0) {
+		ccs.forEach((element) => {
+			bairros.push(element.bairro);
+		});
+		bairros = getRandom(bairros, 5);
+		return [...new Set(bairros)]; // set stores only unique values
+	}
+	return undefined;
 };
 
 async function formatString(text) {

@@ -96,8 +96,7 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'wantToType2' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
@@ -121,12 +120,10 @@ module.exports = async (context) => {
 					// falls through
 					case 'wantToType1': // user entered city text
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						if (context.state.userInput.length <= 2) { // input limit
+						if (context.state.userInput.length < 3) { // input limit (2 because we can leave 'rio' has an option)
 							await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
-						} else {
-							if ('rio de janeiro'.includes(context.state.userInput)) { // check if user wrote 'rio de janeiro' instead of 'capital'
-								await context.setState({ userInput: 'capital' }); // replace input to match on database
-							}
+						} else { // check if user wrote 'rio de janeiro' instead of 'capital'
+							if ('rio de janeiro'.includes(context.state.userInput)) { await context.setState({ userInput: 'capital' }); }
 							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
 							console.log('municipiosFound', context.state.municipiosFound);
 
@@ -137,17 +134,31 @@ module.exports = async (context) => {
 							}
 						}
 						break;
+					case 'bairroNotFound':
+						// falls through
 					case 'wantToType2': // user entered bairro text
-					// TODO Make this better (Ver questão com usuário ter que digitar o nome completo do bairro)
-						await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.event.message.text) });
-						if (!context.state.bairro || context.state.bairro === 0) {
-							await context.setState({ dialog: 'bairroNotFound' });
-						} else if (context.state.bairro[0].bairro === 'Centro') { // this means we are on bairro "centro"
-							await context.setState({ dialog: 'confirmCentro', municipiosFound: '' });
-						} else if (context.state.bairro.length >= 1) { // we found exactly one bairro with what was typed by the user
-							await context.setState({ CCS: context.state.bairro[0] });
-							await context.setState({ dialog: 'nearestCouncil', municipiosFound: '' });
-						} // what happens if we find more than one bairro?
+						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
+						if (context.state.userInput.length < 4) { // input limit  (3 because the shortest bairros have 4)
+							await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
+						} else if (context.state.municipiosFound[0].regiao === 'Capital' && 'centro'.includes(context.state.userInput)) {
+							// special case: check if user wants to know about centro on capital
+							await context.setState({ dialog: 'confirmCentro', municipiosFound: '' }); // TODO confirmCentro
+						} else {
+							console.log(context.state.userInput);
+
+							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.event.message.text) });
+							console.log('Bairro:', context.state.bairro);
+
+							if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
+								await context.setState({ dialog: 'bairroNotFound' });
+							} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
+								await context.setState({ CCS: context.state.bairro[0] });
+								await context.setState({ dialog: 'nearestCouncil', municipiosFound: '' });
+							} else { // more than one bairro was found
+								console.log('Lots of bairros:');
+							}
+						}
+
 						break;
 					case 'eMail':
 						await context.setState({ eMail: context.event.message.text });
@@ -299,12 +310,11 @@ module.exports = async (context) => {
 				await context.sendText('Não consegui encontrar essa cidade. ' +
 					'Deseja tentar novamente? Você pode pesquisar por Capital, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
 				break;
-			case 'bairroNotFound':
+			case 'bairroNotFound': // from wantToType2, couldn't find any bairros with what the user typed
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
-				await context.setState({ municipiosFound: '' });
-				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
+				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) {
 					await context.sendText(`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}. ` +
-					'Quer tentar de novo? ', await attach.getQR(flow.notFoundBairro));
+					'Vamos tentar de novo? ', await attach.getQR(flow.notFoundBairro));
 				} else {
 					await context.sendText(
 						`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}.\n` +
@@ -314,8 +324,8 @@ module.exports = async (context) => {
 				}
 				break;
 			case 'confirmCentro':
-				await context.sendText(`Parece que você quer saber sobre o Centro da Capital do Rio! Temos ${context.state.bairro.length} ` +
-					'conselhos nessa cidade. Escolha qual dos seguintes complementos melhor se encaixa na sua cidade:');
+				await context.sendText('Parece que você quer saber sobre o Centro da Capital do Rio! Temos 3 ' +
+					'conselhos nesse bairro. Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
 				await attach.sendCentro(context, context.state.bairro);
 				break;
 			case 'foundLocation': // are we ever using this?
