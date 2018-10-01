@@ -99,6 +99,7 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
 					await context.setState({ dialog: 'whichCCSMenu' });
+					// await context.setState({ dialog: 'sendLocation' });
 					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
@@ -467,26 +468,41 @@ module.exports = async (context) => {
 				break;
 			case 'findLocation': { // user sends location, we find the bairro using googleMaps and confirm at the end
 				await context.typingOn();
-				googleMapsClient.reverseGeocode({
-					latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
-					language: 'pt-BR',
-				}).asPromise().then(async (response) => {
-					// storing the bairro found
-					tempAuxObject[context.session.user.id] = await help.getNeighborhood(response.json.results[0].address_components); // need to save the bairro found
-					await context.typingOff(); // is this bairro correct? if so => nearestCouncil
-					await context.sendText(`${flow.foundLocation.firstMessage}\n${response.json.results[0].formatted_address}`);
-					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
-				}).catch(async (err) => { // an error ocorred
-					await context.typingOff();
-					await console.log('Couldn\'t get geolocation => ');
-					await console.log(err);
+				try {
+					await context.setState({
+						mapsResults: await googleMapsClient.reverseGeocode({
+							latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
+							language: 'pt-BR',
+						}).asPromise(),
+					});
+
+					if (context.state.mapsResults.status === 200) {
+						await context.setState({ mapsResults: context.state.mapsResults.json.results });
+						await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
+						if (!context.state.mapsBairro) { // in case googlemaps returns the country first
+							await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[1].address_components) });
+						}
+						if (!context.state.mapsBairro) { // couldn't find bairro on results
+							await context.sendText(flow.foundLocation.noFindGeo);
+							await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+						} else {
+							await context.typingOff(); // is this bairro correct? if so => nearestCouncil
+							await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsBairro.long_name}`);
+							await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+						}
+					} else { // unexpected response from googlemaps api
+						await context.sendText(flow.foundLocation.noFindGeo);
+						await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+					}
+				} catch (error) {
+					console.log('Error at findLocation => ', error);
 					await context.sendText(flow.foundLocation.noFindGeo);
 					await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
-				});
+				}
 				break; }
 			case 'notFoundFromGeo':
 				await context.sendText(
-					`Não encontrei nenhum conselho no bairro ${context.state.bairro}. Quer tentar novamente?`,
+					`Não encontrei nenhum conselho no bairro ${context.state.mapsResults}. Quer tentar novamente?`,
 					await attach.getQR(flow.whichCCS),
 				);
 				break;

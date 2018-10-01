@@ -56,9 +56,9 @@ module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
 };
 
 module.exports.getNeighborhood = function getNeighborhood(results) {
-	let neighborhood = results.find(x => x.types.includes('political'));
-	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality')); }
+	let neighborhood = results.find(x => x.types.includes('sublocality'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
+	// if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
 	return neighborhood;
 };
 

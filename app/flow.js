@@ -55,12 +55,12 @@ module.exports = {
 
 	},
 	foundLocation: {
-		firstMessage: 'Encontrei o seguinte endereço:',
+		firstMessage: 'Encontrei o seguinte bairro:',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		menuPostback: ['nearestCouncil', 'wantToChange'],
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
-		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
+		noSecond: 'Deseja tentar novamente? Você pode tentar me enviar sua localização de novo ou digitar a cidade em que você se encontra.',
 	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
