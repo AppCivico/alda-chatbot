@@ -105,17 +105,6 @@ module.exports = {
 	},
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
-		// carousel: [
-		// 	{
-		// 		title: 'Nome Sobrenome',
-		// 		subtitle: 'Função',
-		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
-		// 	},
-		// 	{
-		// 		title: 'Nome Sobrenome',
-		// 		subtitle: 'Função',
-		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
-		// 	}],
 		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
@@ -204,9 +193,9 @@ module.exports = {
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
-			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
-		menuOptions: ['Iniciar'],
-		menuPostback: ['greetings'],
+		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
+		menuOptions: ['Recomeçar conversa', 'Trocar Conselho', 'Ver meu Conselho'],
+		menuPostback: ['greetings', 'whichCCSMenu', 'councilMenu'],
 	},
 	phone: {
 		firstMessage: 'Esse número não é válido! Quer tentar novamente?',

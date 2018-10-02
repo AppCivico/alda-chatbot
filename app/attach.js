@@ -87,6 +87,27 @@ module.exports.getQR = async function getQR(opt) {
 	return { quick_replies: elements };
 };
 
+module.exports.getErrorQR = async function getErrorQR(opt, lastPostback) {
+	const elements = [];
+	const firstArray = opt.menuOptions;
+
+	firstArray.forEach((element, index) => {
+		elements.push({
+			content_type: 'text',
+			title: element,
+			payload: opt.menuPostback[index],
+		});
+	});
+
+	elements.push({
+		content_type: 'text',
+		title: 'Voltar',
+		payload: lastPostback,
+	});
+
+	return { quick_replies: elements };
+};
+
 module.exports.getConditionalQR = async function getConditionalQR(options, useSecond) {
 	const elements = [];
 	let arrayToUse;

@@ -231,9 +231,13 @@ module.exports = async (context) => {
 							await context.sendText('Erro! Entrada inválida! Tente novamente.');
 						} // after this flow we return to the metrics dialog
 						break;
-					default: // regular text message
-						await context.setState({ dialog: 'errorText' });
-
+					default: // regular text message => error treatment
+						await context.setState({ lastDialog: context.state.dialog });
+						await context.sendText(`Oi, ${context.session.user.first_name}. Eu sou a Alda, uma robô 🤖 e não entendi essa sua útlima mensagem.` +
+						'\nPosso te pedir um favor? Me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️ ' +
+							'\nSe quiser voltar para onde estava, clique em \'Voltar.\'', await attach.getErrorQR(flow.error, context.state.lastDialog));
+						await context.setState({ dialog: '' });
+						// await context.setState({ dialog: 'errorText' });
 						break;
 					}
 				}
@@ -249,7 +253,6 @@ module.exports = async (context) => {
 			switch (context.state.dialog) {
 			case 'greetings':
 				await context.typingOn();
-				await context.setState({ municipiosFound: '', bairro: '' });
 				await context.sendImage(flow.greetings.greetImage);
 				await context.sendText(flow.greetings.welcome);
 				await context.typingOff();
@@ -271,10 +274,12 @@ module.exports = async (context) => {
 				// falls through
 			case 'whichCCSMenu': // asks user if he wants to find his CCS or confirm if we already have one stored
 				await context.setState({ retryCount: 0 });
+				console.log('context.state.CCS', context.state.CCS);
+
 				// if we don't have a CCS linked to a user already we ask for it
 				if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-				} else {
+				} else { // Pelo que me lembro
 					await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
 					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.whichCCSMenu));
@@ -285,7 +290,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
 				break;
 			case 'wantToChange': // comes from sendLocation flow
-				await context.setState({ geoLocation: undefined, bairro: undefined });
+				await context.setState({ geoLocation: undefined });
 				await context.sendText(flow.wantToChange.firstMessage); // Ih, errei. Me ajuda, então?
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
@@ -353,7 +358,7 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
 						`${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
 				} else if (context.state.otherBairros.length > 1) { // if there's more than one bairro we must list them appropriately
-					await context.sendText(`${flow.nearestCouncil.secondMessage} ${context.state.CCS.ccs} ` +
+					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
 						`${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
