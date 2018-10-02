@@ -19,14 +19,14 @@ module.exports.formatDateDay = function formatDateDay(date) {
 };
 
 // find every object on municipios array with the same bairro (may be duplicated)
-module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairro) {
+module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];
 	const duplicated = [];
 	await sameMunicipio.forEach(async (element) => {
-		element.bairro = await accents.remove(element.bairro).toLowerCase(); // eslint-disable-line no-param-reassign
-		if (element.bairro.includes(bairro) && !duplicated.includes(element.bairro)) {
+		const aux = await accents.remove(element.bairro).toLowerCase();
+		if (aux.includes(bairroTyped) && !duplicated.includes(aux)) {
 			theBairros.push(element);
-			duplicated.push(element.bairro);
+			duplicated.push(aux);
 		}
 	});
 	return theBairros;

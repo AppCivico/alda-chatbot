@@ -90,7 +90,7 @@ const agendaChange = new Cron.CronJob(
 							break;
 						case 2: // reunion was canceled and changed
 							message = `Há uma nova data para a reunião do ${element.ccs} que foi cancelada. Atenção para a mudança:\n\n` +
-								`🗓️ *Nova Data*: ${help.formatDate(newDatahora).toLocaleString()}\n` +
+							`🗓️ *Nova Data*: ${help.formatDate(newDatahora).toLocaleString()}\n` +
 							`🏘️ *Novo Bairro*: ${element.bairro}\n` +
 							`🏠 *Novo Local*: ${element.endereco}\n` +
 							`📍 *Ponto de Referência*: ${element.ponto_referencia}`;
@@ -98,7 +98,7 @@ const agendaChange = new Cron.CronJob(
 						case 3: // reunion was canceled and changed
 							message = `Alterado: A reunião do ${element.ccs} agendada para *${help.formatDate(element.old_datahora)}* no *${element.old_endereco}*, foi alterada. ` +
 							'Atenção para a mudança:\n\n' +
-								`🗓️ *Nova Data*: ${help.formatDate(newDatahora).toLocaleString()}\n` +
+							`🗓️ *Nova Data*: ${help.formatDate(newDatahora).toLocaleString()}\n` +
 							`🏘️ *Novo Bairro*: ${element.bairro}\n` +
 							`🏠 *Novo Local*: ${element.endereco}\n` +
 							`📍 *Ponto de Referência*: ${element.ponto_referencia}`;
