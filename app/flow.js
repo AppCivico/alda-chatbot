@@ -8,6 +8,7 @@ module.exports = {
 		welcome: 'Deixa eu me apresentar: eu sou Alda, a primeira robô criada para ser assistente dos Conselhos Comunitários de Segurança Pública (CCS) do RJ e ' +
 			'ajudar na construção de uma cidade mais segura. É ótimo contar com você para isso! 🙂',
 		greetImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/32c149ee-6180-42f0-8fea-a4952686c188.jpg',
+		// greetImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/e22edc9d-36a0-4ebc-85a8-4cb13303c8bb.png',
 		firstMessage: 'Quer saber mais sobre mim?',
 		menuOptions: ['Claro, fala mais', 'Agora não'],
 		menuPostback: ['aboutMe', 'notMe'],
@@ -49,7 +50,7 @@ module.exports = {
 	},
 	wantToType: {
 		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
-		'Capital, Interior, Baixada Fluminense e Grande Niterói.',
+			'Capital, Interior, Baixada Fluminense e Grande Niterói.',
 		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
@@ -197,7 +198,7 @@ module.exports = {
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
-		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
+			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
 		menuOptions: ['Recomeçar conversa', 'Ver meu Conselho', 'Trocar Conselho'],
 		menuPostback: ['greetings', 'councilMenu', 'whichCCSMenu'],
 	},
