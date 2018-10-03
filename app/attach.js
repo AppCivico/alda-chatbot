@@ -180,13 +180,13 @@ module.exports.sendConselhoConfirmation = async function sendConselhoConfirmatio
 };
 
 // same as sendConselhoConfirmation but centro needs to use "região complementar" (not yet implemented)
-module.exports.sendCentro = async function sendCentro(context, items) {
+module.exports.sendConselhoConfirmationComplement = async function sendCentro(context, items) {
 	const elements = [];
 
-	items.forEach((element, index) => {
+	items.forEach((element) => {
 		elements.push({
-			title: `Região ${index + 1}`,
-			subtitle: `CCS ${element.id}`,
+			title: `Bairro ${element.bairro} - ${element.ccs}`,
+			subtitle: '<Falta o complemento no banco!>',
 			buttons: [{
 				type: 'postback',
 				title: 'É esse!',

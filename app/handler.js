@@ -33,7 +33,7 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'whichCCSMenu' });
 				}
 			} else if (context.event.isPostback) {
-				if (context.event.postback.payload.slice(0, 7) === 'confirm') { // from confirmCentro
+				if (context.event.postback.payload.slice(0, 7) === 'confirm') { // from confirmBairro
 					await context.setState({
 						CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirm', ''), 10)),
 					});
@@ -59,7 +59,7 @@ module.exports = async (context) => {
 				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation
 					if (context.state.bairro) { // check if bairro is centro
 						if (context.state.bairro === 'Centro') { // test with Paraíso
-							await context.setState({ dialog: 'confirmCentro' });
+							await context.setState({ dialog: 'confirmCentro' }); // TODO review centro from GEO
 						} else {
 							await context.setState({ CCS: await db.getCCSsFromBairro(context.state.bairro.toLowerCase()) }); // load CCS from bairro
 							if (context.state.CCS && context.state.CCS.length !== 0) { // meaning we found a ccs on that bairro
@@ -122,13 +122,12 @@ module.exports = async (context) => {
 					case 'wantToType1': // user entered city text
 						await context.setState({ cameFromGeo: false });
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						if (context.state.userInput.length < 3) { // input limit (2 because we can leave 'rio' has an option)
+						if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
 							await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
+							await context.setState({ dialog: 'wantToType1' });
 						} else { // check if user wrote 'rio de janeiro' instead of 'capital'
 							if ('rio de janeiro'.includes(context.state.userInput)) { await context.setState({ userInput: 'capital' }); }
 							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
-							console.log('municipiosFound', context.state.municipiosFound);
-
 							if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
 								await context.setState({ dialog: 'municipioNotFound' });
 							} else {
@@ -143,14 +142,22 @@ module.exports = async (context) => {
 					case 'wantToType2': // user entered bairro text
 						await context.setState({ cameFromGeo: false });
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						if (context.state.userInput.length < 4) { // input limit  (3 because the shortest bairros have 4)
+						if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
 							await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
+							await context.setState({ dialog: 'wantToType2' });
 						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' && 'centro'.includes(context.state.userInput)) {
 							// special case: check if user wants to know about centro on capital
 							await context.sendText('Parece que você quer saber sobre o Centro da Capital do Rio! Temos 3 ' +
 								'conselhos nesse bairro. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
-							await attach.sendCentro(context, context.state.bairro);
-							await context.setState({ dialog: 'confirmCentro' }); // TODO confirmCentro
+							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
+							await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
+							await context.setState({ dialog: 'confirmBairro' });
+						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' && 'colegio'.includes(context.state.userInput)) {
+							await context.sendText('Parece que você quer saber sobre o bairro Colégio da Capital do Rio! Temos 2 ' +
+								'conselhos nesse bairro. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:');
+							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
+							await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
+							await context.setState({ dialog: 'confirmBairro' });
 						} else {
 							console.log(context.state.userInput);
 
@@ -295,7 +302,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
 			case 'retryType': // comes from text flow
-				await context.sendText(flow.wantToChange.firstMessage);
+				await context.sendText('Tudo bem. Vamos encontrar o conselho do seu bairro.');
 				// falls through
 			case 'wantToType1': // asking for municipio
 				await context.setState({ geoLocation: undefined, bairro: undefined });

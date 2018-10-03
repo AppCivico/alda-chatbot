@@ -18,7 +18,7 @@ module.exports.formatDateDay = function formatDateDay(date) {
 	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 };
 
-// find every object on municipios array with the same bairro (may be duplicated)
+// find every object on municipios array with the same bairro (remove duplicated bairros)
 module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];
 	const duplicated = [];
@@ -27,6 +27,21 @@ module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairr
 		if (aux.includes(bairroTyped) && !duplicated.includes(aux)) {
 			theBairros.push(element);
 			duplicated.push(aux);
+		}
+	});
+	return theBairros;
+};
+
+// find every object on municipios array with the same bairro (allows duplicated bairros if the conselho_id are different)
+module.exports.findBairroCCSID = async function findBairroCCSID(sameMunicipio, wantedBairro) {
+	const theBairros = [];
+	const duplicated = [];
+	await sameMunicipio.forEach(async (element) => {
+		const aux = await accents.remove(element.bairro).toLowerCase();
+		const auxID = element.id;
+		if (aux.includes(wantedBairro) && !duplicated.includes(auxID)) {
+			theBairros.push(element);
+			duplicated.push(auxID);
 		}
 	});
 	return theBairros;
