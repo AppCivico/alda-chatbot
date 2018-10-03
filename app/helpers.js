@@ -1,5 +1,6 @@
 const util = require('util');
 const moment = require('moment');
+const accents = require('remove-accents');
 const postback = require('./postback');
 
 moment.locale('pt-BR');
@@ -17,19 +18,33 @@ module.exports.formatDateDay = function formatDateDay(date) {
 	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 };
 
-module.exports.findCCSBairro = function findCCSBairro(sameMunicipio, bairro) {
+// find every object on municipios array with the same bairro (remove duplicated bairros)
+module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];
-
-	sameMunicipio.forEach((element) => {
-		if (element.bairro.toLowerCase() === (bairro.trim().toLowerCase())) {
+	const duplicated = [];
+	await sameMunicipio.forEach(async (element) => {
+		const aux = await accents.remove(element.bairro).toLowerCase();
+		if (aux.includes(bairroTyped) && !duplicated.includes(aux)) {
 			theBairros.push(element);
+			duplicated.push(aux);
 		}
 	});
+	return theBairros;
+};
 
-	if (theBairros.length > 0) {
-		return theBairros;
-	}
-	return undefined;
+// find every object on municipios array with the same bairro (allows duplicated bairros if the conselho_id are different)
+module.exports.findBairroCCSID = async function findBairroCCSID(sameMunicipio, wantedBairro) {
+	const theBairros = [];
+	const duplicated = [];
+	await sameMunicipio.forEach(async (element) => {
+		const aux = await accents.remove(element.bairro).toLowerCase();
+		const auxID = element.id;
+		if (aux.includes(wantedBairro) && !duplicated.includes(auxID)) {
+			theBairros.push(element);
+			duplicated.push(auxID);
+		}
+	});
+	return theBairros;
 };
 
 // get n number of random elements from arr
@@ -54,24 +69,44 @@ module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
 	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
 	return message;
 };
+module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agenda, initialMessage) {
+	let message = initialMessage;
+	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `${message}🗓️ *Nova Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Novo Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Novo Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	return message;
+};
 
 module.exports.getNeighborhood = function getNeighborhood(results) {
-	let neighborhood = results.find(x => x.types.includes('political'));
-	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality')); }
+	let neighborhood = results.find(x => x.types.includes('sublocality'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
+	// if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
 	return neighborhood;
 };
 
 module.exports.listBairros = function listBairros(ccs) {
 	let bairros = [];
 
-	ccs.forEach((element) => {
-		bairros.push(element.bairro);
-	});
-	bairros = getRandom(bairros, 5);
-	return [...new Set(bairros)]; // set stores only unique values
+	if (ccs && ccs.length > 0) {
+		ccs.forEach((element) => {
+			bairros.push(element.bairro);
+		});
+		bairros = getRandom(bairros, 5);
+		return [...new Set(bairros)]; // set stores only unique values
+	}
+	return undefined;
 };
 
+async function formatString(text) {
+	let result = text.toLowerCase();
+	result = await result.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF])/g, '');
+	result = await result.replace(/ç/g, 'c');
+	result = await result.replace(/´|~|\^|`|'|0|1|2|3|4|5|6|7|8|9|/g, '');
+	result = await accents.remove(result);
+	return result.trim();
+}
+module.exports.formatString = formatString;
 
 // link an user to an agendaLabel
 // each angendaLabel is 'agenda' + 'ID of the CCS' -> agenda1110

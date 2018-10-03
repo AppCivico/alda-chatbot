@@ -43,6 +43,11 @@ async function createPersistentMenu() { // eslint-disable-line no-unused-vars
 						{
 							type: 'postback',
 							title: 'Meu Conselho',
+							payload: 'councilMenu',
+						},
+						{
+							type: 'postback',
+							title: 'Trocar Conselho',
 							payload: 'whichCCSMenu',
 						},
 					],

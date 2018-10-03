@@ -23,31 +23,6 @@ async function sendCarousel(context, items) {
 
 module.exports.sendCarousel = sendCarousel;
 
-async function sendCentro(context, items) {
-	const elements = [];
-
-	items.forEach((element, index) => {
-		elements.push({
-			title: `Região ${index + 1}`,
-			subtitle: `CCS ${element.id}`,
-			buttons: [{
-				type: 'postback',
-				title: 'É esse!',
-				payload: `centro${element.id}`,
-			}],
-		});
-	});
-
-	await context.sendAttachment({
-		type: 'template',
-		payload: {
-			template_type: 'generic',
-			elements,
-		},
-	});
-}
-
-module.exports.sendCentro = sendCentro;
 
 // sends one card with an image and link
 module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url, text) {
@@ -97,7 +72,7 @@ module.exports.sendCardWithout = async function sendCardWithLink(context, cardDa
 
 // get quick_replies opject with elements array
 // supossed to be used with menuOptions and menuPostback for each dialog on flow.js
-async function getQR(opt) {
+module.exports.getQR = async function getQR(opt) {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -110,9 +85,52 @@ async function getQR(opt) {
 	});
 
 	return { quick_replies: elements };
-}
+};
 
-module.exports.getQR = getQR;
+module.exports.getErrorQR = async function getErrorQR(opt, lastPostback) {
+	const elements = [];
+	const firstArray = opt.menuOptions;
+
+	firstArray.forEach((element, index) => {
+		elements.push({
+			content_type: 'text',
+			title: element,
+			payload: opt.menuPostback[index],
+		});
+	});
+
+	elements.push({
+		content_type: 'text',
+		title: 'Voltar',
+		payload: lastPostback,
+	});
+
+	return { quick_replies: elements };
+};
+
+module.exports.getConditionalQR = async function getConditionalQR(options, useSecond) {
+	const elements = [];
+	let arrayToUse;
+	if (useSecond === true) {
+		arrayToUse = options[1]; // eslint-disable-line prefer-destructuring
+	} else {
+		arrayToUse = options[0]; // eslint-disable-line prefer-destructuring
+	}
+
+	const firstArray = arrayToUse.menuOptions;
+	console.log('firstArray', firstArray);
+
+
+	firstArray.forEach((element, index) => {
+		elements.push({
+			content_type: 'text',
+			title: element,
+			payload: arrayToUse.menuPostback[index],
+		});
+	});
+
+	return { quick_replies: elements };
+};
 
 async function sendShare(context, links) {
 	await context.sendAttachment({
@@ -136,3 +154,52 @@ async function sendShare(context, links) {
 
 module.exports.sendShare = sendShare;
 
+// send a card carousel for the user to confirm which bairro he wants
+module.exports.sendConselhoConfirmation = async function sendConselhoConfirmation(context, items) {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `Bairro ${element.bairro}`,
+			subtitle: `CCS ${element.id}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É esse!',
+				payload: `confirm${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+// same as sendConselhoConfirmation but centro needs to use "região complementar" (not yet implemented)
+module.exports.sendConselhoConfirmationComplement = async function sendCentro(context, items) {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `Bairro ${element.bairro} - ${element.ccs}`,
+			subtitle: '<Falta o complemento no banco!>',
+			buttons: [{
+				type: 'postback',
+				title: 'É esse!',
+				payload: `confirm${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};

@@ -32,35 +32,40 @@ module.exports = {
 		secondMessage: 'Veja os Conselhos que existem no estado:',
 		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/38194146_527032771061721_6108443346118639616_n.jpg?_nc_cat=108&oh=2088b0ddfa5ad8c064aeca951f507c44&oe=5C5AC3E6',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
-		menuOptions: ['Sim!', 'Quero Digitar', 'Agora não'],
+		menuOptions: ['Enviar Localização', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 		notNow: 'Entendo! 😉',
-		remember: 'Pelo que me lembro você quer saber sobre a região', // will be completed
+		remember: 'Pelo que me lembro você quer saber sobre o bairro', // will be completed
 		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
 		// the rest of the dialog comes from foundLocation
 	},
 	whichCCSMenu: {
-		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['advance', 'wantToChange'],
+		menuOptions: ['Sim, avançar', 'Digitar novo local', 'Enviar Localização'],
+		menuPostback: ['advance', 'retryType', 'sendLocation'],
 	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver:',
+		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
+		'Capital, Interior, Baixada Fluminense e Grande Niterói.',
 		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
 
 	},
 	foundLocation: {
-		firstMessage: 'Encontrei o seguinte endereço:',
+		firstMessage: 'Encontrei o seguinte bairro:',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['nearestCouncil', 'wantToChange'],
+		menuPostback: ['preNearestCouncil', 'wantToChange'],
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
-		noSecond: 'Deseja tentar novamente? Dessa vez com mais detalhes para me ajudar? Ou prefere me enviar sua localização?',
+		noSecond: 'Deseja tentar novamente? Você pode tentar me enviar sua localização de novo ou digitar a cidade em que você se encontra.',
+	},
+	checkBairro: {
+		menuOptions: ['Sim, é esse mesmo', 'Não é esse'],
+		menuPostback: ['checkBairroFromGeo', 'wantToChange'],
 	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
@@ -71,12 +76,17 @@ module.exports = {
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 	},
 	notFoundBairro: {
-		menuOptions: ['Enviar localização', 'Trocar bairro', 'Voltar'],
-		menuPostback: ['sendLocation', 'wantToType2', 'noLocation'],
+		menuOptions: ['Enviar localização', 'Trocar Cidade', 'Trocar Bairro', 'Voltar'],
+		menuPostback: ['sendLocation', 'wantToType1', 'wantToType2', 'noLocation'],
+	},
+	notFoundBairroFromGeo: {
+		menuOptions: ['Enviar localização', 'Trocar Cidade', 'Voltar'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver:',
+		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
+			'Capital, Interior, Baixada Fluminense e Grande Niterói.',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],
@@ -99,17 +109,6 @@ module.exports = {
 	},
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
-		// carousel: [
-		// 	{
-		// 		title: 'Nome Sobrenome',
-		// 		subtitle: 'Função',
-		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
-		// 	},
-		// 	{
-		// 		title: 'Nome Sobrenome',
-		// 		subtitle: 'Função',
-		// 		image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/2d5bb59f-65d8-483d-b853-c4e5e07f762e.png',
-		// 	}],
 		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
@@ -198,9 +197,9 @@ module.exports = {
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
-			'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
-		menuOptions: ['Iniciar'],
-		menuPostback: ['greetings'],
+		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
+		menuOptions: ['Recomeçar conversa', 'Ver meu Conselho', 'Trocar Conselho'],
+		menuPostback: ['greetings', 'councilMenu', 'whichCCSMenu'],
 	},
 	phone: {
 		firstMessage: 'Esse número não é válido! Quer tentar novamente?',

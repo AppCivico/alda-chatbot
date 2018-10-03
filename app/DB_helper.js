@@ -12,37 +12,41 @@ sequelize
 
 module.exports.sequelize = sequelize;
 
-module.exports.getCCS = async function getCCS() {
-	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
-	FROM conselhos CCS
-	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id;
-	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		results.forEach((element) => {
-			if (element.bairro === null) {
-				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
-			}
-		});
-		console.log('Loaded CCS successfully!');
-		return results;
-	}).catch((err) => {
-		console.error('Error on getCCS => ', err);
-	});
-	return result;
-};
+// module.exports.getCCS = async function getCCS() { // unused
+// 	const result = await sequelize.query(`
+//     SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
+// 	FROM conselhos CCS
+// 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id;
+// 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+// 		results.forEach((element) => {
+// 			if (element.bairro === null) {
+// 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
+// 			}
+// 		});
+// 		console.log('Loaded CCS successfully!');
+// 		return results;
+// 	}).catch((err) => {
+// 		console.error('Error on getCCS => ', err);
+// 	});
+// 	return result;
+// };
 
 // get every ccs on the same municipio (we say municipio but we are actually using regiao)
-module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Municipio) {
+async function getCCSsFromMunicipio(Municipio) {
+	let indexRemove;
 	const result = await sequelize.query(`
     SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
-	WHERE LOWER(LOCATION.regiao) LIKE '%' || '${Municipio}' || '%'
+	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Municipio}' || '%'
 	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		results.forEach((element) => {
+		results.forEach((element, index) => {
 			if (element.bairro === null) {
 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
+				if (element.regiao === 'Capital') {
+					indexRemove = index;
+				}
 			}
 		});
 		console.log(`Got CCS on municipio ${Municipio} successfully!`);
@@ -50,11 +54,13 @@ module.exports.getCCSsFromMunicipio = async function getCCSsFromMunicipio(Munici
 	}).catch((err) => {
 		console.error('Error on getCCSsFromMunicipio => ', err);
 	});
+	if (indexRemove) { await result.splice(indexRemove, 1);	}
 	return result;
-};
+}
+module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
 
 // get ccs using bairro
-module.exports.getCCSsFromBairro = async function getCCSsFromBairro(Bairro) {
+async function getCCSsFromBairro(Bairro) {
 	const result = await sequelize.query(`
     SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
 	FROM conselhos CCS
@@ -73,7 +79,8 @@ module.exports.getCCSsFromBairro = async function getCCSsFromBairro(Bairro) {
 		console.error('Error on getCCSsFromBairro => ', err);
 	});
 	return result;
-};
+}
+module.exports.getCCSsFromBairro = getCCSsFromBairro;
 
 // get every bairro on the same CCS
 module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
@@ -342,7 +349,16 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	return result;
 };
 
+/* creating unaccent dictionary funcion
+	user=> CREATE EXTENSION unaccent;
+	CREATE EXTENSION
+	user=> select unaccent('Cajú');
+	unaccent
+	----------
+	Caju
+	(1 row)
 
+*/
 /*
 	CREATE TABLE notificar_ativacao(
 	ID SERIAL PRIMARY KEY,
