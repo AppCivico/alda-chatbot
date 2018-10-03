@@ -650,6 +650,6 @@ module.exports = async (context) => {
 		const date = new Date();
 		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 		console.log(err);
-		await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.whichCCS));
+		await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
 	}
 };

@@ -198,8 +198,8 @@ module.exports = {
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
 		'\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser?',
-		menuOptions: ['Recomeçar conversa', 'Trocar Conselho', 'Ver meu Conselho'],
-		menuPostback: ['greetings', 'whichCCSMenu', 'councilMenu'],
+		menuOptions: ['Recomeçar conversa', 'Ver meu Conselho', 'Trocar Conselho'],
+		menuPostback: ['greetings', 'councilMenu', 'whichCCSMenu'],
 	},
 	phone: {
 		firstMessage: 'Esse número não é válido! Quer tentar novamente?',
