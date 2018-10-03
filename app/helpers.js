@@ -69,6 +69,14 @@ module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
 	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
 	return message;
 };
+module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agenda, initialMessage) {
+	let message = initialMessage;
+	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `${message}🗓️ *Nova Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Novo Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Novo Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	return message;
+};
 
 module.exports.getNeighborhood = function getNeighborhood(results) {
 	let neighborhood = results.find(x => x.types.includes('sublocality'));
