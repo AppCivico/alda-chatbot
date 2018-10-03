@@ -63,6 +63,10 @@ module.exports = {
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
 		noSecond: 'Deseja tentar novamente? Você pode tentar me enviar sua localização de novo ou digitar a cidade em que você se encontra.',
 	},
+	checkBairro: {
+		menuOptions: ['Sim, é esse mesmo', 'Não é esse'],
+		menuPostback: ['checkBairroFromGeo', 'wantToChange'],
+	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
