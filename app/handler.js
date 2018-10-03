@@ -60,7 +60,7 @@ module.exports = async (context) => {
 					if (context.state.bairro) { // check if bairro is centro
 						if (context.state.bairro.toLowerCase() === 'centro' || context.state.bairro.toLowerCase() === 'colégio') { // test with Paraíso
 							await context.setState({ dialog: 'checkBairroFromGeo' });
-						} else {
+						} else { // TODO review geolocation regular cases (like tijuca)
 							await context.setState({ CCS: await db.getCCSsFromBairro(context.state.bairro.toLowerCase()) }); // load CCS from bairro
 							if (context.state.CCS && context.state.CCS.length !== 0) { // meaning we found a ccs on that bairro
 								await context.setState({ CCS: context.state.CCS[0] }); // load CCS from bairro
