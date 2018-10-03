@@ -40,8 +40,8 @@ module.exports = {
 		// the rest of the dialog comes from foundLocation
 	},
 	whichCCSMenu: {
-		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
-		menuPostback: ['advance', 'retryType'],
+		menuOptions: ['Sim, avançar', 'Digitar novo local', 'Enviar Localização'],
+		menuPostback: ['advance', 'retryType', 'sendLocation'],
 	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',

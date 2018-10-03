@@ -54,20 +54,23 @@ module.exports = async (context) => {
 				case 'preNearestCouncil': // came from geo
 					await context.setState({ bairro: context.state.mapsBairro.long_name }); // saves the name of the bairro from googleMaps
 					await context.setState({ cameFromGeo: true }); // saves the name of the bairro from googleMaps
-					// TODO Ver opção "Trocar Bairro" (de quando não está ativo) no caso de termos vindo do fluxo GEO
 					// falls through
 				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation/ GEO
 					if (context.state.bairro) { // check if bairro is centro
 						if (context.state.bairro.toLowerCase() === 'centro' || context.state.bairro.toLowerCase() === 'colégio') { // test with Paraíso
 							await context.setState({ dialog: 'checkBairroFromGeo' });
-						} else { // TODO review geolocation regular cases (like tijuca)
-							await context.setState({ CCS: await db.getCCSsFromBairro(context.state.bairro.toLowerCase()) }); // load CCS from bairro
-							if (context.state.CCS && context.state.CCS.length !== 0) { // meaning we found a ccs on that bairro
-								await context.setState({ CCS: context.state.CCS[0] }); // load CCS from bairro
-								// db return an array and we grab the first object/bairro.
-								await context.setState({ dialog: 'nearestCouncil' });
-							} else { // didn't found anything
+						} else { // giving the same treatment to geoLocatin from wantToType2
+							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, await help.formatString(context.state.userInput)) });
+							if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
 								await context.setState({ dialog: 'notFoundFromGeo' });
+							} else if (context.state.bairro.length === 1) {
+								await context.setState({ CCS: context.state.bairro[0] });
+								await context.setState({ dialog: 'nearestCouncil' });
+							} else { // more than one bairro was found
+								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 ` +
+									'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+								await attach.sendConselhoConfirmation(context, context.state.bairro);
+								await context.setState({ dialog: 'confirmBairro' });
 							}
 						}
 					}
