@@ -38,7 +38,7 @@ module.exports = async (context) => {
 					await context.setState({
 						CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirm', ''), 10)),
 					});
-					await context.setState({ dialog: 'nearestCouncil' });
+					await context.setState({ dialog: 'nearestCouncil', asked: false });
 				} else {
 					await context.setState({ dialog: context.event.postback.payload });
 				}
@@ -66,7 +66,7 @@ module.exports = async (context) => {
 								await context.setState({ dialog: 'notFoundFromGeo' });
 							} else if (context.state.bairro.length === 1) {
 								await context.setState({ CCS: context.state.bairro[0] });
-								await context.setState({ dialog: 'nearestCouncil' });
+								await context.setState({ dialog: 'nearestCouncil', asked: false });
 							} else { // more than one bairro was found
 								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 ` +
 									'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
@@ -176,7 +176,7 @@ module.exports = async (context) => {
 								await context.setState({ dialog: 'bairroNotFound' });
 							} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
 								await context.setState({ CCS: context.state.bairro[0] });
-								await context.setState({ dialog: 'nearestCouncil' });
+								await context.setState({ dialog: 'nearestCouncil', asked: false });
 							} else { // more than one bairro was found
 								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 ` +
 								'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
@@ -332,7 +332,6 @@ module.exports = async (context) => {
 				}
 				break;
 			case 'wantToType2': // asking for bairro
-
 				await context.setState({ retryCount: 0 });
 				await context.setState({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
 				await context.setState({
@@ -376,7 +375,6 @@ module.exports = async (context) => {
 				await context.setState({
 					otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
 				}); // get other bairros on this ccs
-
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
 					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
 						`${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
@@ -395,7 +393,10 @@ module.exports = async (context) => {
 							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 						}
 					}
+				} else if (context.state.asked === true) {
+					await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
 				} else { // ask user if he already went to one of the meetings
+					await context.setState({ asked: true });
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}
 				break;
