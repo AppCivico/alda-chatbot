@@ -34,7 +34,7 @@ module.exports.sendActivatedNotification = async function sendActivatedNotificat
 			},
 			{
 				content_type: 'text',
-				title: 'Sobre o conselho',
+				title: 'Sobre o Conselho',
 				payload: 'councilMenu',
 			},
 		],
