@@ -67,7 +67,7 @@ const agendaChange = new Cron.CronJob(
 			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 				for (const element of notifications) { // eslint-disable-line
 					element.newDatahora = new Date(`${element.data} ${element.hora}`);
-					if (date < element.newDatahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > element.newDatahora)
+					if (date > element.newDatahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > element.newDatahora)
 					// updates notificado to TRUE (There's no need to warn the user anymore) // It doesn't matter if there was a change to agendas.status_id or not
 						db.updateAgendaNotification(element.id, 'TRUE');
 						const ourLabels = await client.getLabelList(); // get all labels we have
