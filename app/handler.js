@@ -109,8 +109,7 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'join' });
-					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
