@@ -296,8 +296,6 @@ module.exports = async (context) => {
 				// falls through
 			case 'whichCCSMenu': // asks user if he wants to find his CCS or confirm if we already have one stored
 				await context.setState({ retryCount: 0 });
-				console.log('context.state.CCS', context.state.CCS);
-
 				// if we don't have a CCS linked to a user already we ask for it
 				if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
