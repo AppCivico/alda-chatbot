@@ -10,6 +10,7 @@ const help = require('./helpers');
 const { sendAdminBroadcast } = require('./broadcast');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
+const mailRegex = new RegExp(/\S+@\S+/);
 
 const timeLimit = 1000 * 60 * 60 * 12; // 60 minutes * 12 hours => 1000 * 60 * 60 * 12
 
@@ -108,7 +109,8 @@ module.exports = async (context) => {
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'join' });
+					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
@@ -183,10 +185,19 @@ module.exports = async (context) => {
 							}
 						}
 						break;
+					case 'reAskMail':
+						// falls throught
 					case 'eMail':
-						await context.setState({ eMail: context.event.message.text });
-						await context.setState({ dialog: 'userData' });
+						await context.setState({ eMail: context.event.message.text.toLowerCase() });
+						if (mailRegex.test(context.state.eMail)) { // valid phone
+							await context.sendText('Obrigado por fazer parte! Juntos podemos fazer a diferença. ❤️');
+							await context.setState({ dialog: 'userData' });
+						} else { // invalid email
+							await context.setState({ eMail: '', dialog: 'reAskMail' });
+						}
 						break;
+					case 'reAskPhone':
+						// falls throught
 					case 'whatsApp':
 						await context.setState({ phone: `+55${context.event.message.text.replace(/[- .)(]/g, '')}` });
 						if (phoneRegex.test(context.state.phone)) { // valid phone
@@ -485,20 +496,25 @@ module.exports = async (context) => {
 				await context.sendText(flow.share.secondMessage, await attach.getQR(flow.share));
 				break;
 			case 'followMedia':
+				await context.sendText(flow.followMedia.firstMessage);
 				await attach.sendCardWithLink(context, flow.followMedia, flow.followMedia.link);
-				// falls through
+				await context.sendText(flow.followMedia.secondMessage, await attach.getQR(flow.followMedia));
+				break;
 			case 'userData':
 				await context.sendText(flow.userData.menuMessage, await attach.getQR(flow.userData));
 				break;
 			case 'eMail':
 				await context.sendText(flow.userData.eMail);
 				break;
-			case 'reAskPhone':
-				await context.sendText(flow.phone.firstMessage, await attach.getQR(flow.phone));
+			case 'reAskMail':
+				await context.sendText(flow.eMail.firstMessage, await attach.getQR(flow.eMail));
 				break;
 			case 'whatsApp':
 				await context.sendText(flow.userData.whatsApp);
 				await context.sendText(flow.userData.phoneExample);
+				break;
+			case 'reAskPhone':
+				await context.sendText(flow.phone.firstMessage, await attach.getQR(flow.phone));
 				break;
 			case 'gotPhone':
 				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', await attach.getQR(flow.userData));
