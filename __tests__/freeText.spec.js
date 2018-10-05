@@ -97,7 +97,7 @@ it('check attachment', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 });
 
-it('i want to type - less than 3 chars', async () => {
+it('wantToType1 - less than 3 chars more than 3 tries', async () => {
 	const context = cont.textContext('ab', 'wantToType1');
 	context.state.userInput = 'ab';
 
@@ -107,10 +107,19 @@ it('i want to type - less than 3 chars', async () => {
 	await expect(context.state.userInput.length < 3).toBeTruthy();
 	await expect(context.sendText).toBeCalledWith('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
 	await expect(context.setState).toBeCalledWith({ dialog: 'wantToType1' });
+
+	context.state.dialog = 'wantToType1';
+	context.state.retryCount = '4';
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ geoLocation: undefined, bairro: undefined });
+	await expect(context.setState).toBeCalledWith({ retryCount: context.state.retryCount + 1 });
+	await expect(context.state.retryCount > 3).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ retryCount: 0 });
+	await expect(context.sendText).toBeCalledWith(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
 });
 
-it('i want to type - entered rio de janeiro', async () => {
-	const context = cont.textContext('rio de janeiro', 'wantToType1');
+it('wantToType1 - entered rio de janeiro', async () => {
+	const context = cont.textContext('rio de janeiro', 'retryType');
 	context.state.userInput = 'rio de janeiro';
 	await handler(context);
 	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
@@ -118,25 +127,36 @@ it('i want to type - entered rio de janeiro', async () => {
 	await expect(context.state.userInput.length < 3).toBeFalsy();
 	await expect('rio de janeiro'.includes(context.state.userInput)).toBeTruthy();
 	await expect(context.setState).toBeCalledWith({ userInput: 'capital' });
+
 	context.state.userInput = 'capital';
-	context.state.municipiosFound = { name: 'test' };
+	context.state.municipiosFound = [{ result: 'foundOne' }];
 	await handler(context);
 	await expect(context.setState).toBeCalledWith({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
 	await expect(!context.state.municipiosFound || context.state.municipiosFound.length === 0).toBeFalsy();
 	await expect(context.setState).toBeCalledWith({ dialog: 'wantToType2' });
 });
 
-it('i want to type - entered unexistent', async () => {
-	const context = cont.textContext('são paulo', 'wantToType1');
+it('wantToType1 - entered unexistent', async () => {
+	const context = cont.textContext('são paulo', 'wantToChange');
 	context.state.userInput = 'são paulo';
 	await handler(context);
 	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
 	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
 	await expect(context.state.userInput.length < 3).toBeFalsy();
 	await expect('rio de janeiro'.includes(context.state.userInput)).toBeFalsy();
+	context.state.municipiosFound = [];
 	await handler(context);
 	await expect(context.setState).toBeCalledWith({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
 	await expect(!context.state.municipiosFound || context.state.municipiosFound.length === 0).toBeTruthy();
 	await expect(context.setState).toBeCalledWith({ dialog: 'municipioNotFound' });
+
+	context.state.dialog = 'municipioNotFound';
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith('Não consegui encontrar essa cidade. ' +
+			'Deseja tentar novamente? Você pode pesquisar por Capital, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
 });
 
+
+it('wantToType2 - ', async () => {
+
+});
