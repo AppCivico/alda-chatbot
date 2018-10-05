@@ -140,19 +140,23 @@ module.exports.fakeGeo = fakeGeo;
 
 // db mock-up
 
-const db = {};
-
-async function getDiretoria(CCS_ID) {
-	if (CCS_ID === true) {
+const db = {
+	getDiretoria: async (CCS_ID) => {
+		if (CCS_ID === true) {
+			return [
+				{ nome: 'George', cargo: 'Lead' },
+				{ nome: 'Ringo', cargo: 'Drums' }];
+		}
 		return [
-			{ nome: 'George', cargo: 'Lead' },
-			{ nome: 'Ringo', cargo: 'Drums' }];
-	}
-	return [
-		{ nome: 'John', cargo: 'Singer' },
-		{ nome: 'Paul', cargo: 'Bass' }];
-}
-
-db.getDiretoria = getDiretoria;
+			{ nome: 'John', cargo: 'Singer' },
+			{ nome: 'Paul', cargo: 'Bass' }];
+	},
+	getCCSsFromMunicipio: jest.fn(),
+};
 
 module.exports.db = db;
+
+const help = {
+	formatString: text => text.toLowerCase(),
+};
+module.exports.help = help;

@@ -4,6 +4,11 @@ const flow = require('../app/flow');
 const handler = require('../app/handler');
 const cont = require('./context');
 const attach = require('../app/attach');
+const help = require('../app/helpers');
+const db = require('../app/DB_helper');
+
+jest.mock('../app/helpers');
+jest.mock('../app/DB_helper');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 const mailRegex = new RegExp(/\S+@\S+/);
@@ -91,3 +96,47 @@ it('check attachment', async () => {
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 });
+
+it('i want to type - less than 3 chars', async () => {
+	const context = cont.textContext('ab', 'wantToType1');
+	context.state.userInput = 'ab';
+
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 3).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
+	await expect(context.setState).toBeCalledWith({ dialog: 'wantToType1' });
+});
+
+it('i want to type - entered rio de janeiro', async () => {
+	const context = cont.textContext('rio de janeiro', 'wantToType1');
+	context.state.userInput = 'rio de janeiro';
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 3).toBeFalsy();
+	await expect('rio de janeiro'.includes(context.state.userInput)).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ userInput: 'capital' });
+	context.state.userInput = 'capital';
+	context.state.municipiosFound = { name: 'test' };
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+	await expect(!context.state.municipiosFound || context.state.municipiosFound.length === 0).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ dialog: 'wantToType2' });
+});
+
+it('i want to type - entered unexistent', async () => {
+	const context = cont.textContext('são paulo', 'wantToType1');
+	context.state.userInput = 'são paulo';
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 3).toBeFalsy();
+	await expect('rio de janeiro'.includes(context.state.userInput)).toBeFalsy();
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+	await expect(!context.state.municipiosFound || context.state.municipiosFound.length === 0).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ dialog: 'municipioNotFound' });
+});
+
