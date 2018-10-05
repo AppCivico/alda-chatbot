@@ -4,8 +4,9 @@ const flow = require('../app/flow');
 const handler = require('../app/handler');
 const attach = require('../app/attach');
 const cont = require('./context');
+const help = require('../app/helpers');
 
-// const { db } = cont;
+jest.mock('../app/helpers');
 
 it('aboutMe-Claro', async () => {
 	const context = cont.quickReplyContext(flow.greetings.menuPostback[0], 'aboutMe');
@@ -117,14 +118,35 @@ it('wantToType1 from CCSMenu', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.wantToType.firstMessage);
 });
 
-it('wantToType2 from wantToType1', async () => {
-	const context = cont.quickReplyContext(flow.whichCCS.menuPostback[1], 'wantToType1');
-	context.state.retryCount = 0;
+it('wantToType2 - couldt get sugestao', async () => {
+	// this situation can't really happen with a quick_reply, this is a follow-up to "wantToType1 - entered rio de janeiro"
+	const context = cont.quickReplyContext('wantToType2', 'wantToType2');
+	context.state.municipiosFound = [{}];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [];
 	await handler(context);
-	await expect(context.setState).toBeCalledWith({ geoLocation: undefined, bairro: undefined });
-	await expect(context.setState).toBeCalledWith({ retryCount: context.state.retryCount + 1 });
-	await expect(context.state.retryCount > 3).toBeFalsy();
-	await expect(context.sendText).toBeCalledWith(flow.wantToType.firstMessage);
+
+	await expect(context.setState).toBeCalledWith({ retryCount: 0 });
+	await expect(context.setState).toBeCalledWith({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) });
+	await expect(context.setState).toBeCalledWith({ sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos) });
+	await expect(!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
+});
+
+it('wantToType2 - got sugestao', async () => {
+	// this situation can't really happen with a quick_reply, this is a follow-up to "wantToType1 - entered rio de janeiro"
+	const context = cont.quickReplyContext('wantToType2', 'wantToType2');
+	context.state.municipiosFound = [{}];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [{ foo: 'bar' }];
+	await handler(context);
+
+	await expect(context.setState).toBeCalledWith({ retryCount: 0 });
+	await expect(context.setState).toBeCalledWith({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) });
+	await expect(context.setState).toBeCalledWith({ sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos) });
+	await expect(!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}. `
+        + `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' ou')}.`);
 });
 
 // it('findLocation-Failure', async () => {

@@ -332,7 +332,7 @@ module.exports = async (context) => {
 				await context.setState({
 					sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
 				}); // get other bairros on this ccs
-				if (!context.state.sugestaoBairro && context.state.sugestaoBairro.length === 0) {
+				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) {
 					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
 				} else {
 					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}. `
