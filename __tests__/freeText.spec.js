@@ -6,88 +6,50 @@ const cont = require('./context');
 const attach = require('../app/attach');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
-const addressComplement = process.env.PROCESS_COMPLEMENT; // => "state, country"
-const defaultAddress = process.env.DEFAULT_ADDRESS;
-
-// it('Free text to restart', async () => {
-// 	const context = cont.textContext(process.env.RESTART, 'test');
-// 	await handler(context);
-// 	await expect(context.resetState).toBeCalledWith();
-// });
+const mailRegex = new RegExp(/\S+@\S+/);
 
 it('Free text after time limit', async () => {
-	const context = cont.textContext('Vocês são de são paulo?', 'test', new Date() - (1000 * 60 * 60));
+	const context = cont.textContext('Vocês são de são paulo?', 'test', new Date() - (1000 * 60 * 60 * 12));
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
-	await expect(context.setState).toBeCalledWith({ dialog: 'mainMenu' });
+	await expect(context.setState).toBeCalledWith({ dialog: 'whichCCSMenu' });
 
-	context.state.dialog = 'mainMenu';
+	context.state.dialog = 'whichCCSMenu';
 	await handler(context);
-	await expect(context.sendText).toBeCalledWith(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
+	await context.setState({ retryCount: 0 });
 });
 
 it('Free text on non-specified dialog', async () => {
 	const context = cont.textContext('Vocês são de são paulo?', 'test');
 	await handler(context);
-	await expect(context.setState).toBeCalledWith({ dialog: 'errorText' });
-
-	context.state.dialog = 'errorText';
-	await handler(context);
-	await expect(context.sendButtonTemplate).toBeCalledWith(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
-		type: 'postback',
-		title: flow.error.menuOptions[0],
-		payload: flow.error.menuPostback[0],
-	}]);
+	await expect(context.setState).toBeCalledWith({ lastDialog: context.state.dialog });
+	await expect(context.sendText).toBeCalledWith(`Oi, ${context.session.user.first_name}. Eu sou a Alda, uma robô 🤖 e não entendi essa sua útlima mensagem.` +
+	'\nPosso te pedir um favor? Me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️ ' +
+	'\nSe quiser voltar para onde estava, clique em \'Voltar.\'', await attach.getErrorQR(flow.error, context.state.lastDialog));
+	await expect(context.setState).toBeCalledWith({ dialog: '' });
 });
 
-it('Free text on wantToChange', async () => {
-	const context = cont.textContext('av. paulista', 'wantToChange');
+it('Enter invalid email', async () => {
+	const context = cont.textContext('Não é válido!', 'eMail');
+	context.state.eMail = 'Não é válido!';
 	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
+	await expect(context.setState).toBeCalledWith({ eMail: context.event.message.text.toLowerCase() });
+	await expect(context.state.eMail).not.toMatch(mailRegex);
+	await expect(context.setState).toBeCalledWith({ eMail: '', dialog: 'reAskMail' });
+
+	context.state.dialog = 'reAskMail';
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith(flow.eMail.firstMessage, await attach.getQR(flow.eMail));
 });
 
-it('Free text on falls through', async () => {
-	const context = cont.textContext('av. paulista', 'retryType');
+it('Enter valid email', async () => {
+	const context = cont.textContext('qualquer@coisa.com', 'eMail');
+	context.state.eMail = 'qualquer@coisa.com';
 	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-});
-
-it('wantToType-send free text', async () => {
-	const context = cont.textContext('Caju', 'wantToType');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-});
-
-it('sendLocation-send free text - confirmLocation', async () => {
-	const context = cont.textContext('Caju', 'sendLocation');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ address: context.event.message.text });
-	await expect(context.setState).toBeCalledWith({ dialog: 'confirmLocation' });
-
-	// testing confirmLocation
-	context.state.address = context.event.message.text;
-	context.state.dialog = 'confirmLocation';
-	await handler(context);
-	await expect(context.typingOn).toBeCalledWith();
-	cont.fakeGeo({
-		address: `${context.state.address}, ${addressComplement}`,
-		region: 'BR',
-		language: 'pt-BR',
-	}).then(async (response) => {
-		await expect(response.json.results[0].formatted_address.trim()).not.toEqual(defaultAddress);
-		// TODO the rest here
-	}).catch(() => { });
-});
-
-it('Enter e-mail', async () => {
-	const context = cont.textContext('Qualquer@coisa.vale', 'eMail');
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ eMail: context.event.message.text });
+	await expect(context.setState).toBeCalledWith({ eMail: context.event.message.text.toLowerCase() });
+	await expect(mailRegex.test(context.state.eMail)).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith('Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️');
 	await expect(context.setState).toBeCalledWith({ dialog: 'userData' });
-
 	context.state.dialog = 'userData';
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(flow.userData.menuMessage, await attach.getQR(flow.userData));
