@@ -217,6 +217,8 @@ it('wantToType2 - regular case - found 1 bairro', async () => {
 	context.state.userInput = 'Caju';
 	context.state.bairro = [{ foo: 'bar' }];
 	context.state.municipiosFound = [{ regiao: 'capital' }];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [{ foo: 'bar' }];
 	await handler(context);
 
 	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
@@ -236,6 +238,8 @@ it('wantToType2 - regular case - found more than 1 bairro', async () => {
 	context.state.userInput = 'Caju';
 	context.state.bairro = [{ foo: 'bar' }, { foo: 'bar' }];
 	context.state.municipiosFound = [{ regiao: 'capital' }];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [{ foo: 'bar' }];
 	await handler(context);
 
 	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
