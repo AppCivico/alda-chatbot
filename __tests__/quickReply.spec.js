@@ -113,6 +113,17 @@ it('wantToType1 from CCSMenu', async () => {
 	await handler(context);
 	await expect(context.setState).toBeCalledWith({ geoLocation: undefined, bairro: undefined });
 	await expect(context.setState).toBeCalledWith({ retryCount: context.state.retryCount + 1 });
+	await expect(context.state.retryCount > 3).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(flow.wantToType.firstMessage);
+});
+
+it('wantToType2 from wantToType1', async () => {
+	const context = cont.quickReplyContext(flow.whichCCS.menuPostback[1], 'wantToType1');
+	context.state.retryCount = 0;
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ geoLocation: undefined, bairro: undefined });
+	await expect(context.setState).toBeCalledWith({ retryCount: context.state.retryCount + 1 });
+	await expect(context.state.retryCount > 3).toBeFalsy();
 	await expect(context.sendText).toBeCalledWith(flow.wantToType.firstMessage);
 });
 
