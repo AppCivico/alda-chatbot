@@ -1,10 +1,10 @@
-function quickReplyContext(payload, dialog, CCS = undefined, long_name = undefined, adress = undefined, retry_count = 0, lastActivity = new Date()) {
+function quickReplyContext(payload, dialog, CCS = undefined, bairro = undefined, adress = undefined, retry_count = 0, lastActivity = new Date()) {
 	return {
 		state: {
 			dialog,
 			retry_count,
 			CCS,
-			userLocation: { neighborhood: { long_name } },
+			bairro,
 			adress,
 			geoLocation: { lat: -23.5733, long: -46.6417 },
 		},
@@ -20,7 +20,6 @@ function quickReplyContext(payload, dialog, CCS = undefined, long_name = undefin
 			quickReply: { payload },
 			message: {
 				quickReply: { payload },
-
 				text: 'This qr was clicked',
 			},
 			rawEvent: { timestamp: new Date() },
@@ -115,6 +114,7 @@ function getLocation(dialog, lastActivity = new Date()) {
 		},
 		sendText: jest.fn(),
 		setState: jest.fn(),
+		typingOn: jest.fn(),
 		// resetState: jest.fn(),
 		sendImage: jest.fn(),
 	};
@@ -126,10 +126,13 @@ module.exports.getLocation = getLocation;
 
 function fakeGeo(opt) {
 	return new Promise((resolve, reject) => {
-		const json = {};
-		json.results[0].formatted_address = 'Paraíso, São Paulo';
-		if (opt.language !== 'pt-BR') reject(json);
-		else resolve('There was an error');
+		let json = {};
+		json = { long_name: 'Paraíso, São Paulo' };
+		if (opt.language !== 'pt-BR') {
+			reject();
+		} else {
+			resolve(json);
+		}
 	});
 }
 

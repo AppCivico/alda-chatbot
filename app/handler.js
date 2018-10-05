@@ -187,7 +187,7 @@ module.exports = async (context) => {
 					case 'eMail':
 						await context.setState({ eMail: context.event.message.text.toLowerCase() });
 						if (mailRegex.test(context.state.eMail)) { // valid phone
-							await context.sendText('Obrigado por fazer parte! Juntos podemos fazer a diferença. ❤️');
+							await context.sendText('Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️');
 							await context.setState({ dialog: 'userData' });
 						} else { // invalid email
 							await context.setState({ eMail: '', dialog: 'reAskMail' });
@@ -515,13 +515,13 @@ module.exports = async (context) => {
 			case 'gotPhone':
 				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', await attach.getQR(flow.userData));
 				break;
-			case 'errorText':
-				await context.sendButtonTemplate(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
-					type: 'postback',
-					title: flow.error.menuOptions[0],
-					payload: flow.error.menuPostback[0],
-				}]);
-				break;
+			// case 'errorText':
+			// 	await context.sendButtonTemplate(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
+			// 		type: 'postback',
+			// 		title: flow.error.menuOptions[0],
+			// 		payload: flow.error.menuPostback[0],
+			// 	}]);
+			// 	break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
 				await context.typingOn();
