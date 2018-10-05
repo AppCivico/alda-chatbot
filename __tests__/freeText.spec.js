@@ -7,6 +7,7 @@ const attach = require('../app/attach');
 const help = require('../app/helpers');
 const db = require('../app/DB_helper');
 
+jest.mock('../app/attach');
 jest.mock('../app/helpers');
 jest.mock('../app/DB_helper');
 
@@ -118,6 +119,26 @@ it('wantToType1 - less than 3 chars more than 3 tries', async () => {
 	await expect(context.sendText).toBeCalledWith(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
 });
 
+it('wantToType1 - entered unexistent', async () => {
+	const context = cont.textContext('são paulo', 'wantToChange');
+	context.state.userInput = 'são paulo';
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 3).toBeFalsy();
+	await expect('rio de janeiro'.includes(context.state.userInput)).toBeFalsy();
+	context.state.municipiosFound = [];
+	await handler(context);
+	await expect(context.setState).toBeCalledWith({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+	await expect(!context.state.municipiosFound || context.state.municipiosFound.length === 0).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ dialog: 'municipioNotFound' });
+
+	context.state.dialog = 'municipioNotFound';
+	await handler(context);
+	await expect(context.sendText).toBeCalledWith('Não consegui encontrar essa cidade. ' +
+		'Deseja tentar novamente? Você pode pesquisar por Capital, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
+});
+
 it('wantToType1 - entered rio de janeiro', async () => {
 	const context = cont.textContext('rio de janeiro', 'retryType');
 	context.state.userInput = 'rio de janeiro';
@@ -136,27 +157,98 @@ it('wantToType1 - entered rio de janeiro', async () => {
 	await expect(context.setState).toBeCalledWith({ dialog: 'wantToType2' });
 });
 
-it('wantToType1 - entered unexistent', async () => {
-	const context = cont.textContext('são paulo', 'wantToChange');
-	context.state.userInput = 'são paulo';
-	await handler(context);
+it('wantToType2 - less than 4 chars', async () => {
+	const context = cont.textContext('abc', 'wantToType2');
+	context.state.userInput = 'abc';
+	context.state.municipiosFound = [{}];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [{ foo: 'bar' }];	await handler(context);
+
 	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
 	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
-	await expect(context.state.userInput.length < 3).toBeFalsy();
-	await expect('rio de janeiro'.includes(context.state.userInput)).toBeFalsy();
-	context.state.municipiosFound = [];
-	await handler(context);
-	await expect(context.setState).toBeCalledWith({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
-	await expect(!context.state.municipiosFound || context.state.municipiosFound.length === 0).toBeTruthy();
-	await expect(context.setState).toBeCalledWith({ dialog: 'municipioNotFound' });
-
-	context.state.dialog = 'municipioNotFound';
-	await handler(context);
-	await expect(context.sendText).toBeCalledWith('Não consegui encontrar essa cidade. ' +
-			'Deseja tentar novamente? Você pode pesquisar por Capital, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
+	await expect(context.state.userInput.length < 4).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
+	await expect(context.setState).toBeCalledWith({ dialog: 'wantToType2' });
 });
 
+it('wantToType2 - special case', async () => {
+	const context = cont.textContext('centro', 'wantToType2');
+	context.state.userInput = 'centro';
+	context.state.bairro = 'centro';
+	context.state.municipiosFound = [{ regiao: 'capital' }];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [{ foo: 'bar' }];
+	await handler(context);
 
-it('wantToType2 - ', async () => {
-
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 4).toBeFalsy();
+	await expect(context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' &&
+	('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))).toBeTruthy();
+	await expect('centro'.includes(context.state.userInput)).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
+	await expect(context.sendText).toBeCalledWith(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
+	`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
+	await expect(attach.sendConselhoConfirmationComplement).toBeCalledWith(context, context.state.bairro);
+	await expect(context.setState).toBeCalledWith({ dialog: 'confirmBairro' });
 });
+
+it('wantToType2 - regular case - not found', async () => {
+	const context = cont.textContext('asdfasdfasdf', 'wantToType2');
+	context.state.userInput = 'asdfasdfasdf';
+	context.state.bairro = [];
+	context.state.municipiosFound = [{ regiao: 'capital' }];
+	context.state.unfilteredBairros = [];
+	context.state.sugestaoBairro = [{ foo: 'bar' }];
+	await handler(context);
+
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 4).toBeFalsy();
+	await expect(context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' &&
+	('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
+	await expect((!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0)).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ dialog: 'bairroNotFound' });
+});
+
+it('wantToType2 - regular case - found 1 bairro', async () => {
+	const context = cont.textContext('Caju', 'wantToType2');
+	context.state.userInput = 'Caju';
+	context.state.bairro = [{ foo: 'bar' }];
+	context.state.municipiosFound = [{ regiao: 'capital' }];
+	await handler(context);
+
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 4).toBeFalsy();
+	await expect(context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' &&
+	('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
+	await expect((!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0)).toBeFalsy();
+	await expect(context.state.bairro.length === 1).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ CCS: context.state.bairro[0] });
+	await expect(context.setState).toBeCalledWith({ dialog: 'nearestCouncil', asked: false });
+});
+
+it('wantToType2 - regular case - found more than 1 bairro', async () => {
+	const context = cont.textContext('Caju', 'wantToType2');
+	context.state.userInput = 'Caju';
+	context.state.bairro = [{ foo: 'bar' }, { foo: 'bar' }];
+	context.state.municipiosFound = [{ regiao: 'capital' }];
+	await handler(context);
+
+	await expect(context.setState).toBeCalledWith({ cameFromGeo: false });
+	await expect(context.setState).toBeCalledWith({ userInput: await help.formatString(context.event.message.text) });
+	await expect(context.state.userInput.length < 4).toBeFalsy();
+	await expect(context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' &&
+	('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
+	await expect((!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0)).toBeFalsy();
+	await expect(context.state.bairro.length === 1).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 ` +
+	'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+	await expect(attach.sendConselhoConfirmation).toBeCalledWith(context, context.state.bairro);
+	await expect(context.setState).toBeCalledWith({ dialog: 'confirmBairro' });
+});
+
