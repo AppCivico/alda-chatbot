@@ -142,7 +142,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
 	WHERE conselho_id = ${CCS_ID}
-	ORDER BY data_hora DESC
+	ORDER BY data DESC, hora DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
@@ -403,3 +403,4 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 		as notificações que são enviadas pelo timer não removem essa tag. No menu de administrador, se o admin clicar em "Avisar Agenda", será possível avisar
 		a quem possui essa tag que houve um cancelamento/mudança na reunião. Isso também não deleta a tag.
 */
+
