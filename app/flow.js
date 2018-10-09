@@ -44,6 +44,10 @@ module.exports = {
 		menuOptions: ['Sim, avançar', 'Digitar novo local', 'Enviar Localização'],
 		menuPostback: ['advance', 'retryType', 'sendLocation'],
 	},
+	geoMenu: {
+		menuOptions: ['Quero Digitar', 'Agora não'],
+		menuPostback: ['wantToType1', 'noLocation'],
+	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',

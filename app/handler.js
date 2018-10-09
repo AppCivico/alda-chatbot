@@ -540,30 +540,36 @@ module.exports = async (context) => {
 
 					if (context.state.mapsResults.status === 200) {
 						await context.setState({ mapsResults: context.state.mapsResults.json.results });
-						await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
-						if (!context.state.mapsBairro) { // in case googlemaps returns the country first
-							await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[1].address_components) });
-						}
-						if (!context.state.mapsBairro) { // couldn't find bairro on results
-							await context.sendText(flow.foundLocation.noFindGeo);
-							await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
-						} else if (context.state.mapsBairro.long_name.toLowerCase() === 'centro' || context.state.mapsBairro.long_name.toLowerCase() === 'colégio') { // test with Paraíso
-							await await context.setState({ bairro: context.state.mapsBairro.long_name });
-							await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.bairro} da Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
+
+						if (await help.checkIfInRio(context.state.mapsResults) === true) { // we are in rio
+							await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
+							if (!context.state.mapsBairro) { // in case googlemaps returns the country first
+								await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[1].address_components) });
+							}
+							if (!context.state.mapsBairro) { // couldn't find bairro on results
+								await context.sendText(flow.foundLocation.noFindGeo);
+								await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+							} else if (context.state.mapsBairro.long_name.toLowerCase() === 'centro' || context.state.mapsBairro.long_name.toLowerCase() === 'colégio') { // test with Paraíso
+								await await context.setState({ bairro: context.state.mapsBairro.long_name });
+								await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.bairro} da Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
 							// await context.setState({ dialog: 'checkBairroFromGeo' });
-						} else {
-							await context.typingOff(); // is this bairro correct? if so => nearestCouncil // Podemos seguir ou você quer alterar o local?
-							await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsBairro.long_name}`);
-							await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+							} else {
+								await context.typingOff(); // is this bairro correct? if so => nearestCouncil // Podemos seguir ou você quer alterar o local?
+								await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsBairro.long_name}`);
+								await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+							}
+						} else { // not in trio
+							await context.sendText('Parece que você não se encontra no Rio de Janeiro. Nossos conselhos de segurança atuam apenas no Estado do Rio de Janeiro. ' +
+							'Por favor, entre com outra localização ou digite sua região.', await attach.getQRLocation(flow.geoMenu));
 						}
 					} else { // unexpected response from googlemaps api
 						await context.sendText(flow.foundLocation.noFindGeo);
-						await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+						await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
 					}
 				} catch (error) {
 					console.log('Error at findLocation => ', error);
 					await context.sendText(flow.foundLocation.noFindGeo);
-					await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+					await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
 				}
 				break; }
 			case 'notFoundFromGeo':

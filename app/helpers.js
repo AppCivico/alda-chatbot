@@ -78,11 +78,20 @@ module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agen
 	return message;
 };
 
-module.exports.getNeighborhood = function getNeighborhood(results) {
+module.exports.getNeighborhood = async (results) => {
 	let neighborhood = results.find(x => x.types.includes('sublocality'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
-	// if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
 	return neighborhood;
+};
+module.exports.checkIfInRio = async (results) => {
+	let neighborhood = await results.find(x => x.types.includes('administrative_area_level_1'));
+	if (!neighborhood) { neighborhood = await results.find(x => x.types.includes('administrative_area_level_2')); }
+
+	let place = 'rio de janeiro';
+	if (neighborhood.formatted_address) { place = neighborhood.formatted_address; }
+
+	if ('rio de janeiro'.includes(place.toLowerCase()) || place.toLowerCase().includes('rio de janeiro')) { return true; }
+	return false;
 };
 
 module.exports.listBairros = function listBairros(ccs) {
