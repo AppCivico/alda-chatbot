@@ -163,6 +163,8 @@ module.exports = async (context) => {
 							} else { // case for colegio (could use userInput)
 								await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, context.state.userInput) });
 							}
+							console.log('bairro', context.state.bairro);
+
 							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
 								`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
 							await attach.sendConselhoConfirmationComplement(context, context.state.bairro);

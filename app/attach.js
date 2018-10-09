@@ -118,8 +118,6 @@ module.exports.getConditionalQR = async function getConditionalQR(options, useSe
 	}
 
 	const firstArray = arrayToUse.menuOptions;
-	console.log('firstArray', firstArray);
-
 
 	firstArray.forEach((element, index) => {
 		elements.push({
@@ -179,14 +177,16 @@ module.exports.sendConselhoConfirmation = async function sendConselhoConfirmatio
 	});
 };
 
-// same as sendConselhoConfirmation but centro needs to use "região complementar" (not yet implemented)
+// same as sendConselhoConfirmation but centro needs to use "regiao_novo" e "meta_regiao"
 module.exports.sendConselhoConfirmationComplement = async function sendCentro(context, items) {
 	const elements = [];
 
 	items.forEach((element) => {
+		let bairroText = 'Bairros'; // check if there's only one bairro on this meta_regiao
+		if (!element.meta_regiao.includes(',')) { bairroText = 'Bairro'; }
 		elements.push({
-			title: `Bairro ${element.bairro} - ${element.ccs}`,
-			subtitle: '<Falta o complemento no banco!>',
+			title: `Região ${element.regiao_novo}`,
+			subtitle: `${bairroText}: ${element.meta_regiao.replace(/,(?=[^,]*$)/, ' e')}`,
 			buttons: [{
 				type: 'postback',
 				title: 'É esse!',
