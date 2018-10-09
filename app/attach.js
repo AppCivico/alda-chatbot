@@ -2,7 +2,7 @@
 // context is the context from bot.onEvent
 // links is the object from flow.js from the respective dialog
 
-async function sendCarousel(context, items) {
+module.exports.sendCarousel = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {
@@ -19,10 +19,7 @@ async function sendCarousel(context, items) {
 			elements,
 		},
 	});
-}
-
-module.exports.sendCarousel = sendCarousel;
-
+};
 
 // sends one card with an image and link
 module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url, text) {
@@ -73,7 +70,7 @@ module.exports.sendCardWithout = async function sendCardWithLink(context, cardDa
 
 // get quick_replies opject with elements array
 // supossed to be used with menuOptions and menuPostback for each dialog on flow.js
-module.exports.getQR = async function getQR(opt) {
+module.exports.getQR = async (opt) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -88,7 +85,7 @@ module.exports.getQR = async function getQR(opt) {
 	return { quick_replies: elements };
 };
 
-module.exports.getErrorQR = async function getErrorQR(opt, lastPostback) {
+module.exports.getErrorQR = async (opt, lastPostback) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -109,7 +106,7 @@ module.exports.getErrorQR = async function getErrorQR(opt, lastPostback) {
 	return { quick_replies: elements };
 };
 
-module.exports.getConditionalQR = async function getConditionalQR(options, useSecond) {
+module.exports.getConditionalQR = async (options, useSecond) => {
 	const elements = [];
 	let arrayToUse;
 	if (useSecond === true) {
@@ -131,7 +128,7 @@ module.exports.getConditionalQR = async function getConditionalQR(options, useSe
 	return { quick_replies: elements };
 };
 
-async function sendShare(context, links) {
+module.exports.sendShare = async (context, links) => {
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
@@ -149,12 +146,10 @@ async function sendShare(context, links) {
 			],
 		},
 	});
-}
-
-module.exports.sendShare = sendShare;
+};
 
 // send a card carousel for the user to confirm which bairro he wants
-module.exports.sendConselhoConfirmation = async function sendConselhoConfirmation(context, items) {
+module.exports.sendConselhoConfirmation = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {
@@ -179,7 +174,7 @@ module.exports.sendConselhoConfirmation = async function sendConselhoConfirmatio
 };
 
 // same as sendConselhoConfirmation but centro needs to use "regiao_novo" e "meta_regiao"
-module.exports.sendConselhoConfirmationComplement = async function sendCentro(context, items) {
+module.exports.sendConselhoConfirmationComplement = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {

@@ -62,27 +62,27 @@ async function getCCSsFromMunicipio(Municipio) {
 module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
 
 // get ccs using bairro
-// async function getCCSsFromBairro(Bairro) {
-// 	const result = await sequelize.query(`
-//     SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro
-// 	FROM conselhos CCS
-// 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
-// 	WHERE LOWER(LOCATION.regiao) = '${Bairro}' OR LOWER(LOCATION.bairro) = '${Bairro}'
-// 	ORDER BY CCS.id;
-// 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-// 		results.forEach((element) => {
-// 			if (element.bairro === null) {
-// 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
-// 			}
-// 		});
-// 		console.log(`Got CCS on bairro ${Bairro} successfully!`);
-// 		return results;
-// 	}).catch((err) => {
-// 		console.error('Error on getCCSsFromBairro => ', err);
-// 	});
-// 	return result;
-// }
-// module.exports.getCCSsFromBairro = getCCSsFromBairro;
+async function getCCSsFromBairro(Bairro) {
+	const result = await sequelize.query(`
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
+	FROM conselhos CCS
+	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
+	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Bairro}' || '%' OR UNACCENT(LOWER(LOCATION.bairro)) LIKE '%' || '${Bairro}' || '%'
+	ORDER BY CCS.id;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		results.forEach((element) => {
+			if (element.bairro === null) {
+				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
+			}
+		});
+		console.log(`Got CCS on bairro ${Bairro} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getCCSsFromBairro => ', err);
+	});
+	return result;
+}
+module.exports.getCCSsFromBairro = getCCSsFromBairro;
 
 // get every bairro on the same CCS
 module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {

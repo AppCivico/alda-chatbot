@@ -57,9 +57,9 @@ module.exports = async (context) => {
 					await context.setState({ cameFromGeo: true }); // saves the name of the bairro from googleMaps
 					// falls through
 				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation/ GEO
-					if (context.state.bairro) { // check if bairro is centro
-					// giving the same treatment to geoLocatin from wantToType2
-						await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, await help.formatString(context.state.userInput)) });
+					if (context.state.bairro) {
+					// giving the same treatment to geoLocatin from wantToType2// getting every ccs and comparing it to the bairro found
+						await context.setState({ bairro: await help.findCCSBairro(await db.getCCSsFromMunicipio(''), await help.formatString(context.state.bairro)) });
 						if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
 							await context.setState({ dialog: 'notFoundFromGeo' });
 						} else if (context.state.bairro.length === 1) {
@@ -163,8 +163,6 @@ module.exports = async (context) => {
 							} else { // case for colegio (could use userInput)
 								await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, context.state.userInput) });
 							}
-							console.log('bairro', context.state.bairro);
-
 							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
 								`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
 							await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
@@ -360,7 +358,7 @@ module.exports = async (context) => {
 				break;
 			case 'foundLocation': // are we ever using this?
 				await context.sendText(flow.foundLocation.firstMessage);
-				await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+				await context.sendText(`${flow.foundLocation.secondMessage}sdjsdfjsdjfjsdf`, await attach.getQR(flow.foundLocation));
 				break;
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
@@ -526,6 +524,7 @@ module.exports = async (context) => {
 			// 	break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
+				await context.setState({ municipiosFound: '', bairro: '' });
 				await context.typingOn();
 				try {
 					await context.setState({
@@ -549,7 +548,7 @@ module.exports = async (context) => {
 							await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.bairro} da Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
 							// await context.setState({ dialog: 'checkBairroFromGeo' });
 						} else {
-							await context.typingOff(); // is this bairro correct? if so => nearestCouncil
+							await context.typingOff(); // is this bairro correct? if so => nearestCouncil // Podemos seguir ou você quer alterar o local?
 							await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsBairro.long_name}`);
 							await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
 						}
