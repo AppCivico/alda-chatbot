@@ -184,6 +184,7 @@ module.exports.sendConselhoConfirmationComplement = async function sendCentro(co
 	items.forEach((element) => {
 		let bairroText = 'Bairros'; // check if there's only one bairro on this meta_regiao
 		if (!element.meta_regiao.includes(',')) { bairroText = 'Bairro'; }
+		if (element.regiao_novo.includes('Região')) { element.regiao_novo = element.regiao_novo.replace('Região', ''); } // eslint-disable-line no-param-reassign
 		elements.push({
 			title: `Região ${element.regiao_novo}`,
 			subtitle: `${bairroText}: ${element.meta_regiao.replace(/,(?=[^,]*$)/, ' e')}`,
