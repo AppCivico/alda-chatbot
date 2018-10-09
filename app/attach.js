@@ -26,6 +26,7 @@ module.exports.sendCarousel = sendCarousel;
 
 // sends one card with an image and link
 module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url, text) {
+	if (!text || text === '') { text = 'Veja o resultado dos nossos esforços!'; } // eslint-disable-line no-param-reassign
 	await context.sendAttachment({
 		type: 'template',
 		payload: {
