@@ -85,6 +85,23 @@ module.exports.getQR = async (opt) => {
 	return { quick_replies: elements };
 };
 
+module.exports.getQRLocation = async (opt) => {
+	const elements = [];
+	const firstArray = opt.menuOptions;
+
+	elements.push({ content_type: 'location' });
+
+	firstArray.forEach((element, index) => {
+		elements.push({
+			content_type: 'text',
+			title: element,
+			payload: opt.menuPostback[index],
+		});
+	});
+
+	return { quick_replies: elements };
+};
+
 module.exports.getErrorQR = async (opt, lastPostback) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
