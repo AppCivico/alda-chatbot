@@ -155,7 +155,7 @@ module.exports = async (context) => {
 						if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
 							await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
 							await context.setState({ dialog: 'wantToType2' });
-						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'capital' &&
+						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'rio de janeiro' &&
 							('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))) {
 							// special case: check if user wants to know about centro/colegio on capital
 							if ('centro'.includes(context.state.userInput)) { // we need to check centro because a small user input can lead to wrong bairros beign loaded
@@ -343,7 +343,7 @@ module.exports = async (context) => {
 				break;
 			case 'municipioNotFound':
 				await context.sendText('Não consegui encontrar essa cidade. ' +
-			'Deseja tentar novamente? Você pode pesquisar por Capital, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
+			'Deseja tentar novamente? Você pode pesquisar por Rio de Janeiro, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound': // from wantToType2, couldn't find any bairros with what the user typed
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
