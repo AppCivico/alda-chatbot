@@ -50,7 +50,7 @@ module.exports = {
 	},
 	wantToType: {
 		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
-			'Capital, Interior, Baixada Fluminense e Grande Niterói.',
+			'Rio de Janeiro, Interior, Baixada Fluminense e Grande Niterói.',
 		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
@@ -87,7 +87,7 @@ module.exports = {
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
 		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
-			'Capital, Interior, Baixada Fluminense e Grande Niterói.',
+			'Rio de Janeiro, Interior, Baixada Fluminense e Grande Niterói.',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],

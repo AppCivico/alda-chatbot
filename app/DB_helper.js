@@ -42,11 +42,13 @@ async function getCCSsFromMunicipio(Municipio) {
 	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element, index) => {
-			if (element.bairro === null) {
+			if (element.bairro === null) { // replace empty bairro or municipio
 				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
-				if (element.regiao === 'Capital') {
-					indexRemove = index;
+				if (element.regiao === 'Capital') { // remove that one empty bairro/municipio on Capital
+					indexRemove = index; // get the index of said empty entry to remove it later
 				}
+			} else if (element.regiao === 'Capital') { // replacing "Capital" for "Rio de Janeiro"
+				element.regiao = element.municipio; // eslint-disable-line no-param-reassign
 			}
 		});
 		console.log(`Got CCS on municipio ${Municipio} successfully!`);
@@ -54,7 +56,7 @@ async function getCCSsFromMunicipio(Municipio) {
 	}).catch((err) => {
 		console.error('Error on getCCSsFromMunicipio => ', err);
 	});
-	if (indexRemove) { await result.splice(indexRemove, 1);	}
+	if (indexRemove) { await result.splice(indexRemove, 1);	} // removing that empty bairro
 	return result;
 }
 module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
