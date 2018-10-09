@@ -106,9 +106,9 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
-					// await context.resetState();
-					await context.setState({ dialog: 'whichCCSMenu' });
-					// await context.setState({ dialog: 'councilMenu' });
+					await context.resetState();
+					// await context.setState({ dialog: 'whichCCSMenu' });
+					await context.setState({ dialog: 'councilMenu' });
 					// await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
@@ -358,7 +358,7 @@ module.exports = async (context) => {
 				break;
 			case 'foundLocation': // are we ever using this?
 				await context.sendText(flow.foundLocation.firstMessage);
-				await context.sendText(`${flow.foundLocation.secondMessage}sdjsdfjsdjfjsdf`, await attach.getQR(flow.foundLocation));
+				await context.sendText(`${flow.foundLocation.secondMessage}`, await attach.getQR(flow.foundLocation));
 				break;
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
@@ -419,7 +419,11 @@ module.exports = async (context) => {
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
 			case 'councilMenu': // "Escolha uma das opções"
-				await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+				if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
+					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+				} else {
+					await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+				}
 				await context.typingOff();
 				break;
 			case 'mainMenu':
@@ -524,7 +528,7 @@ module.exports = async (context) => {
 			// 	break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
-				await context.setState({ municipiosFound: '', bairro: '' });
+				await context.setState({ municipiosFound: undefined, bairro: undefined });
 				await context.typingOn();
 				try {
 					await context.setState({
