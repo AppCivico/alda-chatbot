@@ -183,7 +183,7 @@ module.exports = {
 		firstMessage: 'Muito bom! 😍',
 		siteTitle: 'Alda, a robô do ITS',
 		siteSubTitle: 'Venha participar! 🤖',
-		imageURL: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/e22edc9d-36a0-4ebc-85a8-4cb13303c8bb.png',
+		imageURL: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/f9f014a2-56de-4bc8-a201-538b2b6300cd.png',
 		siteURL: 'https://www.facebook.com/aldaChatbot/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Voltar para o Menu'],
@@ -197,7 +197,7 @@ module.exports = {
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Me manter informado', 'Compartilhar', 'Voltar para o Menu'],
 		menuPostback: ['keepMe', 'share', 'goBackMenu'],
-		imageLink: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/e22edc9d-36a0-4ebc-85a8-4cb13303c8bb.png',
+		imageLink: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/f9f014a2-56de-4bc8-a201-538b2b6300cd.png',
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). ' +
