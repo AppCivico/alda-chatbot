@@ -2,10 +2,17 @@ const util = require('util');
 const moment = require('moment');
 const accents = require('remove-accents');
 const postback = require('./postback');
+const Raven = require('raven');
 
 moment.locale('pt-BR');
-
 module.exports.moment = moment;
+
+Raven.config(process.env.SENTRY_DSN, {
+	environment: process.env.ENV,
+	captureUnhandledRejections: true,
+}).install();
+
+module.exports.Raven = Raven;
 
 module.exports.urlExists = util.promisify(require('url-exists'));
 
