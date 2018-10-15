@@ -191,7 +191,7 @@ module.exports.sendConselhoConfirmation = async (context, items) => {
 };
 
 // same as sendConselhoConfirmation but centro needs to use "regiao_novo" e "meta_regiao"
-module.exports.sendConselhoConfirmationComplement = async (context, items) => {
+module.exports.sendCentroConfirmation = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {
@@ -204,6 +204,31 @@ module.exports.sendConselhoConfirmationComplement = async (context, items) => {
 			buttons: [{
 				type: 'postback',
 				title: 'É esse!',
+				payload: `confirm${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+// same as sendConselhoConfirmation but centro needs to use "regiao_novo" e "meta_regiao"
+module.exports.sendColegioConfirmation = async (context, items) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `Região ${element.regiao_novo}`,
+			subtitle: element.meta_regiao,
+			buttons: [{
+				type: 'postback',
+				title: 'É essa!',
 				payload: `confirm${element.id}`,
 			}],
 		});

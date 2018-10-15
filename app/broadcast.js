@@ -68,10 +68,6 @@ module.exports.sendAgendaNotification = async function sendAgendaNotification(US
 		],
 	}).then(resp => // eslint-disable-line no-unused-vars
 		true).catch((error) => {
-		// console.log(error); // formatted error message
-		// console.log(error.stack); // error stack trace
-		// console.log(error.config); // axios request config
-		// console.log(error.request); // HTTP request
 		console.log(error.response); // HTTP response
 		return false;
 	});
