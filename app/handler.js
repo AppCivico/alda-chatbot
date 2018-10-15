@@ -674,7 +674,7 @@ module.exports = async (context) => {
 			} // dialog switch
 		} // try
 	} catch (error) {
-		await Raven.captureException(error, { user: { username: context.session.user.first_name, function: 'atHandler', sessin: context.session.user } });
+		await Raven.captureException(error, { user: { username: context.session.user.first_name, function: 'atHandler', session: context.session.user } });
 		const date = new Date();
 		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 		console.log(error);

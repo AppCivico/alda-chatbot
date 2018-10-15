@@ -1,6 +1,7 @@
 const Cron = require('cron');
 const db = require('./DB_helper');
 const help = require('./helpers');
+const { Raven } = require('./helpers');
 
 const broadcast = require('./broadcast');
 
@@ -12,37 +13,43 @@ const client = MessengerClient.connect({
 	appSecret: config.appSecret,
 });
 
+
 // Cronjob for notificating users that a ccs they were interested in is now active
 const activatedCCS = new Cron.CronJob(
 	'00 00 10 * * 1-5', async () => { // At 10h from monday through friday 00 00 10 * * 1-5
-		const notifications = await db.getActivatedNotification();
+		let notifications = 'Not loaded';
+		try {
+			notifications = await db.getActivatedNotification();
 
-		if (notifications) { // if there was any result
-			if (notifications.length !== 0) { // checking if there is any notification to send
-				let currentCCS = { // loading data from first ccs
-					cod_ccs: notifications[0].conselho_id,
-					nome: await db.getNamefromCCS(notifications[0].conselho_id),
-					bairros: await db.getEveryBairro(notifications[0].conselho_id),
-				};
+			if (notifications) { // if there was any result
+				if (notifications.length !== 0) { // checking if there is any notification to send
+					let currentCCS = { // loading data from first ccs
+						cod_ccs: notifications[0].conselho_id,
+						nome: await db.getNamefromCCS(notifications[0].conselho_id),
+						bairros: await db.getEveryBairro(notifications[0].conselho_id),
+					};
 
-		for (const element of notifications) { // eslint-disable-line
-					if (element.conselho_id !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
-						// If we are not warning on the same CCS as before we have to reload the data
-						// This is an assurance in case more than one ccs gets activated
-						// Obs: the getActivatedNotification query orders results by the conselho_id
-						currentCCS = { // loading data from the new ccs
-							cod_ccs: element.conselho_id,
-							nome: await db.getNamefromCCS(element.conselho_id),
-							bairros: await db.getEveryBairro(element.conselho_id),
-						};
-					}
+			for (const element of notifications) { // eslint-disable-line
+						if (element.conselho_id !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
+							// If we are not warning on the same CCS as before we have to reload the data
+							// This is an assurance in case more than one ccs gets activated
+							// Obs: the getActivatedNotification query orders results by the conselho_id
+							currentCCS = { // loading data from the new ccs
+								cod_ccs: element.conselho_id,
+								nome: await db.getNamefromCCS(element.conselho_id),
+								bairros: await db.getEveryBairro(element.conselho_id),
+							};
+						}
 
-					// finally we send the messages
-					if (await broadcast.sendActivatedNotification(element.user_id, currentCCS.nome, currentCCS.bairros) === true) {
-						db.updateNotification(element.id); // table boolean gets updated if the message was sent succesfully
+						// finally we send the messages
+						if (await broadcast.sendActivatedNotification(element.user_id, currentCCS.nome, currentCCS.bairros) === true) {
+							db.updateNotification(element.id); // table boolean gets updated if the message was sent succesfully
+						}
 					}
 				}
 			}
+		} catch (error) {
+			await Raven.captureException(error, { user: { notifications, function: 'activatedCCS' } });
 		}
 	}, (() => {
 		console.log('Crontab \'activatedCCSTimer\' stopped.');
@@ -56,57 +63,62 @@ const activatedCCS = new Cron.CronJob(
 
 module.exports.activatedCCS = activatedCCS;
 
-
 // Cronjob for notificating users that there was a change in the agenda("calendário") they saw
 const agendaChange = new Cron.CronJob(
 	'00 00 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 00 8-22/2 * * 1-5
-		const notifications = await db.getAgendaNotification();
+		let notifications = 'not loaded';
+		try {
+			notifications = await db.getAgendaNotification();
+			const date = new Date();
+			if (notifications) { // if there was any result
+				if (notifications && notifications.length !== 0) { // checking if there is any notification to send
+					for (const element of notifications) { // eslint-disable-line
+						element.newDatahora = new Date(`${element.data} ${element.hora}`);
+						if (date > element.newDatahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > element.newDatahora)
+							// updates notificado to TRUE (There's no need to warn the user anymore) // It doesn't matter if there was a change to agendas.status_id or not
+							db.updateAgendaNotification(element.id, 'TRUE');
+							const ourLabels = await client.getLabelList(); // get all labels we have
+							// finding labelAgenda_id from name
+							const theOneLabel = await ourLabels.data.find(x => x.name === `agenda${element.agendas_id}`); // find the one label with the name same (we need the id)
 
-		const date = new Date();
-		if (notifications) { // if there was any result
-			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
-				for (const element of notifications) { // eslint-disable-line
-					element.newDatahora = new Date(`${element.data} ${element.hora}`);
-					if (date > element.newDatahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > element.newDatahora)
-					// updates notificado to TRUE (There's no need to warn the user anymore) // It doesn't matter if there was a change to agendas.status_id or not
-						db.updateAgendaNotification(element.id, 'TRUE');
-						const ourLabels = await client.getLabelList(); // get all labels we have
-						// finding labelAgenda_id from name
-						const theOneLabel = await ourLabels.data.find(x => x.name === `agenda${element.agendas_id}`); // find the one label with the name same (we need the id)
-
-						if (theOneLabel) { // if we have that label (we should always have it) we delete it
-							await client.deleteLabel(theOneLabel.id);
-						}
-					} else if (element.status_id !== 4) { // checks if there was any change in agenda
-						let message = ''; // the message that will be sent to the user depending on the case
-						switch (element.status_id) {
-						case 1: // reunion was canceled
-							message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no ` +
-							`${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
-							// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (status_id agenda must be 2)
-							await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
-							break;
-						case 2: // reunion was canceled and changed
-							message = await help.getAgendaMessageTimer(element, `Há uma nova data para a reunião do ${element.ccs} que foi cancelada. Atenção para a mudança:\n\n`);
-							break;
-						case 3: // reunion was canceled and changed
-							message = await help.getAgendaMessageTimer(
-								element,
-								`A reunião do ${element.ccs} agendada para *${help.formatDate(element.old_datahora)}* no *${element.old_endereco}*, foi alterada. Atenção para a mudança:\n\n`,
-							);
-							break;
-						default: // unknow status_id?
-							break;
-						}
-						if (message !== '') { // check if this is a known 'case'
-							if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
-								db.updateAgendaNotification(element.id, 'FALSE'); // table boolean gets updated if the message was sent succesfully
+							if (theOneLabel) { // if we have that label (we should always have it) we delete it
+								await client.deleteLabel(theOneLabel.id);
 							}
-						}
-					// sending the messages to the user
-					} // else: if the reunion hasn't happened already and there was no change (yet?) to the agenda.status_id there's nothing to do
+						} else if (element.status_id !== 4) { // checks if there was any change in agenda
+							let message = ''; // the message that will be sent to the user depending on the case
+							switch (element.status_id) {
+							case 1: // reunion was canceled
+								message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no ` +
+										`${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
+								// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (status_id agenda must be 2)
+								await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
+								break;
+							case 2: // reunion was canceled and changed
+								message = await help.getAgendaMessageTimer(element, `Há uma nova data para a reunião do ${element.ccs} que foi cancelada. Atenção para a mudança:\n\n`);
+								break;
+							case 3: // reunion was canceled and changed
+								message = await help.getAgendaMessageTimer(
+									element,
+									`A reunião do ${element.ccs} agendada para *${help.formatDate(element.old_datahora)}* no *${element.old_endereco}*, foi alterada. Atenção para a mudança:\n\n`,
+								);
+								break;
+							default: // unknow status_id?
+								break;
+							}
+							if (message !== '') { // check if this is a known 'case'
+								if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
+									db.updateAgendaNotification(element.id, 'FALSE'); // table boolean gets updated if the message was sent succesfully
+								}
+							}
+							// sending the messages to the user
+						} // else: if the reunion hasn't happened already and there was no change (yet?) to the agenda.status_id there's nothing to do
+					}
 				}
 			}
+		} catch (error) {
+			console.log(error);
+
+			await Raven.captureException(error, { user: { notifications, function: 'agendaChange' } });
 		}
 	}, (() => {
 		console.log('Crontab \'agendaChange\' stopped.');
