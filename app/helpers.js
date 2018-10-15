@@ -25,6 +25,11 @@ module.exports.formatDateDay = function formatDateDay(date) {
 	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 };
 
+module.exports.dateComparison = function formatDateDay(date) {
+	return `${moment(date).format('YYYY-MM-DD')}`;
+};
+
+
 // find every object on municipios array with the same bairro (remove duplicated bairros)
 module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];

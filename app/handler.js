@@ -7,7 +7,7 @@ const flow = require('./flow');
 const attach = require('./attach');
 const db = require('./DB_helper');
 const help = require('./helpers');
-const { Raven } = require('./helpers');
+const { Raven } = require('./helpers'); // eslint-disable-line
 const { sendAdminBroadcast } = require('./broadcast');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
@@ -440,25 +440,30 @@ module.exports = async (context) => {
 				// TODO: so far, we show the most recent agenda without caring if the date has already passed. We also don't show any different status in the agenda.
 				await context.typingOn();
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
-
 				if (context.state.agenda) { // check if we have an agenda to show
-					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
-					await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
-					await context.sendText(context.state.ageMsg);
-					await context.setState({ ageMsg: '' });
-					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
-					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+					if (help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())) { // check if next reunion is going to happen today or the day after today
+						await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+						await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+						await context.sendText(context.state.ageMsg);
+						await context.setState({ ageMsg: '' });
+						await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
+						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
 						// before adding the user+ccs on the table we check if it's already there
-						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
-							await db.addAgenda(
-								context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
-								new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
-							); // if it's not we add it
+							if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
+								await db.addAgenda(
+									context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
+									new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
+								); // if it's not we add it
+							}
+							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
 						}
-						await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
+						await context.typingOff();
+					} else { // last reunion already happened
+						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ' +
+							`${help.formatDateDay(context.state.agenda.data)}.`);
+						await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
 					}
-					await context.typingOff();
-				} else {
+				} else { // no agenda at all, probably an error
 					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
 					await context.typingOff();
 				}
