@@ -95,7 +95,7 @@ module.exports = async (context) => {
 					await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, await help.formatString(context.state.theBairro)) });
 					await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.theBairro} na cidade ` +
 					`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
-					await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
+					await attach.sendCentroConfirmation(context, context.state.bairro);
 					await context.setState({ dialog: 'confirmBairro' });
 					break;
 				default:
@@ -153,17 +153,17 @@ module.exports = async (context) => {
 						if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
 							await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
 							await context.setState({ dialog: 'wantToType2' });
-						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'rio de janeiro' &&
-							('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))) {
-							// special case: check if user wants to know about centro/colegio on capital
-							if ('centro'.includes(context.state.userInput)) { // we need to check centro because a small user input can lead to wrong bairros beign loaded
-								await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
-							} else { // case for colegio (could use userInput)
-								await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, context.state.userInput) });
-							}
+						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'rio de janeiro' && 'centro'.includes(context.state.userInput)) { // special case: check if user wants to know about centro on capital
+							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
 							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
-								`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
-							await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
+							`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
+							await attach.sendCentroConfirmation(context, context.state.bairro);
+							await context.setState({ dialog: 'confirmBairro' });
+						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'rio de janeiro' && 'colegio'.includes(context.state.userInput)) { // special case: check if user wants to know about colegio on capital
+							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
+							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
+								`${context.state.municipiosFound[0].regiao}. Para que eu encontre o Conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
+							await attach.sendColegioConfirmation(context, context.state.bairro);
 							await context.setState({ dialog: 'confirmBairro' });
 						} else { // regular case
 							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
