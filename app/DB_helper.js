@@ -317,8 +317,57 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 	return result;
 };
 
+// notificar_nova_agenda -------------------------------------------------------------------------------
+// check if notificar_nova_agenda with UserID, CCS_ID exists already
+module.exports.checkNovaAgenda = async function checkNovaAgenda(UserID, agendaID) {
+	const result = await sequelize.query(`
+	SELECT EXISTS(SELECT 1 FROM notificar_nova_agenda WHERE user_id = ${UserID} AND ultima_agenda = ${agendaID})
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Checked if ${UserID} and ${agendaID} exists successfully! => ${results[0].exists}`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on checkNovaAgenda => ', err);
+	});
+	return result[0].exists;
+};
+
+// adds a future notification_agenda if the user searched the agenda for that ccs
+async function addNovaAgenda(UserID, agendaID) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+
+	await sequelize.query(`
+	INSERT INTO notificar_nova_agenda(user_id, ultima_agenda, notificado, created_at, updated_at)
+	VALUES ('${UserID}', '${agendaID}', FALSE, '${date}', '${date}');
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Added ${UserID} and ${agendaID} successfully!`);
+	}).catch((err) => {
+		console.error('Error on addNovaAgenda => ', err);
+	});
+}
+module.exports.addNovaAgenda = addNovaAgenda;
+
+// get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
+module.exports.getNovaAgenda = async function getNovaAgenda() {
+	const result = await sequelize.query(`
+	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
+	FROM notificar_agenda AS NOTIFICATION
+	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
+	inner join conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
+	WHERE NOT NOTIFICATION.notificado
+	ORDER BY AGENDAS.status_id;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log('Loaded notifications successfully!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getNovaAgenda => ', err);
+	});
+	return result;
+};
+
 // updates value of notificado from PK
-module.exports.updateAgendaNotification = async function updateAgendaNotification(PK, boolean) {
+module.exports.updateNovaAgenda = async function updateNovaAgenda(PK, boolean) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -327,9 +376,9 @@ module.exports.updateAgendaNotification = async function updateAgendaNotificatio
 	SET notificado = ${boolean}, updated_at = '${date}'
 	WHERE id = ${PK};
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Updated updateAgendaNotification on ${PK} successfully!`);
+		console.log(`Updated updateNovaAgenda on ${PK} successfully!`);
 	}).catch((err) => {
-		console.error('Error on updateAgendaNotification => ', err);
+		console.error('Error on updateNovaAgenda => ', err);
 	});
 };
 
@@ -380,6 +429,17 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	agendas_id integer NOT NULL,
     endereco text NOT NULL,
     data_hora timestamp without time zone NOT NULL,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE notificar_nova_agenda (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	notificado BOOLEAN NOT NULL DEFAULT FALSE,
+	ultima_agenda integer NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);

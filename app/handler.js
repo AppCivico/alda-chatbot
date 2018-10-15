@@ -113,10 +113,9 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isText) {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
-					await context.resetState();
 					// await context.setState({ dialog: 'whichCCSMenu' });
-					await context.setState({ dialog: 'councilMenu' });
-					// await context.setState({ dialog: 'calendar' });
+					// await context.setState({ dialog: 'councilMenu' });
+					await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -437,7 +436,6 @@ module.exports = async (context) => {
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'calendar': // agenda
-				// TODO: so far, we show the most recent agenda without caring if the date has already passed. We also don't show any different status in the agenda.
 				await context.typingOn();
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
 				if (context.state.agenda) { // check if we have an agenda to show
@@ -461,7 +459,16 @@ module.exports = async (context) => {
 					} else { // last reunion already happened
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ' +
 							`${help.formatDateDay(context.state.agenda.data)}.`);
-						await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
+						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
+							// before adding the user+ccs on the table we check if it's already there
+							if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) === true) { // !== true
+								await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
+							}
+							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
+						} else {
+							await context.sendText('Você pode ver o que vimos na última reunião clicando abaixo! 😉', await attach.getQR(flow.calendar));
+						}
 					}
 				} else { // no agenda at all, probably an error
 					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
@@ -689,7 +696,7 @@ module.exports = async (context) => {
 			} // dialog switch
 		} // try
 	} catch (error) {
-		await Raven.captureException(error, { user: { username: context.session.user.first_name, function: 'atHandler', session: context.session.user } });
+		// await Raven.captureException(error, { user: { username: context.session.user.first_name, function: 'atHandler', session: context.session.user } });
 		const date = new Date();
 		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 		console.log(error);
