@@ -130,21 +130,18 @@ module.exports = async (context) => {
 					case 'wantToType1': // user entered city text
 						await context.setState({ cameFromGeo: false });
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						await Raven.context(async () => {
-							await Raven.setContext({ user: { username: context.session.user.first_name, userInput: context.state.userInput } });
-							if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
-								await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
-								await context.setState({ dialog: 'wantToType1' });
-							} else { // check if user wrote 'rio de janeiro' instead of 'capital'
-								if ('rio de janeiro'.includes(context.state.userInput)) { await context.setState({ userInput: 'capital' }); }
-								await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
-								if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
-									await context.setState({ dialog: 'municipioNotFound' });
-								} else {
-									await context.setState({ dialog: 'wantToType2' });
-								}
+						if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
+							await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
+							await context.setState({ dialog: 'wantToType1' });
+						} else { // check if user wrote 'rio de janeiro' instead of 'capital'
+							if ('rio de janeiro'.includes(context.state.userInput)) { await context.setState({ userInput: 'capital' }); }
+							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+							if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
+								await context.setState({ dialog: 'municipioNotFound' });
+							} else {
+								await context.setState({ dialog: 'wantToType2' });
 							}
-						});
+						}
 						break;
 					case 'bairroNotFound':
 						// falls through
@@ -153,38 +150,35 @@ module.exports = async (context) => {
 					case 'wantToType2': // user entered bairro text
 						await context.setState({ cameFromGeo: false });
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						await Raven.context(async () => {
-							await Raven.setContext({ user: { username: context.session.user.first_name, userInput: context.state.userInput } });
-							if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
-								await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
-								await context.setState({ dialog: 'wantToType2' });
-							} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'rio de janeiro' &&
+						if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
+							await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
+							await context.setState({ dialog: 'wantToType2' });
+						} else if (context.state.municipiosFound[0].regiao.toLowerCase() === 'rio de janeiro' &&
 							('centro'.includes(context.state.userInput) || 'colegio'.includes(context.state.userInput))) {
 							// special case: check if user wants to know about centro/colegio on capital
-								if ('centro'.includes(context.state.userInput)) { // we need to check centro because a small user input can lead to wrong bairros beign loaded
-									await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
-								} else { // case for colegio (could use userInput)
-									await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, context.state.userInput) });
-								}
-								await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
-								`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
-								await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
-								await context.setState({ dialog: 'confirmBairro' });
-							} else { // regular case
-								await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
-								if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
-									await context.setState({ dialog: 'bairroNotFound' });
-								} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
-									await context.setState({ CCS: context.state.bairro[0] });
-									await context.setState({ dialog: 'nearestCouncil', asked: false });
-								} else { // more than one bairro was found
-									await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 ` +
-								'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
-									await attach.sendConselhoConfirmation(context, context.state.bairro);
-									await context.setState({ dialog: 'confirmBairro' });
-								}
+							if ('centro'.includes(context.state.userInput)) { // we need to check centro because a small user input can lead to wrong bairros beign loaded
+								await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
+							} else { // case for colegio (could use userInput)
+								await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, context.state.userInput) });
 							}
-						});
+							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
+								`${context.state.municipiosFound[0].regiao}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
+							await attach.sendConselhoConfirmationComplement(context, context.state.bairro);
+							await context.setState({ dialog: 'confirmBairro' });
+						} else { // regular case
+							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
+							if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
+								await context.setState({ dialog: 'bairroNotFound' });
+							} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
+								await context.setState({ CCS: context.state.bairro[0] });
+								await context.setState({ dialog: 'nearestCouncil', asked: false });
+							} else { // more than one bairro was found
+								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 ` +
+								'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+								await attach.sendConselhoConfirmation(context, context.state.bairro);
+								await context.setState({ dialog: 'confirmBairro' });
+							}
+						}
 						break;
 					case 'reAskMail':
 						// falls throught
@@ -297,18 +291,15 @@ module.exports = async (context) => {
 				await context.typingOff();
 				// falls through
 			case 'whichCCSMenu': // asks user if he wants to find his CCS or confirm if we already have one stored
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, bairro: context.state.bairro, CCS: context.state.CCS } });
-					await context.setState({ retryCount: 0 });
-					// if we don't have a CCS linked to a user already we ask for it
-					if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
-						await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-					} else { // Pelo que me lembro
-						await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
+				await context.setState({ retryCount: 0 });
+				// if we don't have a CCS linked to a user already we ask for it
+				if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
+					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+				} else { // Pelo que me lembro
+					await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
 					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
-						await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.whichCCSMenu));
-					}
-				});
+					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.whichCCSMenu));
+				}
 				break;
 			case 'sendLocation':
 				await context.sendText(flow.sendLocation.firstMessage);
@@ -323,54 +314,45 @@ module.exports = async (context) => {
 				await context.sendText('Tudo bem. Vamos encontrar o conselho do seu bairro.');
 				// falls through
 			case 'wantToType1': // asking for municipio
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name } });
-					await context.setState({ geoLocation: undefined, bairro: undefined });
-					await context.setState({ retryCount: context.state.retryCount + 1 });
-					// On the users 3rd try we offer him to either give up or send his location directly
-					if (context.state.retryCount > 3) {
-						await context.setState({ retryCount: 0 });
-						await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
-					} else {
-						await context.sendText(flow.wantToType.firstMessage); // Digite a cidade do Rio de Janeiro que você gostaria de ver.
-					}
-				});
+				await context.setState({ geoLocation: undefined, bairro: undefined });
+				await context.setState({ retryCount: context.state.retryCount + 1 });
+				// On the users 3rd try we offer him to either give up or send his location directly
+				if (context.state.retryCount > 3) {
+					await context.setState({ retryCount: 0 });
+					await context.sendText(`${flow.wantToType.firstMessage}\n${flow.wantToChange.helpMessage}`, await attach.getQR(flow.wantToChange));
+				} else {
+					await context.sendText(flow.wantToType.firstMessage); // Digite a cidade do Rio de Janeiro que você gostaria de ver.
+				}
 				break;
 			case 'wantToType2': // asking for bairro
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, userInput: context.state.userInput } });
-					await context.setState({ retryCount: 0 });
-					await context.setState({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
-					await context.setState({
-						sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
-					}); // get other bairros on this ccs
-					if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) {
-						await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
-					} else {
-						await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}. `
+				await context.setState({ retryCount: 0 });
+				await context.setState({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
+				await context.setState({
+					sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
+				}); // get other bairros on this ccs
+				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) {
+					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}.`);
+				} else {
+					await context.sendText(`Legal. Agora digite o bairro da cidade ${context.state.municipiosFound[0].regiao}. `
 				+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' ou')}.`);
-					}
-				});
+				}
 				break;
 			case 'municipioNotFound':
 				await context.sendText('Não consegui encontrar essa cidade. ' +
 			'Deseja tentar novamente? Você pode pesquisar por Rio de Janeiro, Interior, Baixada Fluminense e Grande Niterói.', await attach.getQR(flow.notFoundMunicipio));
 				break;
 			case 'bairroNotFound': // from wantToType2, couldn't find any bairros with what the user typed
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, userInput: context.state.userInput } });
-					await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
-					if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) { // check if we have random bairros to list
-						await context.sendText(`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}. ` +
+				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
+				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) { // check if we have random bairros to list
+					await context.sendText(`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}. ` +
 						'Vamos tentar de novo? ', await attach.getQR(flow.notFoundBairro));
-					} else {
-						await context.sendText(
-							`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}.\n` +
+				} else {
+					await context.sendText(
+						`Não consegui encontrar esse bairro na cidade ${context.state.municipiosFound[0].regiao}.\n` +
 						`Quer tentar de novo? Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`,
-							await attach.getQR(flow.notFoundBairro),
-						);
-					}
-				});
+						await attach.getQR(flow.notFoundBairro),
+					);
+				}
 				break;
 			case 'foundLocation': // are we ever using this?
 				await context.sendText(flow.foundLocation.firstMessage);
@@ -379,40 +361,37 @@ module.exports = async (context) => {
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, CCS: context.state.CCS } });
-					// link user to the correspondent ccs_tag
-					await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
+				// link user to the correspondent ccs_tag
+				await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
 
-					await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
-					await context.setState({
-						otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
-					}); // get other bairros on this ccs
-					if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
-						await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
+				await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
+				await context.setState({
+					otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
+				}); // get other bairros on this ccs
+				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
+					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
 						`${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
-					} else if (context.state.otherBairros.length > 1) { // if there's more than one bairro we must list them appropriately
-						await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
+				} else if (context.state.otherBairros.length > 1) { // if there's more than one bairro we must list them appropriately
+					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* ` +
 						`${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
-					}
-					if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
-						await context.sendText(
-							`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`,
-							await attach.getConditionalQR([flow.notFoundBairro, flow.notFoundBairroFromGeo], context.state.cameFromGeo),
-						);
-						// before adding the user+ccs on the table we check if it's already there
-						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-							if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
-								await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
-							}
+				}
+				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
+					await context.sendText(
+						`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`,
+						await attach.getConditionalQR([flow.notFoundBairro, flow.notFoundBairroFromGeo], context.state.cameFromGeo),
+					);
+					// before adding the user+ccs on the table we check if it's already there
+					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+						if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
+							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 						}
-					} else if (context.state.asked === true) {
-						await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
-					} else { // ask user if he already went to one of the meetings
-						await context.setState({ asked: true });
-						await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 					}
-				});
+				} else if (context.state.asked === true) {
+					await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
+				} else { // ask user if he already went to one of the meetings
+					await context.setState({ asked: true });
+					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+				}
 				break;
 			case 'wentAlready':
 				await context.sendText(flow.wentAlready.firstMessage);
@@ -422,34 +401,28 @@ module.exports = async (context) => {
 				break;
 			case 'wannaKnowMembers':
 				await context.typingOn();
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, CCS: context.state.CCS } });
-					await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.id) }); // all the members of the the diretoria
-					await context.setState({ diretoriaAtual: [] }); // stored active members on present date
-					await context.state.diretoria.forEach((element) => { // check which members of the diretoria aren't active today
-						if (Date.parse(element.fim_gestao) > new Date()) { context.state.diretoriaAtual.push(element); }
-					});
-					if (Object.keys(context.state.diretoriaAtual).length > 0) { // if there's at least one active member today we show the members(s)
-						await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
-						await attach.sendCarousel(context, context.state.diretoriaAtual);
-					} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
-						await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
-						await attach.sendCarousel(context, context.state.diretoria);
-					}
-					await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
-					await context.sendText(flow.wannaKnowMembers.secondMessage);
+				await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.id) }); // all the members of the the diretoria
+				await context.setState({ diretoriaAtual: [] }); // stored active members on present date
+				await context.state.diretoria.forEach((element) => { // check which members of the diretoria aren't active today
+					if (Date.parse(element.fim_gestao) > new Date()) { context.state.diretoriaAtual.push(element); }
 				});
+				if (Object.keys(context.state.diretoriaAtual).length > 0) { // if there's at least one active member today we show the members(s)
+					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
+					await attach.sendCarousel(context, context.state.diretoriaAtual);
+				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
+					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
+					await attach.sendCarousel(context, context.state.diretoria);
+				}
+				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
+				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
 			case 'councilMenu': // "Escolha uma das opções"
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, CCS: context.state.CCS } });
-					if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
-						await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-					} else {
-						await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
-					}
-					await context.typingOff();
-				});
+				if (!context.state.CCS || !context.state.bairro) { // Quer saber sobre o Conselho mais próximo de você?
+					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+				} else {
+					await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+				}
+				await context.typingOff();
 				break;
 			case 'mainMenu':
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
@@ -457,66 +430,57 @@ module.exports = async (context) => {
 			case 'calendar': // agenda
 				// TODO: so far, we show the most recent agenda without caring if the date has already passed. We also don't show any different status in the agenda.
 				await context.typingOn();
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, CCS: context.state.CCS } });
-					await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
 
-					if (context.state.agenda) { // check if we have an agenda to show
-						await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
-						await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
-						await context.sendText(context.state.ageMsg);
-						await context.setState({ ageMsg: '' });
-						await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
-						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+				if (context.state.agenda) { // check if we have an agenda to show
+					await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+					await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+					await context.sendText(context.state.ageMsg);
+					await context.setState({ ageMsg: '' });
+					await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
+					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
 						// before adding the user+ccs on the table we check if it's already there
-							if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
-								await db.addAgenda(
-									context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
-									new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
-								); // if it's not we add it
-							}
-							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
+						if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
+							await db.addAgenda(
+								context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
+								new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
+							); // if it's not we add it
 						}
-						await context.typingOff();
-					} else {
-						await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
-						await context.typingOff();
+						await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
 					}
-				});
+					await context.typingOff();
+				} else {
+					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
+					await context.typingOff();
+				}
 				break;
 			case 'subjects':
 				await context.typingOn();
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, CCS: context.state.CCS } });
-					await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
-					if (context.state.assuntos.length === 0) {
-						await context.sendText(flow.subjects.emptyAssuntos);
-					} else { // TODO This will be updated to receive a link to a PDF
-						await context.sendText(`${flow.subjects.firstMessage} \n-${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
-					}
-					// await context.sendText(flow.subjects.firstMessage);
-					// await attach.sendCardWithLink(context, flow.subjects);
-					await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
-					await context.typingOff();
-				});
+				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
+				if (context.state.assuntos.length === 0) {
+					await context.sendText(flow.subjects.emptyAssuntos);
+				} else { // TODO This will be updated to receive a link to a PDF
+					await context.sendText(`${flow.subjects.firstMessage} \n-${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+				}
+				// await context.sendText(flow.subjects.firstMessage);
+				// await attach.sendCardWithLink(context, flow.subjects);
+				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
+				await context.typingOff();
 				break;
 			case 'results':
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, CCS: context.state.CCS } });
-					// showing the results of the most recent reunião based of agenda.
-					// If we have an agenda but no results for that agenda we show the results from the most recent agenda.
-					await context.setState({ results: await db.getResults(context.state.CCS.id) });
-					// if we don't have any results or if result is not a valid url we send this default message
-					if (!context.state.results || context.state.results === null
+				// showing the results of the most recent reunião based of agenda.
+				// If we have an agenda but no results for that agenda we show the results from the most recent agenda.
+				await context.setState({ results: await db.getResults(context.state.CCS.id) });
+				// if we don't have any results or if result is not a valid url we send this default message
+				if (!context.state.results || context.state.results === null
 					|| context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
-						await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
-					} else {
-						await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} ` +
+					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
+				} else {
+					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} ` +
 						'no arquivo que você pode baixar clicando abaixo. 👇');
-						await attach.sendCardWithLink(context, flow.results, context.state.results.link_download, context.state.results.texto);
-					}
-					await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
-				});
+					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download, context.state.results.texto);
+				}
+				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
 			case 'join':
 				await context.sendText(flow.join.firstMessage, await attach.getQR(flow.join));
@@ -562,52 +526,49 @@ module.exports = async (context) => {
 			// 	break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name } });
-					await context.setState({ municipiosFound: undefined, bairro: undefined });
-					await context.typingOn();
-					try {
-						await context.setState({
-							mapsResults: await googleMapsClient.reverseGeocode({
-								latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
-								language: 'pt-BR',
-							}).asPromise(),
-						});
+				await context.setState({ municipiosFound: undefined, bairro: undefined });
+				await context.typingOn();
+				try {
+					await context.setState({
+						mapsResults: await googleMapsClient.reverseGeocode({
+							latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
+							language: 'pt-BR',
+						}).asPromise(),
+					});
 
-						if (context.state.mapsResults.status === 200) {
-							await context.setState({ mapsResults: context.state.mapsResults.json.results });
+					if (context.state.mapsResults.status === 200) {
+						await context.setState({ mapsResults: context.state.mapsResults.json.results });
 
-							if (await help.checkIfInRio(context.state.mapsResults) === true) { // we are in rio
-								await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
-								if (!context.state.mapsBairro) { // in case googlemaps returns the country first
-									await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[1].address_components) });
-								}
-								if (!context.state.mapsBairro) { // couldn't find bairro on results
-									await context.sendText(flow.foundLocation.noFindGeo);
-									await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
-								} else if (context.state.mapsBairro.long_name.toLowerCase() === 'centro' || context.state.mapsBairro.long_name.toLowerCase() === 'colégio') { // test with Paraíso
-									await await context.setState({ bairro: context.state.mapsBairro.long_name });
-									await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.bairro} da Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
-									// await context.setState({ dialog: 'checkBairroFromGeo' });
-								} else {
-									await context.typingOff(); // is this bairro correct? if so => nearestCouncil // Podemos seguir ou você quer alterar o local?
-									await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsBairro.long_name}`);
-									await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
-								}
-							} else { // not in trio
-								await context.sendText('Parece que você não se encontra no Rio de Janeiro. Nossos conselhos de segurança atuam apenas no Estado do Rio de Janeiro. ' +
-							'Por favor, entre com outra localização ou digite sua região.', await attach.getQRLocation(flow.geoMenu));
+						if (await help.checkIfInRio(context.state.mapsResults) === true) { // we are in rio
+							await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
+							if (!context.state.mapsBairro) { // in case googlemaps returns the country first
+								await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[1].address_components) });
 							}
-						} else { // unexpected response from googlemaps api
-							await context.sendText(flow.foundLocation.noFindGeo);
-							await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
+							if (!context.state.mapsBairro) { // couldn't find bairro on results
+								await context.sendText(flow.foundLocation.noFindGeo);
+								await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+							} else if (context.state.mapsBairro.long_name.toLowerCase() === 'centro' || context.state.mapsBairro.long_name.toLowerCase() === 'colégio') { // test with Paraíso
+								await await context.setState({ bairro: context.state.mapsBairro.long_name });
+								await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.bairro} da Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
+								// await context.setState({ dialog: 'checkBairroFromGeo' });
+							} else {
+								await context.typingOff(); // is this bairro correct? if so => nearestCouncil // Podemos seguir ou você quer alterar o local?
+								await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsBairro.long_name}`);
+								await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.foundLocation));
+							}
+						} else { // not in trio
+							await context.sendText('Parece que você não se encontra no Rio de Janeiro. Nossos conselhos de segurança atuam apenas no Estado do Rio de Janeiro. ' +
+							'Por favor, entre com outra localização ou digite sua região.', await attach.getQRLocation(flow.geoMenu));
 						}
-					} catch (error) {
-						console.log('Error at findLocation => ', error);
+					} else { // unexpected response from googlemaps api
 						await context.sendText(flow.foundLocation.noFindGeo);
 						await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
 					}
-				});
+				} catch (error) {
+					console.log('Error at findLocation => ', error);
+					await context.sendText(flow.foundLocation.noFindGeo);
+					await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
+				}
 				break; }
 			case 'notFoundFromGeo':
 				await context.sendText(
@@ -645,25 +606,22 @@ module.exports = async (context) => {
 				}
 				break;
 			case 'agendaMessage':
-				await Raven.context(async () => {
-					await Raven.setContext({ user: { username: context.session.user.first_name, broadcastAgenda: context.state.broadcastAgenda.id } });
-					// here we need to check if there's any entry in notificacao_agenda that matches the ccs
-					await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda.id) });
-					if (!context.state.notification_agenda) { // error
-						await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
-						await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
-					} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
-						await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
-						await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi ' +
+				// here we need to check if there's any entry in notificacao_agenda that matches the ccs
+				await context.setState({ notification_agenda: await db.getAgendaNotificationFromID(context.state.broadcastAgenda.id) });
+				if (!context.state.notification_agenda) { // error
+					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+					await context.sendText('Ocorreu um erro ao pesquisar agendas! Tente novamente ou entre em contato!', await attach.getQR(flow.agendaConfirm2));
+				} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
+					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
+					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi ' +
 					'marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.agendaConfirm2));
-					} else if (context.state.notification_agenda.length === 1) {
-						await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada apenas para ${context.state.notification_agenda.length} usuário. ` +
+				} else if (context.state.notification_agenda.length === 1) {
+					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada apenas para ${context.state.notification_agenda.length} usuário. ` +
 						'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
-					} else {
-						await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para ${context.state.notification_agenda.length} usuários. ` +
+				} else {
+					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para ${context.state.notification_agenda.length} usuários. ` +
 						'Antes de envia-la, iremos mostrar como ficou a mensagem e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
-					}
-				});
+				}
 				break;
 			case 'agendaConfirmText':
 				await context.sendText('Sua mensagem aparecerá assim:');
@@ -678,22 +636,19 @@ module.exports = async (context) => {
 				await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para todos os usuários que visualizaram o CCS ${context.state.broadcastNumber}.`);
 				break;
 			case 'broadcastSent': {
-				await Raven.context(async () => {
-					await context.sendText('OK, estamos enviando...');
-					let result;
-					if (context.state.cameFromBroadcast === true) {
-						result = await sendAdminBroadcast(context.state.broadcastText, `ccs${context.state.broadcastNumber}`);
-					} else {
-						result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
-					}
-					await Raven.setContext({ user: { username: context.session.user.first_name, result } });
-					if (result.broadcast_id) {
-						await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso.`, await attach.getQR(flow.broadcastSent));
-					} else {
-						await context.sendText(`Ocorreu um erro na hora de enviar! Avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
-					}
-					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '', cameFromBroadcast: '' }); // eslint-disable-line object-curly-newline
-				});
+				await context.sendText('OK, estamos enviando...');
+				let result;
+				if (context.state.cameFromBroadcast === true) {
+					result = await sendAdminBroadcast(context.state.broadcastText, `ccs${context.state.broadcastNumber}`);
+				} else {
+					result = await sendAdminBroadcast(context.state.broadcastText, `agenda${context.state.notification_agenda[0].agendas_id}`);
+				}
+				if (result.broadcast_id) {
+					await context.sendText(`Enviamos o broadcast ${result.broadcast_id} com sucesso.`, await attach.getQR(flow.broadcastSent));
+				} else {
+					await context.sendText(`Ocorreu um erro na hora de enviar! Avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
+				}
+				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '', cameFromBroadcast: '' }); // eslint-disable-line object-curly-newline
 				break; }
 			case 'metrics':
 				await context.sendText(
@@ -718,11 +673,18 @@ module.exports = async (context) => {
 				break;
 			} // dialog switch
 		} // try
-	} catch (err) {
-		await Raven.captureException(err);
+	} catch (error) {
+		await Raven.captureException(
+			error,
+			{
+				user: {
+					username: context.session.user.first_name, function: 'atHandler', sessin: context.session.user,
+				},
+			},
+		);
 		const date = new Date();
 		console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
-		console.log(err);
+		console.log(error);
 		await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
 	}
 };
