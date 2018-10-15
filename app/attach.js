@@ -203,7 +203,7 @@ module.exports.sendCentroConfirmation = async (context, items) => {
 			subtitle: `${bairroText}: ${element.meta_regiao.replace(/,(?=[^,]*$)/, ' e')}`,
 			buttons: [{
 				type: 'postback',
-				title: 'É essa!',
+				title: 'É esse!',
 				payload: `confirm${element.id}`,
 			}],
 		});
