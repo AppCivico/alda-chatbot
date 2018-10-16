@@ -106,6 +106,13 @@ module.exports.checkIfInRio = async (results) => {
 	return false;
 };
 
+module.exports.getRememberComplement = async (ccs) => {
+	if (!ccs.bairro || ccs.bairro.length === 0) {
+		return `município ${ccs.municipio}`;
+	}
+	return `bairro ${ccs.bairro}`;
+};
+
 module.exports.listBairros = function listBairros(ccs) {
 	let bairros = [];
 

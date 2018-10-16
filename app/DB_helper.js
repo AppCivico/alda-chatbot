@@ -55,11 +55,10 @@ async function getCCSsFromMunicipio(Municipio) {
 		console.error('Error on getCCSsFromMunicipio => ', err);
 	});
 	if (indexRemove) { await result.splice(indexRemove, 1);	} // removing that empty bairro
-	// filtering out entries with repeated municipio and id, except
+	// filtering out entries with repeated municipio and id, except on municipio rio de janeiro because of colegio and centro
 	if (result[0].municipio.toLowerCase() !== 'rio de janeiro') {
 		result = result.filter((thing, index, self) => self.findIndex(t => t.municipio === thing.municipio && t.id === thing.id) === index);
 	}
-	// console.log(result);
 
 	return result;
 }

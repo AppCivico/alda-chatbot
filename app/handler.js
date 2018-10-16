@@ -157,6 +157,8 @@ module.exports = async (context) => {
 							await context.setState({ dialog: 'wantToType2' });
 						} else {
 							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+							console.log(context.state.municipiosFound);
+
 							if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
 								await context.setState({ dialog: 'municipioNotFound' });
 							} else if (context.state.municipiosFound.length === 1) { // we found exactly one municipio with what was typed by the user
@@ -323,7 +325,7 @@ module.exports = async (context) => {
 				if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else { // Pelo que me lembro
-					await context.sendText(`${flow.whichCCS.remember} ${context.state.CCS.bairro} ` +
+					await context.sendText(`${flow.whichCCS.remember} ${await help.getRememberComplement(context.state.CCS)} ` +
 					`${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.whichCCSMenu));
 				}

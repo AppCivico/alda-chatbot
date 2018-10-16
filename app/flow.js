@@ -36,7 +36,7 @@ module.exports = {
 		menuOptions: ['Enviar Localização', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 		notNow: 'Entendo! 😉',
-		remember: 'Pelo que me lembro você quer saber sobre', // will be completed
+		remember: 'Pelo que me lembro você quer saber sobre o', // will be completed
 		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
 		// the rest of the dialog comes from foundLocation
 	},
