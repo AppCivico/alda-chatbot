@@ -34,21 +34,19 @@ module.exports.sequelize = sequelize;
 // get every ccs on the same municipio (we say municipio but we are actually using regiao)
 async function getCCSsFromMunicipio(Municipio) {
 	let indexRemove;
-	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
+	let result = await sequelize.query(`
+	SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
-	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Municipio}' || '%'
+	WHERE UNACCENT(LOWER(LOCATION.municipio)) LIKE '%' || '${Municipio}' || '%'
 	ORDER BY CCS.id;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		results.forEach((element, index) => {
 			if (element.bairro === null) { // replace empty bairro or municipio
-				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
+				// element.bairro = element.municipio; // eslint-disable-line no-param-reassign
 				if (element.regiao === 'Capital') { // remove that one empty bairro/municipio on Capital
 					indexRemove = index; // get the index of said empty entry to remove it later
 				}
-			} else if (element.regiao === 'Capital') { // replacing "Capital" for "Rio de Janeiro"
-				element.regiao = element.municipio; // eslint-disable-line no-param-reassign
 			}
 		});
 		console.log(`Got CCS on municipio ${Municipio} successfully!`);
@@ -57,9 +55,33 @@ async function getCCSsFromMunicipio(Municipio) {
 		console.error('Error on getCCSsFromMunicipio => ', err);
 	});
 	if (indexRemove) { await result.splice(indexRemove, 1);	} // removing that empty bairro
+	// filtering out entries with repeated municipio and id, except
+	if (result[0].municipio.toLowerCase() !== 'rio de janeiro') {
+		result = result.filter((thing, index, self) => self.findIndex(t => t.municipio === thing.municipio && t.id === thing.id) === index);
+	}
+	// console.log(result);
+
 	return result;
 }
 module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
+
+// get every ccs on the same municipio (we say municipio but we are actually using regiao)
+async function getCCSsFromMunicipio2(Municipio) {
+	const result = await sequelize.query(`
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
+	FROM conselhos CCS
+	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
+	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Municipio}' || '%'
+	ORDER BY CCS.id;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Got CCS on municipio ${Municipio} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getCCSsFromMunicipio => ', err);
+	});
+	return result;
+}
+module.exports.getCCSsFromMunicipio2 = getCCSsFromMunicipio2;
 
 // get ccs using bairro
 async function getCCSsFromBairro(Bairro) {

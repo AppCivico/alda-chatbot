@@ -36,7 +36,7 @@ module.exports = {
 		menuOptions: ['Enviar Localização', 'Quero Digitar', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 		notNow: 'Entendo! 😉',
-		remember: 'Pelo que me lembro você quer saber sobre o bairro', // will be completed
+		remember: 'Pelo que me lembro você quer saber sobre', // will be completed
 		remember2: 'e o conselho que eu encontrei aqui foi o', // will be completed
 		// the rest of the dialog comes from foundLocation
 	},
@@ -53,15 +53,14 @@ module.exports = {
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
-			'Rio de Janeiro, Interior, Baixada Fluminense e Grande Niterói.',
+		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver.',
 		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
 
 	},
 	foundLocation: {
-		firstMessage: 'Encontrei o seguinte bairro:',
+		firstMessage: 'Encontrei o seguinte lugar:',
 		secondMessage: 'Podemos seguir ou você quer alterar o local?',
 		menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		menuPostback: ['preNearestCouncil', 'wantToChange'],
@@ -81,17 +80,16 @@ module.exports = {
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 	},
 	notFoundBairro: {
-		menuOptions: ['Enviar localização', 'Trocar Cidade', 'Trocar Bairro', 'Voltar'],
-		menuPostback: ['sendLocation', 'wantToType1', 'wantToType2', 'noLocation'],
+		menuOptions: ['Enviar localização', 'Trocar Cidade', 'Voltar'],
+		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 	},
 	notFoundBairroFromGeo: {
-		menuOptions: ['Enviar localização', 'Trocar Cidade', 'Voltar'],
+		menuOptions: ['Enviar localização', 'Trocar Conselho', 'Voltar'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver. Você pode escolher entre ' +
-			'Rio de Janeiro, Interior, Baixada Fluminense e Grande Niterói.',
+		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver.',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],
@@ -99,7 +97,7 @@ module.exports = {
 	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
 		secondMessage: 'Então, o Conselho mais próximo de você é o', // will be completed
-		secondMessage2: 'que engloba os bairros', // will be completed
+		secondMessage2: 'que também engloba', // will be completed
 		secondMessage3: 'que engloba a região', // will be completed
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
 		menuOptions: ['Sim', 'Não'],

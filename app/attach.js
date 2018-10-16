@@ -176,7 +176,32 @@ module.exports.sendConselhoConfirmation = async (context, items) => {
 			buttons: [{
 				type: 'postback',
 				title: 'É esse!',
-				payload: `confirm${element.id}`,
+				payload: `confirmBa${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+// send a card carousel for the user to confirm which municipio he wants
+module.exports.sendMunicipioConfirmation = async (context, items) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `Município ${element.municipio}`,
+			subtitle: `CCS ${element.id}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É esse!',
+				payload: `confirmMu${element.id}`,
 			}],
 		});
 	});
@@ -204,7 +229,7 @@ module.exports.sendCentroConfirmation = async (context, items) => {
 			buttons: [{
 				type: 'postback',
 				title: 'É esse!',
-				payload: `confirm${element.id}`,
+				payload: `confirmBa${element.id}`,
 			}],
 		});
 	});
@@ -229,7 +254,7 @@ module.exports.sendColegioConfirmation = async (context, items) => {
 			buttons: [{
 				type: 'postback',
 				title: 'É essa!',
-				payload: `confirm${element.id}`,
+				payload: `confirmBa${element.id}`,
 			}],
 		});
 	});
