@@ -481,10 +481,8 @@ module.exports = async (context) => {
 				if (context.state.assuntos.length === 0) {
 					await context.sendText(flow.subjects.emptyAssuntos);
 				} else { // TODO This will be updated to receive a link to a PDF
-					await context.sendText(`${flow.subjects.firstMessage} \n-${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
-				// await context.sendText(flow.subjects.firstMessage);
-				// await attach.sendCardWithLink(context, flow.subjects);
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
 				await context.typingOff();
 				break;
@@ -497,9 +495,14 @@ module.exports = async (context) => {
 					|| context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
+					console.log(context.state.results);
+
+					if (context.state.results.texto && context.state.results.texto.length > 0) {
+						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
+					}
 					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} ` +
 						'no arquivo que você pode baixar clicando abaixo. 👇');
-					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download, context.state.results.texto);
+					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
 				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				break;
