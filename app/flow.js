@@ -33,7 +33,7 @@ module.exports = {
 		secondMessage: 'Veja os Conselhos que existem no estado:',
 		CCSImage: 'https://scontent.fcgh9-1.fna.fbcdn.net/v/t1.15752-9/38194146_527032771061721_6108443346118639616_n.jpg?_nc_cat=108&oh=2088b0ddfa5ad8c064aeca951f507c44&oe=5C5AC3E6',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
-		menuOptions: ['Enviar Localização', 'Quero Digitar', 'Agora não'],
+		menuOptions: ['Enviar Localização', 'Digitar local', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],
 		notNow: 'Entendo! 😉',
 		remember: 'Pelo que me lembro você quer saber sobre o', // will be completed

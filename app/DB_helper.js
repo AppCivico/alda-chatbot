@@ -64,24 +64,6 @@ async function getCCSsFromMunicipio(Municipio) {
 }
 module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
 
-// get every ccs on the same municipio (we say municipio but we are actually using regiao)
-async function getCCSsFromMunicipio2(Municipio) {
-	const result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
-	FROM conselhos CCS
-	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
-	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Municipio}' || '%'
-	ORDER BY CCS.id;
-	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Got CCS on municipio ${Municipio} successfully!`);
-		return results;
-	}).catch((err) => {
-		console.error('Error on getCCSsFromMunicipio => ', err);
-	});
-	return result;
-}
-module.exports.getCCSsFromMunicipio2 = getCCSsFromMunicipio2;
-
 // get ccs using bairro
 async function getCCSsFromBairro(Bairro) {
 	const result = await sequelize.query(`
