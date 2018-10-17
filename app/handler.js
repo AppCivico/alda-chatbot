@@ -13,7 +13,7 @@ const { sendAdminBroadcast } = require('./broadcast');
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 const mailRegex = new RegExp(/\S+@\S+/);
 
-const timeLimit = 1000 * 60 * 60 * 12; // 60 minutes * 12 hours => 1000 * 60 * 60 * 12
+const timeLimit = 1000 * 60 * 60 * 24 * 3; // 60 minutes * 24 hours  * 3 days => 1000 * 60 * 60 * 24 * 3
 
 // context.state.geoLocation => the geolocation coordinates from the user
 // context.state.bairro => bairro found with GoogleMaps API or that the user typed
@@ -59,7 +59,7 @@ module.exports = async (context) => {
 					// await context.setState({ bairro: context.state.mapsBairro.long_name }); // saves the name of the bairro from googleMaps
 					await context.setState({ cameFromGeo: true }); // saves the name of the bairro from googleMaps
 					// falls through
-				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation/ GEO
+				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation/GEO
 					if (!context.state.CCSGeo || context.state.CCSGeo === null || context.state.CCSGeo.length === 0) {
 						await context.setState({ dialog: 'notFoundFromGeo' });
 					} else if (context.state.CCSGeo.length === 1) {
@@ -90,9 +90,9 @@ module.exports = async (context) => {
 					await context.sendText(flow.userData.facebook);
 					await context.setState({ dialog: 'userData' });
 					break;
-				case 'checkBairroFromGeo':
-					await context.setState({ municipiosFound: await db.getCCSsFromMunicipio('capital'), theBairro: await help.formatString(context.state.bairro) });
-					await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, context.state.theBairro) });
+				case 'checkBairroFromGeo': // check centro and colegio
+					await context.setState({ municipiosFound: await db.getCCSsFromMunicipio('rio de janeiro'), theBairro: await help.formatString(context.state.mapsBairro) });
+
 					if ('centro'.includes(context.state.theBairro)) { // special case: check if user wants to know about centro on capital
 						await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
 						await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
@@ -552,13 +552,6 @@ module.exports = async (context) => {
 			case 'gotPhone':
 				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', await attach.getQR(flow.userData));
 				break;
-			// case 'errorText':
-			// 	await context.sendButtonTemplate(`Oi, ${context.session.user.first_name} ${context.session.user.last_name}.${flow.error.noText}`, [{
-			// 		type: 'postback',
-			// 		title: flow.error.menuOptions[0],
-			// 		payload: flow.error.menuPostback[0],
-			// 	}]);
-			// 	break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
 				await context.setState({ municipiosFound: undefined, bairro: undefined });
@@ -576,27 +569,26 @@ module.exports = async (context) => {
 						await help.getCityFromGeo(context.state.mapsResults);
 						if (await help.checkIfInRio(context.state.mapsResults) === true) { // we are in rio
 							await context.setState({ mapsCity: await help.getCityFromGeo(context.state.mapsResults) });
-							console.log(context.state.mapsCity);
+
 							if (!context.state.mapsCity) {
 								await context.sendText(flow.foundLocation.noFindGeo); // Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu
 								await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
 							} else if (context.state.mapsCity.toLowerCase() === 'rio de janeiro') {
 								await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
-								console.log(context.state.mapsBairro);
+
 								if (context.state.mapsBairro) {
 									if (context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio') {
-										await await context.setState({ bairro: context.state.mapsBairro });
-										// await await context.setState({ bairro: 'Colégio' }); // for testing, we can change the above conditional to !== 'centro'
-										await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.bairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
+										// await await context.setState({ mapsBairro: 'Centro' }); // for testing, we can change the above conditional to !== 'centro'
+										await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.mapsBairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
 										// confirmation here sends user to 'checkBairroFromGeo'
-										// TODO confirmar colégio e centro
 									} else { // not colegio nor centro
 										await context.setState({ CCSGeo: await db.getCCSsFromBairro(await help.formatString(context.state.mapsBairro)) });
 										await context.sendText(`Encontrei o bairro ${context.state.mapsBairro} na cidade ${context.state.mapsCity}.`);
 										await context.sendText(flow.foundLocation.secondMessage, await attach.getQRLocation2(flow.foundLocation));
+										// confirmation here sends user to 'nearestCouncil'
 									}
 								} else { // error on mapsBairro
-									await context.sendText(flow.foundLocation.noFindGeo); // Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu
+									await context.sendText(flow.foundLocation.noFindGeo); // Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu.
 									await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
 								}
 							} else { // not rio de janeiro
@@ -625,8 +617,6 @@ module.exports = async (context) => {
 					'Quer tentar novamente?',
 					await attach.getQR(flow.whichCCS),
 				);
-				break;
-			case 'checkBairroFromGeo':
 				break;
 			// Admin flow ---------------------------------------------------------------------------
 			case 'adminStart':
