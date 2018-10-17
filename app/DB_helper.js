@@ -56,7 +56,7 @@ async function getCCSsFromMunicipio(Municipio) {
 	});
 	if (indexRemove) { await result.splice(indexRemove, 1);	} // removing that empty bairro
 	// filtering out entries with repeated municipio and id, except on municipio rio de janeiro because of colegio and centro
-	if (result[0].municipio.toLowerCase() !== 'rio de janeiro') {
+	if (result && result[0].municipio.toLowerCase() !== 'rio de janeiro') {
 		result = result.filter((thing, index, self) => self.findIndex(t => t.municipio === thing.municipio && t.id === thing.id) === index);
 	}
 
@@ -84,7 +84,9 @@ async function getCCSsFromBairro(Bairro) {
 		console.error('Error on getCCSsFromBairro => ', err);
 	});
 
-	result = result.filter((thing, index, self) => self.findIndex(t => t.bairro === thing.bairro && t.id === thing.id) === index);
+	if (result) {
+		result = result.filter((thing, index, self) => self.findIndex(t => t.bairro === thing.bairro && t.id === thing.id) === index);
+	}
 
 	return result;
 }
@@ -109,7 +111,9 @@ async function getCCSsFromBairroExact(Bairro) {
 		console.error('Error on getCCSsFromBairro => ', err);
 	});
 
-	result = result.filter((thing, index, self) => self.findIndex(t => t.bairro === thing.bairro && t.id === thing.id) === index);
+	if (result) {
+		result = result.filter((thing, index, self) => self.findIndex(t => t.bairro === thing.bairro && t.id === thing.id) === index);
+	}
 
 	return result;
 }

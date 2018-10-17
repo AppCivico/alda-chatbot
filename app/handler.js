@@ -66,7 +66,7 @@ module.exports = async (context) => {
 						await context.setState({ dialog: 'nearestCouncil', asked: false });
 					} else { // more than one bairro was found
 						await context.sendText(`Hmm, encontrei ${context.state.CCSGeo.length} bairros na minha pesquisa. 🤔 ` +
-									'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+						'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
 						await attach.sendConselhoConfirmation(context, context.state.CCSGeo);
 						await context.setState({ dialog: 'confirmBairro', bairro: context.state.CCSGeo });
 					}
@@ -236,6 +236,7 @@ module.exports = async (context) => {
 						// checking if number if valid and present on database
 						if (Number.isInteger(context.state.broadcastNumber) && (context.state.broadcastNumber >= 1001 && context.state.broadcastNumber <= 1110)) {
 							await context.setState({ CCSBroadcast: await db.getNamefromCCS(context.state.broadcastNumber) });
+
 							if (context.state.CCSBroadcast) { // we found a CCS
 								await context.sendText(`Encontrei o ${context.state.CCSBroadcast}.`);
 								if (context.state.cameFromBroadcast === true) {
@@ -458,7 +459,7 @@ module.exports = async (context) => {
 						await context.setState({ ageMsg: '' });
 						await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
 						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-						// before adding the user+ccs on the table we check if it's already there
+							// before adding the user+ccs on the table we check if it's already there
 							if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
 								await db.addAgenda(
 									context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
@@ -472,7 +473,7 @@ module.exports = async (context) => {
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ' +
 							`${help.formatDateDay(context.state.agenda.data)}.`);
 						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉');
+							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
 							// before adding the user+ccs on the table we check if it's already there
 							if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) === true) { // !== true
 								await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
