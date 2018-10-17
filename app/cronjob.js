@@ -76,7 +76,7 @@ const agendaChange = new Cron.CronJob(
 						element.newDatahora = new Date(`${element.data} ${element.hora}`);
 						if (date > element.newDatahora) { // checks if reunion already happened (data_hora is 'behind' current time) (date > element.newDatahora)
 							// updates notificado to TRUE (There's no need to warn the user anymore) // It doesn't matter if there was a change to agendas.status_id or not
-							await db.updateAgendaNotification(element.id, 'TRUE');
+							await db.updateAgenda(element.id, 'TRUE');
 							const ourLabels = await client.getLabelList(); // get all labels we have
 							// finding labelAgenda_id from name
 							const theOneLabel = await ourLabels.data.find(x => x.name === `agenda${element.agendas_id}`); // find the one label with the name same (we need the id)
@@ -107,7 +107,7 @@ const agendaChange = new Cron.CronJob(
 							}
 							if (message !== '') { // check if this is a known 'case'
 								if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
-									await db.updateAgendaNotification(element.id, 'TRUE'); // table boolean gets updated if the message was sent succesfully
+									await db.updateAgenda(element.id, 'TRUE'); // table boolean gets updated if the message was sent succesfully
 								}
 							}
 							// sending the messages to the user
