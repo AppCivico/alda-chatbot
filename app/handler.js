@@ -332,7 +332,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
 			case 'retryType': // comes from text flow
-				await context.sendText('Tudo bem. Vamos encontrar o conselho do seu bairro.');
+				await context.sendText('Tudo bem. Vamos encontrar o conselho mais adequado para sua região.');
 				// falls through
 			case 'wantToType1': // asking for municipio
 				await context.setState({ geoLocation: undefined, bairro: undefined });
