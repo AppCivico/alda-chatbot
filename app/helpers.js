@@ -93,17 +93,34 @@ module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agen
 module.exports.getNeighborhood = async (results) => {
 	let neighborhood = results.find(x => x.types.includes('sublocality'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
-	return neighborhood;
+	return neighborhood.long_name;
 };
 module.exports.checkIfInRio = async (results) => {
-	let neighborhood = await results.find(x => x.types.includes('administrative_area_level_1'));
-	if (!neighborhood) { neighborhood = await results.find(x => x.types.includes('administrative_area_level_2')); }
+	let state = await results.find(x => x.types.includes('administrative_area_level_1')); // administrative_area_level_1 -> state
+	if (!state) { state = await results.find(x => x.types.includes('administrative_area_level_2')); }
 
 	let place = 'rio de janeiro';
-	if (neighborhood.formatted_address) { place = neighborhood.formatted_address; }
+	if (state.formatted_address) { place = state.formatted_address; }
 
 	if ('rio de janeiro'.includes(place.toLowerCase()) || place.toLowerCase().includes('rio de janeiro')) { return true; }
 	return false;
+};
+
+module.exports.getCityFromGeo = async (results) => {
+	let state = await results.find(x => x.types.includes('administrative_area_level_2')); // administrative_area_level_2 -> city
+	if (state) {
+		state = await state.address_components.find(x => x.types.includes('administrative_area_level_2')); // administrative_area_level_2 -> city
+		if (state.long_name) { return state.long_name; }
+		return undefined;
+	}
+	return undefined;
+};
+
+module.exports.getRememberComplement = async (ccs) => {
+	if (!ccs.bairro || ccs.bairro.length === 0) {
+		return `município ${ccs.municipio}`;
+	}
+	return `bairro ${ccs.bairro}`;
 };
 
 module.exports.listBairros = function listBairros(ccs) {
@@ -122,7 +139,7 @@ module.exports.listBairros = function listBairros(ccs) {
 async function formatString(text) {
 	let result = text.toLowerCase();
 	result = await result.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF])/g, '');
-	result = await result.replace(/ç/g, 'c');
+	// result = await result.replace(/ç/g, 'c');
 	result = await result.replace(/´|~|\^|`|'|0|1|2|3|4|5|6|7|8|9|/g, '');
 	result = await accents.remove(result);
 	return result.trim();
