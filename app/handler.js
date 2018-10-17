@@ -332,7 +332,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
 			case 'retryType': // comes from text flow
-				await context.sendText('Tudo bem. Vamos encontrar o conselho do seu bairro.');
+				await context.sendText('Tudo bem. Vamos encontrar o conselho mais adequado para sua região.');
 				// falls through
 			case 'wantToType1': // asking for municipio
 				await context.setState({ geoLocation: undefined, bairro: undefined });
@@ -691,7 +691,7 @@ module.exports = async (context) => {
 			case 'metrics':
 				await context.sendText(
 					'Insira o id do broadcast que você deseja. Exemplo: 332286104187677. Esse id é dado depois que você envia um broadcast. ' +
-					'Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
+					'(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
 					await attach.getQR(flow.metrics),
 				);
 				break;

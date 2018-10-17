@@ -348,6 +348,22 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 	return result;
 };
 
+// updates value of notificado from PK
+module.exports.updateAgenda = async function updateAgenda(PK, boolean) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+
+	await sequelize.query(`
+	UPDATE notificar_agenda
+	SET notificado = ${boolean}, updated_at = '${date}'
+	WHERE id = ${PK};
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Updated updateNovaAgenda on ${PK} successfully!`);
+	}).catch((err) => {
+		console.error('Error on updateNovaAgenda => ', err);
+	});
+};
+
 // notificar_nova_agenda -------------------------------------------------------------------------------
 // check if notificar_nova_agenda with UserID, CCS_ID exists already
 module.exports.checkNovaAgenda = async function checkNovaAgenda(UserID, agendaID) {

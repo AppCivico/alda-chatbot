@@ -130,7 +130,12 @@ module.exports.removeUserFromBlackList = removeUserFromBlackList;
 
 async function checkUserOnLabel(UserID, labelID) { // checks if user is on the label
 	const userLabels = await client.getAssociatedLabels(UserID);
+
+	console.log('userLabels', userLabels.data.length);
+	console.log('UserID', UserID);
+
 	const theOneLabel = await userLabels.data.find(x => x.id === `${labelID}`); // find the one label with the name same
+	console.log('theOneLabel', theOneLabel);
 
 	if (theOneLabel) { // if we found the label on the user
 		return true;
@@ -146,6 +151,16 @@ async function associatesLabelToUser(userID, labelID) { // eslint-disable-line n
 	if (await checkUserOnLabel(userID, labelID) === true) {
 		return true;
 	}
+
+	const userLabels = await client.getAssociatedLabels(userID);
+	if (userLabels.data.length >= 20) { // actual facebook limit is 25 (by limit i mean before pagination starts to act up)
+		userLabels.data.forEach(async (element) => {
+			if (element.id !== process.env.LABEL_ADMIN) { // remove every tag except for admin
+				client.dissociateLabel(userID, element.id);
+			}
+		});
+	}
+
 	return client.associateLabel(userID, labelID);
 }
 module.exports.associatesLabelToUser = associatesLabelToUser;
