@@ -53,8 +53,8 @@ module.exports = {
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 	},
 	wantToType: {
-		firstMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver.',
-		secondMessage: 'Legal. Agora digite o bairro dessa cidade:',
+		firstMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
+		secondMessage: 'Legal. Agora digite o *bairro* dessa cidade:',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
 
@@ -89,7 +89,7 @@ module.exports = {
 	},
 	wantToChange: {
 		firstMessage: 'Ih, errei. Me ajuda, então?',
-		secondMessage: 'Digite a cidade do Rio de Janeiro que você gostaria de ver.',
+		secondMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
 		helpMessage: 'Se estiver com dificuldade, envie sua localização diretamente:',
 		menuOptions: ['Enviar localização', 'Cancelar'],
 		menuPostback: ['sendLocation', 'noLocation'],
@@ -97,7 +97,7 @@ module.exports = {
 	nearestCouncil: {
 		firstMessage: 'Ótimo! 🎉',
 		secondMessage: 'Então, o Conselho mais próximo de você é o', // will be completed
-		secondMessage2: 'que também engloba', // will be completed
+		secondMessage2: 'que engloba', // will be completed
 		secondMessage3: 'que engloba a região', // will be completed
 		thirdMessage: 'Você já foi em alguma reunião do seu Conselho?',
 		menuOptions: ['Sim', 'Não'],

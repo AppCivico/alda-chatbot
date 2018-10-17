@@ -56,7 +56,6 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'whichCCSMenu' });
 					break;
 				case 'preNearestCouncil': // came from geo
-					// await context.setState({ bairro: context.state.mapsBairro.long_name }); // saves the name of the bairro from googleMaps
 					await context.setState({ cameFromGeo: true }); // saves the name of the bairro from googleMaps
 					// falls through
 				case 'nearestCouncil': // user confirmed this is the correct bairro from findLocation/GEO
@@ -66,10 +65,10 @@ module.exports = async (context) => {
 						await context.setState({ CCS: context.state.CCSGeo[0] });
 						await context.setState({ dialog: 'nearestCouncil', asked: false });
 					} else { // more than one bairro was found
-						await context.sendText(`Hmm, encontrei ${context.state.mapsBairro.length} bairros na minha pesquisa. 🤔 ` +
+						await context.sendText(`Hmm, encontrei ${context.state.CCSGeo.length} bairros na minha pesquisa. 🤔 ` +
 									'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
-						await attach.sendConselhoConfirmation(context, context.state.mapsBairro);
-						await context.setState({ dialog: 'confirmBairro' });
+						await attach.sendConselhoConfirmation(context, context.state.CCSGeo);
+						await context.setState({ dialog: 'confirmBairro', bairro: context.state.CCSGeo });
 					}
 					break;
 				case 'goBackMenu':
@@ -102,7 +101,7 @@ module.exports = async (context) => {
 					} else if ('colegio'.includes(context.state.theBairro)) { // special case: check if user wants to know about colegio on capital
 						await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
 						await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
-							`${context.state.municipiosFound[0].municipio}. Para que eu encontre o Conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
+							`${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
 						await attach.sendColegioConfirmation(context, context.state.bairro);
 						await context.setState({ dialog: 'confirmBairro' });
 					}
@@ -184,7 +183,7 @@ module.exports = async (context) => {
 						} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'colegio'.includes(context.state.userInput)) { // special case: check if user wants to know about colegio on capital
 							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
 							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade ` +
-								`${context.state.municipiosFound[0].municipio}. Para que eu encontre o Conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
+								`${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
 							await attach.sendColegioConfirmation(context, context.state.bairro);
 							await context.setState({ dialog: 'confirmBairro' });
 						} else { // regular case
@@ -353,9 +352,9 @@ module.exports = async (context) => {
 					sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
 				}); // get other bairros on this ccs
 				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) {
-					await context.sendText('Legal. Agora digite o bairro da cidade Rio de Janeiro.');
+					await context.sendText('Legal. Agora digite o *bairro* da cidade Rio de Janeiro.');
 				} else {
-					await context.sendText('Legal. Agora digite o bairro da cidade Rio de Janeiro. '
+					await context.sendText('Legal. Agora digite o *bairro* da cidade Rio de Janeiro. '
 				+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ')} e outros.`);
 				}
 				break;
@@ -366,11 +365,11 @@ module.exports = async (context) => {
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
 				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) { // check if we have random bairros to list
 					await context.sendText('Não consegui encontrar esse bairro da cidade Rio de Janeiro. ' +
-						'Vamos tentar de novo? Digite o bairro que deseja.', await attach.getQR(flow.notFoundBairro));
+						'Vamos tentar de novo? Digite o *bairro* que deseja.', await attach.getQR(flow.notFoundBairro));
 				} else {
 					await context.sendText(
 						'Não consegui encontrar esse bairro da cidade Rio de Janeiro.\nQuer tentar de novo? ' +
-						`Digite o bairro que deseja. Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ')} e outros.`,
+						`Digite o *bairro* que deseja. Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ')} e outros.`,
 						await attach.getQR(flow.notFoundBairro),
 					);
 				}
@@ -582,7 +581,7 @@ module.exports = async (context) => {
 										await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.mapsBairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
 										// confirmation here sends user to 'checkBairroFromGeo'
 									} else { // not colegio nor centro
-										await context.setState({ CCSGeo: await db.getCCSsFromBairro(await help.formatString(context.state.mapsBairro)) });
+										await context.setState({ CCSGeo: await db.getCCSsFromBairroExact(await help.formatString(context.state.mapsBairro)) });
 										await context.sendText(`Encontrei o bairro ${context.state.mapsBairro} na cidade ${context.state.mapsCity}.`);
 										await context.sendText(flow.foundLocation.secondMessage, await attach.getQRLocation2(flow.foundLocation));
 										// confirmation here sends user to 'nearestCouncil'
@@ -615,7 +614,7 @@ module.exports = async (context) => {
 				await context.sendText(
 					'Não encontrei nenhum conselho no local em questão. ' +
 					'Quer tentar novamente?',
-					await attach.getQR(flow.whichCCS),
+					await attach.getQRLocation(flow.geoMenu),
 				);
 				break;
 			// Admin flow ---------------------------------------------------------------------------
