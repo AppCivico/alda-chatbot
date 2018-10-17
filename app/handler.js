@@ -691,7 +691,7 @@ module.exports = async (context) => {
 			case 'metrics':
 				await context.sendText(
 					'Insira o id do broadcast que você deseja. Exemplo: 332286104187677. Esse id é dado depois que você envia um broadcast. ' +
-					'Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
+					'(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
 					await attach.getQR(flow.metrics),
 				);
 				break;
