@@ -88,7 +88,7 @@ const agendaChange = new Cron.CronJob(
 							let message = ''; // the message that will be sent to the user depending on the case
 							switch (element.status_id) {
 							case 1: // reunion was canceled
-								message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no ` +
+								message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no local` +
 										`${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
 								// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (status_id agenda must be 2)
 								await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
