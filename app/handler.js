@@ -472,14 +472,14 @@ module.exports = async (context) => {
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ' +
 							`${help.formatDateDay(context.state.agenda.data)}.`);
 						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
+							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉');
 							// before adding the user+ccs on the table we check if it's already there
 							if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) === true) { // !== true
 								await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
 							}
 							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
 						} else {
-							await context.sendText('Você pode ver o que vimos na última reunião clicando abaixo! 😉', await attach.getQR(flow.calendar));
+							await context.sendText('Você pode ver o que vimos na última reunião clicando abaixo! 😊', await attach.getQR(flow.calendar));
 						}
 					}
 				} else { // no agenda at all, probably an error
@@ -507,7 +507,7 @@ module.exports = async (context) => {
 					|| context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
-					if (context.state.results.texto && context.state.results.texto.length > 0) {
+					if (context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length < 2000) {
 						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
 					}
 					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} ` +

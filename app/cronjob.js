@@ -140,8 +140,8 @@ const newAgenda = new Cron.CronJob(
 				if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 					for (const element of notifications) { // eslint-disable-line
 						const agenda = await db.getAgenda(element.conselho_id); // getting most recent agenda
-						if (agenda.id !== element.ultima_agenda) { // meaning: the newest agenda is the one the user saw, so there's nothing to do
-							const message = `Temos uma nova reunião agendada para o ${element.ccs}! Atenção para data e local:\n\n` +
+						if (agenda.id !== element.ultima_agenda) { // meaning: the newest agenda is the one the user saw, so there's nothing to do -> agenda.id !== element.ultima_agenda
+							const message = `Temos uma nova reunião agendada para o *${element.ccs}*! Atenção para data e local:\n\n` +
 							`${await help.getAgendaMessage(agenda)}`;
 							if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
 								await db.updateNovaAgenda(element.id, 'TRUE'); // table boolean gets updated if the message was sent succesfully
