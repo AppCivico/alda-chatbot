@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@google/maps": "^0.5.4",
+    "@sentry/node": "^4.1.1",
     "bottender": "^0.15.6",
     "cron": "^1.4.1",
     "dotenv": "^5.0.1",
@@ -19,7 +20,6 @@
     "pg": "^7.4.3",
     "pg-hstore": "^2.3.2",
     "pg-native": "^3.0.0",
-    "raven": "^2.6.4",
     "remove-accents": "^0.4.2",
     "request": "^2.87.0",
     "requisition": "^1.7.0",
