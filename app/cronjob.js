@@ -1,7 +1,7 @@
 const Cron = require('cron');
 const db = require('./DB_helper');
 const help = require('./helpers');
-const { Raven } = require('./helpers');
+const { Sentry } = require('./helpers');
 
 const broadcast = require('./broadcast');
 
@@ -18,8 +18,9 @@ const client = MessengerClient.connect({
 const activatedCCS = new Cron.CronJob(
 	'00 00 10 * * 1-5', async () => { // At 10h from monday through friday 00 00 10 * * 1-5
 		let notifications = 'Not loaded';
-		try {
+		await Sentry.configureScope(async (scope) => {
 			notifications = await db.getActivatedNotification();
+			scope.setExtra('notifications', notifications);
 
 			if (notifications) { // if there was any result
 				if (notifications.length !== 0) { // checking if there is any notification to send
@@ -31,9 +32,9 @@ const activatedCCS = new Cron.CronJob(
 
 			for (const element of notifications) { // eslint-disable-line
 						if (element.conselho_id !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
-							// If we are not warning on the same CCS as before we have to reload the data
-							// This is an assurance in case more than one ccs gets activated
-							// Obs: the getActivatedNotification query orders results by the conselho_id
+						// If we are not warning on the same CCS as before we have to reload the data
+						// This is an assurance in case more than one ccs gets activated
+						// Obs: the getActivatedNotification query orders results by the conselho_id
 							currentCCS = { // loading data from the new ccs
 								cod_ccs: element.conselho_id,
 								nome: await db.getNamefromCCS(element.conselho_id),
@@ -48,9 +49,7 @@ const activatedCCS = new Cron.CronJob(
 					}
 				}
 			}
-		} catch (error) {
-			await Raven.captureException(error, { user: { notifications, function: 'activatedCCS' } });
-		}
+		});
 	}, (() => {
 		console.log('Crontab \'activatedCCSTimer\' stopped.');
 	}),
@@ -67,8 +66,10 @@ module.exports.activatedCCS = activatedCCS;
 const agendaChange = new Cron.CronJob(
 	'00 00 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 00 8-22/2 * * 1-5
 		let notifications = 'not loaded';
-		try {
+		await Sentry.configureScope(async (scope) => {
 			notifications = await db.getAgendaNotification();
+			scope.setExtra('notifications', notifications);
+
 			const date = new Date();
 			if (notifications) { // if there was any result
 				if (notifications && notifications.length !== 0) { // checking if there is any notification to send
@@ -115,9 +116,7 @@ const agendaChange = new Cron.CronJob(
 					}
 				}
 			}
-		} catch (error) {
-			await Raven.captureException(error, { user: { notifications, function: 'agendaChange' } });
-		}
+		});
 	}, (() => {
 		console.log('Crontab \'agendaChange\' stopped.');
 	}),
@@ -134,8 +133,10 @@ module.exports.agendaChange = agendaChange;
 const newAgenda = new Cron.CronJob(
 	'00 30 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
 		let notifications = 'not loaded';
-		try {
+		await Sentry.configureScope(async (scope) => {
 			notifications = await db.getNovaAgenda();
+			scope.setExtra('notifications', notifications);
+
 			if (notifications) { // if there was any result
 				if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 					for (const element of notifications) { // eslint-disable-line
@@ -150,9 +151,7 @@ const newAgenda = new Cron.CronJob(
 					}
 				}
 			}
-		} catch (error) {
-			await Raven.captureException(error, { user: { notifications, function: 'newAgenda' } });
-		}
+		});
 	}, (() => {
 		console.log('Crontab \'newAgenda\' stopped.');
 	}),
