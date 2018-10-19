@@ -33,3 +33,4 @@ server.listen(process.env.API_PORT, () => {
 });
 
 process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });
+
