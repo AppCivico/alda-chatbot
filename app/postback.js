@@ -130,12 +130,7 @@ module.exports.removeUserFromBlackList = removeUserFromBlackList;
 
 async function checkUserOnLabel(UserID, labelID) { // checks if user is on the label
 	const userLabels = await client.getAssociatedLabels(UserID);
-
-	console.log('userLabels', userLabels.data.length);
-	console.log('UserID', UserID);
-
 	const theOneLabel = await userLabels.data.find(x => x.id === `${labelID}`); // find the one label with the name same
-	console.log('theOneLabel', theOneLabel);
 
 	if (theOneLabel) { // if we found the label on the user
 		return true;
@@ -183,7 +178,7 @@ module.exports.getLabelID = getLabelID;
 
 
 // async function test() {
-// 	console.log(await getLabelID('blacffffklist'));
+// 	console.log(await getLabelID('blacklist'));
 // }
 // test();
 
