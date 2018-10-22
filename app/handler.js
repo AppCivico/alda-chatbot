@@ -11,6 +11,8 @@ const help = require('./helpers');
 const { Sentry } = require('./helpers'); // eslint-disable-line
 const { sendAdminBroadcast } = require('./broadcast');
 
+const { restartList } = require('./helpers');
+
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 const mailRegex = new RegExp(/\S+@\S+/);
 
@@ -126,6 +128,8 @@ module.exports = async (context) => {
 						await context.sendText('Vocẽ não é um administrador! Esse menu é proibido!');
 						await context.setState({ dialog: 'whichCCSMenu', labels: '', isAdmin: '' });
 					}
+				} else if (restartList.includes(await help.formatString(context.event.message.text))) {
+					await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -300,6 +304,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.greetings.welcome);
 				await context.typingOff();
 				await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
+				await metric.userAddOrUpdate(context);
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
@@ -318,8 +323,6 @@ module.exports = async (context) => {
 			case 'whichCCSMenu': // asks user if he wants to find his CCS or confirm if we already have one stored
 				await context.setState({ retryCount: 0 });
 				// if we don't have a CCS linked to a user already we ask for it
-
-				console.log('velho', context.state.CCS);
 
 				if (!context.state.CCS || !context.state.CCS.ccs) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
@@ -393,15 +396,7 @@ module.exports = async (context) => {
 					await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
 				}
 
-				console.log('novo ccs', context.state.CCS);
-
-
-				if (await metric.checkChatbotUser(context.session.user.id) !== true) {
-					await metric.addChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, context.state.CCS.id);
-				} else {
-					await metric.updateCcsChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, context.state.CCS.id);
-				}
-
+				await metric.userAddOrUpdate(context);
 				await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
 				await context.setState({
 					otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
@@ -455,12 +450,13 @@ module.exports = async (context) => {
 				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
-			case 'councilMenu': // "Escolha uma das opções"
+			case 'councilMenu':
 				await context.setState({ mapsResults: '' });
 				if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-				} else {
+				} else { // "Escolha uma das opções"
 					await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+					await metric.userAddOrUpdate(context);
 				}
 				await context.typingOff();
 				break;
