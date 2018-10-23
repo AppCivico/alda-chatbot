@@ -8,6 +8,7 @@ const attach = require('./attach');
 const db = require('./DB_helper');
 const metric = require('./DB_metrics');
 const help = require('./helpers');
+const event = require('./events'); // eslint-disable-line
 const { Sentry } = require('./helpers'); // eslint-disable-line
 const { sendAdminBroadcast } = require('./broadcast');
 
@@ -305,6 +306,7 @@ module.exports = async (context) => {
 				await context.typingOff();
 				await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
 				await metric.userAddOrUpdate(context);
+				// await event.addCustomAction(context.session.user.id);
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
@@ -334,7 +336,8 @@ module.exports = async (context) => {
 				break;
 			case 'sendLocation':
 				await context.sendText(flow.sendLocation.firstMessage);
-				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
+				await context.sendText('Ao clicar no botão, um mapa da sua localização atual aparecerá. Você poderá mover o cursor e dar zoom para ajustar a localização, caso necessário.');
+				await context.sendText(flow.sendLocation.secondMessage, await attach.getQRLocation(flow.sendLocation));
 				break;
 			case 'wantToChange': // comes from sendLocation flow
 				await context.setState({ geoLocation: undefined });
@@ -419,11 +422,13 @@ module.exports = async (context) => {
 							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 						}
 					}
-				} else if (context.state.asked === true) {
-					await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
-				} else { // ask user if he already went to one of the meetings
-					await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+
+				// } else if (context.state.asked === true) {
+				// 	await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
+				// } else { // ask user if he already went to one of the meetings
+				// 	// await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
+				// 	await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}
 				break;
 			case 'wentAlready':

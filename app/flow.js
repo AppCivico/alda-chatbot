@@ -51,6 +51,8 @@ module.exports = {
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
 		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
+		menuOptions: ['Voltar'],
+		menuPostback: ['whichCCSMenu'],
 	},
 	wantToType: {
 		firstMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
@@ -116,8 +118,8 @@ module.exports = {
 	},
 	councilMenu: {
 		firstMessage: 'Escolha uma das opções:',
-		menuOptions: ['Calendário', 'Assuntos', 'Resultados'],
-		menuPostback: ['calendar', 'subjects', 'results'],
+		menuOptions: ['Calendário', 'Assuntos', 'Resultados', 'Voltar'],
+		menuPostback: ['calendar', 'subjects', 'results', 'whichCCSMenu'],
 		notNow: 'Beleza. 😉 \nEntão, vamos seguir em frente, olha só o que você pode fazer por aqui!',
 	},
 	calendar: {
@@ -158,7 +160,7 @@ module.exports = {
 		notNow: 'Tudo bem. 😉',
 	},
 	join: {
-		firstMessage: 'Legal saber que quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
+		firstMessage: 'É bom saber que você quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
 		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
 		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
 	},
@@ -179,7 +181,7 @@ module.exports = {
 	},
 	share: {
 		firstMessage: 'Muito bom! 😍',
-		siteTitle: 'Alda, a robô do ITS',
+		siteTitle: 'Alda, a robô dos CCS',
 		siteSubTitle: 'Venha participar! 🤖',
 		imageURL: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/f9f014a2-56de-4bc8-a201-538b2b6300cd.png',
 		siteURL: 'https://www.facebook.com/aldaChatbot/',
