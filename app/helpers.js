@@ -171,3 +171,6 @@ module.exports.addUserToBlackList = postback.addUserToBlackList;
 module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
 module.exports.checkUserOnLabel = postback.checkUserOnLabel;
 module.exports.getLabelID = postback.getLabelID;
+
+module.exports.restartList = ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'ooi', 'comecar', 'começar', 'start', 'iniciar conversa', 'iniciar'];
+

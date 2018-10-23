@@ -8,8 +8,11 @@ const attach = require('./attach');
 const db = require('./DB_helper');
 const metric = require('./DB_metrics');
 const help = require('./helpers');
+const event = require('./events'); // eslint-disable-line
 const { Sentry } = require('./helpers'); // eslint-disable-line
 const { sendAdminBroadcast } = require('./broadcast');
+
+const { restartList } = require('./helpers');
 
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 const mailRegex = new RegExp(/\S+@\S+/);
@@ -126,6 +129,8 @@ module.exports = async (context) => {
 						await context.sendText('Vocẽ não é um administrador! Esse menu é proibido!');
 						await context.setState({ dialog: 'whichCCSMenu', labels: '', isAdmin: '' });
 					}
+				} else if (restartList.includes(await help.formatString(context.event.message.text))) {
+					await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) {
 					case 'retryType':
@@ -300,6 +305,8 @@ module.exports = async (context) => {
 				await context.sendText(flow.greetings.welcome);
 				await context.typingOff();
 				await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
+				await metric.userAddOrUpdate(context);
+				// await event.addCustomAction(context.session.user.id);
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
@@ -319,8 +326,6 @@ module.exports = async (context) => {
 				await context.setState({ retryCount: 0 });
 				// if we don't have a CCS linked to a user already we ask for it
 
-				console.log('velho', context.state.CCS);
-
 				if (!context.state.CCS || !context.state.CCS.ccs) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else { // Pelo que me lembro
@@ -331,7 +336,8 @@ module.exports = async (context) => {
 				break;
 			case 'sendLocation':
 				await context.sendText(flow.sendLocation.firstMessage);
-				await context.sendText(flow.sendLocation.secondMessage, { quick_replies: [{ content_type: 'location' }] });
+				await context.sendText('Ao clicar no botão, um mapa da sua localização atual aparecerá. Você poderá mover o cursor e dar zoom para ajustar a localização, caso necessário.');
+				await context.sendText(flow.sendLocation.secondMessage, await attach.getQRLocation(flow.sendLocation));
 				break;
 			case 'wantToChange': // comes from sendLocation flow
 				await context.setState({ geoLocation: undefined });
@@ -393,15 +399,7 @@ module.exports = async (context) => {
 					await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
 				}
 
-				console.log('novo ccs', context.state.CCS);
-
-
-				if (await metric.checkChatbotUser(context.session.user.id) !== true) {
-					await metric.addChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, context.state.CCS.id);
-				} else {
-					await metric.updateCcsChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, context.state.CCS.id);
-				}
-
+				await metric.userAddOrUpdate(context);
 				await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
 				await context.setState({
 					otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
@@ -424,11 +422,13 @@ module.exports = async (context) => {
 							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 						}
 					}
-				} else if (context.state.asked === true) {
-					await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
-				} else { // ask user if he already went to one of the meetings
-					await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+
+				// } else if (context.state.asked === true) {
+				// 	await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
+				// } else { // ask user if he already went to one of the meetings
+				// 	// await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
+				// 	await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}
 				break;
 			case 'wentAlready':
@@ -455,12 +455,13 @@ module.exports = async (context) => {
 				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				// falls through
-			case 'councilMenu': // "Escolha uma das opções"
+			case 'councilMenu':
 				await context.setState({ mapsResults: '' });
 				if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-				} else {
+				} else { // "Escolha uma das opções"
 					await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+					await metric.userAddOrUpdate(context);
 				}
 				await context.typingOff();
 				break;
