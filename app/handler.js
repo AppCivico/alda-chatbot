@@ -71,7 +71,7 @@ module.exports = async (context) => {
 						await context.setState({ dialog: 'nearestCouncil', asked: false });
 					} else { // more than one bairro was found
 						await context.sendText(`Hmm, encontrei ${context.state.CCSGeo.length} bairros na minha pesquisa. 🤔 `
-						+ 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+                + 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
 						await attach.sendConselhoConfirmation(context, context.state.CCSGeo);
 						await context.setState({ dialog: 'confirmBairro', bairro: context.state.CCSGeo });
 					}
@@ -101,13 +101,13 @@ module.exports = async (context) => {
 					if ('centro'.includes(context.state.theBairro)) { // special case: check if user wants to know about centro on capital
 						await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
 						await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
-							+ `${context.state.municipiosFound[0].municipio}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
+                + `${context.state.municipiosFound[0].municipio}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
 						await attach.sendCentroConfirmation(context, context.state.bairro);
 						await context.setState({ dialog: 'confirmBairro' });
 					} else if ('colegio'.includes(context.state.theBairro)) { // special case: check if user wants to know about colegio on capital
 						await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
 						await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
-							+ `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
+                + `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
 						await attach.sendColegioConfirmation(context, context.state.bairro);
 						await context.setState({ dialog: 'confirmBairro' });
 					}
@@ -166,7 +166,7 @@ module.exports = async (context) => {
 								await context.setState({ dialog: 'nearestCouncil', asked: false });
 							} else { // more than one municipio was found
 								await context.sendText(`Hmm, encontrei ${context.state.municipiosFound.length} municípios na minha pesquisa. 🤔 `
-									+ 'Me ajude a confirmar qual municípios você quer escolhendo uma das opções abaixo. ');
+                    + 'Me ajude a confirmar qual municípios você quer escolhendo uma das opções abaixo. ');
 								await attach.sendMunicipioConfirmation(context, context.state.municipiosFound);
 								await context.setState({ dialog: 'confirmMunicipio' });
 							}
@@ -185,13 +185,13 @@ module.exports = async (context) => {
 						} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'centro'.includes(context.state.userInput)) { // special case: check if user wants to know about centro on capital
 							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
 							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
-								+ `${context.state.municipiosFound[0].municipio}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
+                  + `${context.state.municipiosFound[0].municipio}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
 							await attach.sendCentroConfirmation(context, context.state.bairro);
 							await context.setState({ dialog: 'confirmBairro' });
 						} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'colegio'.includes(context.state.userInput)) { // special case: check if user wants to know about colegio on capital
 							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
 							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
-								+ `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
+                  + `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
 							await attach.sendColegioConfirmation(context, context.state.bairro);
 							await context.setState({ dialog: 'confirmBairro' });
 						} else { // regular case
@@ -203,7 +203,7 @@ module.exports = async (context) => {
 								await context.setState({ dialog: 'nearestCouncil', asked: false });
 							} else { // more than one bairro was found
 								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 `
-								+ 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+                    + 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
 								await attach.sendConselhoConfirmation(context, context.state.bairro);
 								await context.setState({ dialog: 'confirmBairro' });
 							}
@@ -255,7 +255,7 @@ module.exports = async (context) => {
 								}
 							} else {
 								await context.sendText(`Ops. Aconteceu um erro. Eu não consegui encontrar um CCS com ID ${context.state.broadcastNumber}. `
-								+ 'Tente Novamente. Se o erro persistir, entre em contato com nossa equipe.');
+                    + 'Tente Novamente. Se o erro persistir, entre em contato com nossa equipe.');
 							}
 						} else {
 							await context.sendText('Número inválido. Tente novamente!');
@@ -282,8 +282,8 @@ module.exports = async (context) => {
 					default: // regular text message => error treatment
 						await context.setState({ lastDialog: context.state.dialog });
 						await context.sendText(`Oi, ${context.session.user.first_name}. Eu sou a Alda, uma robô 🤖 e não entendi essa sua útlima mensagem.`
-						+ '\nPosso te pedir um favor? Me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️ '
-							+ '\nSe quiser voltar para onde estava, clique em \'Voltar.\'', await attach.getErrorQR(flow.error, context.state.lastDialog));
+                + '\nPosso te pedir um favor? Me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️ '
+                + '\nSe quiser voltar para onde estava, clique em \'Voltar.\'', await attach.getErrorQR(flow.error, context.state.lastDialog));
 						await context.setState({ dialog: '' });
 						// await context.setState({ dialog: 'errorText' });
 						break;
@@ -293,8 +293,8 @@ module.exports = async (context) => {
 				await context.setState({ geoLocation: context.event.location.coordinates });
 				await context.setState({ dialog: 'findLocation' });
 			} else if (context.event.hasAttachment || context.event.isLikeSticker
-                || context.event.isFile || context.event.isVideo || context.event.isAudio
-                || context.event.isImage || context.event.isFallback) {
+        || context.event.isFile || context.event.isVideo || context.event.isAudio
+        || context.event.isImage || context.event.isFallback) {
 				await context.sendImage(flow.greetings.likeImage);
 				await context.setState({ dialog: 'mainMenu' });
 			}
@@ -330,7 +330,7 @@ module.exports = async (context) => {
 					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 				} else { // Pelo que me lembro
 					await context.sendText(`${flow.whichCCS.remember} ${await help.getRememberComplement(context.state.CCS)} `
-					+ `${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
+              + `${flow.whichCCS.remember2} ${context.state.CCS.ccs}.`);
 					await context.sendText(flow.foundLocation.secondMessage, await attach.getQR(flow.whichCCSMenu));
 				}
 				break;
@@ -368,7 +368,7 @@ module.exports = async (context) => {
 					await context.sendText('Legal. Agora digite o *bairro* da cidade Rio de Janeiro.');
 				} else {
 					await context.sendText('Legal. Agora digite o *bairro* da cidade Rio de Janeiro. '
-				+ `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ')} e outros.`);
+              + `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ')} e outros.`);
 				}
 				break;
 			case 'municipioNotFound':
@@ -378,11 +378,11 @@ module.exports = async (context) => {
 				await context.setState({ sugestaoBairro: await help.listBairros(context.state.municipiosFound) }); // getting a new set of random bairros
 				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) { // check if we have random bairros to list
 					await context.sendText('Não consegui encontrar esse bairro da cidade Rio de Janeiro. '
-						+ 'Vamos tentar de novo? Digite o *bairro* que deseja.', await attach.getQR(flow.notFoundBairro));
+              + 'Vamos tentar de novo? Digite o *bairro* que deseja.', await attach.getQR(flow.notFoundBairro));
 				} else {
 					await context.sendText(
 						'Não consegui encontrar esse bairro da cidade Rio de Janeiro.\nQuer tentar de novo? '
-						+ `Digite o *bairro* que deseja. Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ')} e outros.`,
+              + `Digite o *bairro* que deseja. Exemplos de alguns bairros nessa cidade: ${context.state.sugestaoBairro.join(', ')} e outros.`,
 						await attach.getQR(flow.notFoundBairro),
 					);
 				}
@@ -406,10 +406,10 @@ module.exports = async (context) => {
 				}); // get other bairros on this ccs
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
 					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
-						+ `${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
+              + `${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
 				} else if (context.state.otherBairros.length > 1) { // if there's more than one bairro we must list them appropriately
 					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
-						+ `${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
+              + `${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
 					await context.sendText(
@@ -422,16 +422,13 @@ module.exports = async (context) => {
 							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 						}
 					}
-				} else {
+				} else if (context.state.asked === 'abcTest') {
+					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+					// await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
+				} else { // ask user if he already went to one of the meetings
+					// await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}
-
-				// } else if (context.state.asked === true) {
-				// 	await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
-				// } else { // ask user if he already went to one of the meetings
-				// 	// await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
-				// 	await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
-				// }
 				break;
 			case 'wentAlready':
 				await context.sendText(flow.wentAlready.firstMessage);
@@ -493,7 +490,7 @@ module.exports = async (context) => {
 						await context.typingOff();
 					} else { // last reunion already happened
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia '
-							+ `${help.formatDateDay(context.state.agenda.data)}.`);
+                + `${help.formatDateDay(context.state.agenda.data)}.`);
 						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
 							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
 							// before adding the user+ccs on the table we check if it's already there
@@ -528,14 +525,14 @@ module.exports = async (context) => {
 				await context.setState({ results: await db.getResults(context.state.CCS.id) });
 				// if we don't have any results or if result is not a valid url we send this default message
 				if (!context.state.results || context.state.results === null
-					|| context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
+            || context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
 					if (context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length < 2000) {
 						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
 					}
 					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
-						+ 'no arquivo que você pode baixar clicando abaixo. 👇');
+              + 'no arquivo que você pode baixar clicando abaixo. 👇');
 					// await context.sendFile(context.state.results.link_download);
 					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
 				}
@@ -622,7 +619,7 @@ module.exports = async (context) => {
 							}
 						} else { // not in rio
 							await context.sendText('Parece que você não se encontra no Rio de Janeiro. Nossos conselhos de segurança atuam apenas no Estado do Rio de Janeiro. '
-							+ 'Por favor, entre com outra localização ou digite sua região.', await attach.getQRLocation(flow.geoMenu));
+                  + 'Por favor, entre com outra localização ou digite sua região.', await attach.getQRLocation(flow.geoMenu));
 						}
 					} else { // unexpected response from googlemaps api
 						await context.sendText(flow.foundLocation.noFindGeo);
@@ -635,11 +632,12 @@ module.exports = async (context) => {
 					throw error;
 				}
 				// });
-				break; }
+				break;
+			}
 			case 'notFoundFromGeo':
 				await context.sendText(
 					'Não encontrei nenhum conselho no local em questão. '
-					+ 'Quer tentar novamente?',
+            + 'Quer tentar novamente?',
 					await attach.getQRLocation(flow.geoMenu),
 				);
 				break;
@@ -651,15 +649,15 @@ module.exports = async (context) => {
 			case 'warnCalendar':
 				await context.setState({ cameFromBroadcast: '' });
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que visualizaram a agenda de um conselho.'
-					+ '\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
+            + '\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
 			case 'adminConfirm':
 				await context.setState({ broadcastAgenda: await db.getAgenda(context.state.broadcastNumber) });
 				if (context.state.broadcastAgenda) { // check if we have an agenda for this CCS
 					if (context.state.broadcastAgenda.data && context.state.broadcastAgenda.data !== ''
-					&& context.state.broadcastAgenda.endereco && context.state.broadcastAgenda.endereco !== '') {
+              && context.state.broadcastAgenda.endereco && context.state.broadcastAgenda.endereco !== '') {
 						await context.sendText(`Temos uma reunião marcada nesse CCS em *${help.formatDate(context.state.broadcastAgenda.data)}* `
-						+ `em *${context.state.broadcastAgenda.endereco}*.`);
+                + `em *${context.state.broadcastAgenda.endereco}*.`);
 					} else { // check if the values have been updated on the database already
 						await context.sendText(`Temos uma reunião marcada nesse CCS que parece ter sido cancelada em ${help.formatDate(context.state.broadcastAgenda.updated_at)}`);
 					}
@@ -678,13 +676,13 @@ module.exports = async (context) => {
 				} else if (context.state.notification_agenda.length === 0) { // no user will be notified if there's zero notification_agenda
 					await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '' }); // eslint-disable-line object-curly-newline
 					await context.sendText('Não encontrei nenhuma notificação para essa agenda! Isso quer dizer que desde que a reunião foi '
-					+ 'marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.agendaConfirm2));
+              + 'marcada ninguém pesquisou por ela. Que pena!', await attach.getQR(flow.agendaConfirm2));
 				} else if (context.state.notification_agenda.length === 1) {
 					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada apenas para ${context.state.notification_agenda.length} usuário. `
-						+ 'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
+              + 'Antes de envia-la, iremos mostrar como ela ficou e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
 				} else {
 					await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para ${context.state.notification_agenda.length} usuários. `
-						+ 'Antes de envia-la, iremos mostrar como ficou a mensagem e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
+              + 'Antes de envia-la, iremos mostrar como ficou a mensagem e confirmar seu envio.', await attach.getQR(flow.agendaConfirm2));
 				}
 				break;
 			case 'agendaConfirmText':
@@ -694,7 +692,7 @@ module.exports = async (context) => {
 				break;
 			case 'broadcast':
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que se vincularam a um conselho.'
-				+ '\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
+            + '\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
 			case 'writeMessage':
 				await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para todos os usuários que visualizaram o CCS ${context.state.broadcastNumber}.`);
@@ -713,11 +711,12 @@ module.exports = async (context) => {
 					await context.sendText(`Ocorreu um erro na hora de enviar! Avise nossos desenvolvedores => ${result.message}`, await attach.getQR(flow.broadcastSent));
 				}
 				await context.setState({ dialog: '', notification_agenda: '', broadcastAgenda: '', broadcastNumber: '', CCSBroadcast: '', cameFromBroadcast: '' }); // eslint-disable-line object-curly-newline
-				break; }
+				break;
+			}
 			case 'metrics':
 				await context.sendText(
 					'Insira o id do broadcast que você deseja. Exemplo: 332286104187677. Esse id é dado depois que você envia um broadcast. '
-					+ '(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
+            + '(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
 					await attach.getQR(flow.metrics),
 				);
 				break;
@@ -726,13 +725,13 @@ module.exports = async (context) => {
 				if (await help.dissociateLabelsFromUser(context.session.user.id)) { // remove every label from user
 					await help.addUserToBlackList(context.session.user.id); // add user to the 'blacklist'
 					await context.sendText('Você quem manda. Não estarei mais te enviando nenhuma notificação. Se quiser voltar a receber nossas novidades, '
-						+ 'clique na opção "Ativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
+              + 'clique na opção "Ativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
 				}
 				break;
 			case 'enableNotifications':
 				if (await help.removeUserFromBlackList(context.session.user.id)) { // remove blacklist label from user
 					await context.sendText('Legal! Estarei te interando das novidades! Se quiser parar de receber nossas novidades, '
-					+ 'clique na opção "Desativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
+              + 'clique na opção "Desativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
 				}
 				break;
 			} // dialog switch
