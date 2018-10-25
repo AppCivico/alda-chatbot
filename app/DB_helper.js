@@ -157,22 +157,34 @@ module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
 	return result[0].ccs;
 };
 
-module.exports.getDiretoria = async function getDiretoria(CCS_ID) {
+async function getDiretoria(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT nome, cargo, fim_gestao
 	FROM diretorias
-	WHERE conselho_id = ${CCS_ID}
-	ORDER BY inicio_gestao DESC, nome
-	LIMIT 10;
-	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+	WHERE conselho_id = ${CCS_ID} AND cargo IN ('Presidente (a)', 'Vice-Presidente (a)', 'Diretor de Assuntos Sociais e Comunitários', 
+	'1° Secretário (a)', '2° Secretário (a)', 'Comissão De Ética 1', 'Comissão De Ética 2', 'Comissão De Ética 3')
+ORDER BY
+   CASE cargo
+      WHEN 'Presidente (a)' THEN 1
+      WHEN 'Vice-Presidente (a)' THEN 2
+      WHEN '1° Secretário (a)' THEN 3
+      WHEN '2° Secretário (a)' THEN 4
+	  WHEN 'Diretor de Assuntos Sociais e Comunitários' THEN 5
+	  WHEN 'Comissão De Ética 1' THEN 6
+      WHEN 'Comissão De Ética 2' THEN 7
+      WHEN 'Comissão De Ética 3' THEN 8
+      ELSE 9
+   END, id
+   LIMIT 10;
+   `).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded Diretoria from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getDiretoria => ', err);
 	});
 	return result;
-};
-
+}
+module.exports.getDiretoria = getDiretoria;
 
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
