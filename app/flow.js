@@ -191,7 +191,7 @@ module.exports = {
 	},
 	followMedia: {
 		firstMessage: 'Curta a minha página! Sempre tem novidades por aqui!',
-		title: 'Alda do ITS no Facebook',
+		title: 'Alda dos CCS no Facebook',
 		sub: 'Junte-se a nós! 🤖',
 		link: 'https://www.facebook.com/aldaChatbot/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
