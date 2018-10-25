@@ -121,7 +121,7 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'join' });
+					await context.setState({ dialog: 'wannaKnowMembers' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -462,13 +462,24 @@ module.exports = async (context) => {
 				});
 				if (Object.keys(context.state.diretoriaAtual).length > 0) { // if there's at least one active member today we show the members(s)
 					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
-					await attach.sendCarousel(context, context.state.diretoriaAtual);
+					await attach.sendCarouselDiretoria(context, context.state.diretoriaAtual);
 				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
 					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
-					await attach.sendCarousel(context, context.state.diretoria);
+					await attach.sendCarouselDiretoria(context, context.state.diretoria);
 				}
 				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
-				await context.sendText(flow.wannaKnowMembers.secondMessage);
+
+				console.log('CCS: ----->');
+
+				console.log(context.state.CCS);
+
+				if (context.state.CCS.abrangencia_id) {
+					await context.sendText(flow.wannaKnowMembers.secondMessage);
+					await context.setState({ membrosNatos: await db.getMembrosNatos(context.state.CCS.abrangencia_id) });
+					await attach.sendCarouselMembrosNatos(context, context.state.membrosNatos);
+				}
+
+				await context.sendText(flow.wannaKnowMembers.thirdMessage);
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Diretoria');
 				// falls through
 			case 'councilMenu':
