@@ -114,7 +114,9 @@ module.exports = {
 	},
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
-		secondMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
+		secondMessage: 'Além desses membros, moradores eleitos para essas funções, fazem parte da diretoria de cada Conselho os chamados membros natos: ' +
+		'o Comandante do Batalhão de Polícia Militar da área e o Delegado Titular da Delegacia de Polícia Civil mais próxima.',
+		thirdMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
 		firstMessage: 'Escolha uma das opções:',

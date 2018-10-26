@@ -18,6 +18,8 @@ const { moment } = require('./helpers');
     user_name text NOT NULL,
 	ccs_id INT,
 	went_before BOOLEAN,
+	e_mail TEXT,
+	phone TEXT,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);
@@ -94,6 +96,7 @@ async function updateCcsChatbotUser(UserID, UserName, ccsID) {
 		console.error('Error on addChatbotUser => ', err);
 	});
 }
+
 async function updateCcsChatbotUserNoCCS(UserID, UserName) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
@@ -109,7 +112,6 @@ async function updateCcsChatbotUserNoCCS(UserID, UserName) {
 	});
 }
 
-
 module.exports.updateWentBeforeChatbotUser = async (UserID, wentBefore) => {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
@@ -124,6 +126,32 @@ module.exports.updateWentBeforeChatbotUser = async (UserID, wentBefore) => {
 	});
 };
 
+async function updateMailChatbotUserNoCCS(UserID, eMail) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	await sequelize.query(`
+    UPDATE chatbot_users
+	SET e_mail = '${eMail}', updated_at = '${date}'
+	WHERE user_id = ${UserID};
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Updated CCS on ${UserID} successfully!`);
+	}).catch((err) => {
+		console.error('Error on addChatbotUser => ', err);
+	});
+}
+async function updatePhoneChatbotUserNoCCS(UserID, phone) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	await sequelize.query(`
+    UPDATE chatbot_users
+	SET phone = '${phone}', updated_at = '${date}'
+	WHERE user_id = ${UserID};
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Updated CCS on ${UserID} successfully!`);
+	}).catch((err) => {
+		console.error('Error on addChatbotUser => ', err);
+	});
+}
 
 async function userAddOrUpdate(context) {
 	let CCSID;
@@ -144,4 +172,6 @@ module.exports.checkChatbotUser = checkChatbotUser;
 module.exports.addChatbotUser = addChatbotUser;
 module.exports.updateCcsChatbotUser = updateCcsChatbotUser;
 module.exports.userAddOrUpdate = userAddOrUpdate;
+module.exports.updateMailChatbotUserNoCCS = updateMailChatbotUserNoCCS;
+module.exports.updatePhoneChatbotUserNoCCS = updatePhoneChatbotUserNoCCS;
 

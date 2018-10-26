@@ -35,7 +35,7 @@ module.exports.sequelize = sequelize;
 async function getCCSsFromMunicipio(Municipio) {
 	let indexRemove;
 	let result = await sequelize.query(`
-	SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
+	SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao, LOCATION.id as abrangencia_id
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
 	WHERE UNACCENT(LOWER(LOCATION.municipio)) LIKE '%' || '${Municipio}' || '%'
@@ -67,7 +67,7 @@ module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
 // get ccs using bairro
 async function getCCSsFromBairro(Bairro) {
 	let result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao, LOCATION.id as abrangencia_id
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
 	WHERE UNACCENT(LOWER(LOCATION.regiao)) LIKE '%' || '${Bairro}' || '%' OR UNACCENT(LOWER(LOCATION.bairro)) LIKE '%' || '${Bairro}' || '%'
@@ -94,7 +94,7 @@ module.exports.getCCSsFromBairro = getCCSsFromBairro;
 // get ccs using bairro
 async function getCCSsFromBairroExact(Bairro) {
 	let result = await sequelize.query(`
-    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao, LOCATION.id as abrangencia_id
 	FROM conselhos CCS
 	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
 	WHERE UNACCENT(LOWER(LOCATION.bairro)) = '${Bairro}'
@@ -185,6 +185,25 @@ ORDER BY
 	return result;
 }
 module.exports.getDiretoria = getDiretoria;
+
+async function getMembrosNatos(AbrangenciaID) {
+	const result = await sequelize.query(`
+  SELECT MEMBROS.cmd_bpm, MEMBROS.delegado
+	FROM membros_natos MEMBROS
+	INNER JOIN abrangencias LOCATION ON MEMBROS.id = LOCATION.membronato_id
+	WHERE LOCATION.id = '${AbrangenciaID}';
+   `).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Loaded membros natos from abrangencia ${AbrangenciaID} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getMembrosNatos => ', err);
+	});
+
+	// console.log(result);
+
+	return result;
+}
+module.exports.getMembrosNatos = getMembrosNatos;
 
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`

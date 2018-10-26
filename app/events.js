@@ -1,12 +1,12 @@
 const request = require('request');
 
-async function addCustomAction(recipientId) {
+async function addCustomAction(recipientId, eventName) {
 	request.post({
 		url: `https://graph.facebook.com/${process.env.APP_ID}/activities`,
 		form: {
 			event: 'CUSTOM_APP_EVENTS',
 			custom_events: JSON.stringify([{
-				_eventName: 'user_started',
+				_eventName: eventName,
 			}]),
 			advertiser_tracking_enabled: 0,
 			application_tracking_enabled: 0,

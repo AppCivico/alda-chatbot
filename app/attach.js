@@ -2,7 +2,30 @@
 // context is the context from bot.onEvent
 // links is the object from flow.js from the respective dialog
 
-module.exports.sendCarousel = async (context, items) => {
+const { capitalizeWords } = require('./helpers');
+
+module.exports.sendCarouselMembrosNatos = async (context, items) => {
+	const elements = [];
+	items.forEach(async (element) => {
+		elements.push({
+			title: capitalizeWords(element.cmd_bpm),
+			subtitle: 'Comandante do Batalhão de Polícia Militar',
+		});
+		elements.push({
+			title: element.delegado,
+			subtitle: 'Delegado Titular da Delegacia de Polícia Civil',
+		});
+	});
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+module.exports.sendCarouselDiretoria = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {
