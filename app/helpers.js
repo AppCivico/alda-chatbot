@@ -27,6 +27,8 @@ module.exports.dateComparison = function formatDateDay(date) {
 	return `${moment(date).format('YYYY-MM-DD')}`;
 };
 
+module.exports.capitalizeWords = str => str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+
 // find every object on municipios array with the same bairro (remove duplicated bairros)
 module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];

@@ -19,10 +19,17 @@ const mailRegex = new RegExp(/\S+@\S+/);
 
 const timeLimit = 1000 * 60 * 60 * 24 * 3; // 60 minutes * 24 hours  * 3 days => 1000 * 60 * 60 * 24 * 3
 
-// context.state.geoLocation => the geolocation coordinates from the user
-// context.state.bairro => bairro found with GoogleMaps API or that the user typed
-// context.state.otherBairros => bairros that also belong on same CCS
-// context.state.CCS => object that stores the current CCS user belongs to (check CCS.Bairros.push() above)
+async function sendCouncilMenu(context) {
+	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
+		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+	} else { // "Escolha uma das opções"
+		await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+		await metric.userAddOrUpdate(context);
+	}
+	await context.typingOff();
+	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
+}
+
 
 module.exports = async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
@@ -467,31 +474,27 @@ module.exports = async (context) => {
 					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
 					await attach.sendCarouselDiretoria(context, context.state.diretoria);
 				}
-				await context.setState({ diretoria: '', diretoriaAtual: '' }); // cleaning up
-
-				console.log('CCS: ----->');
-
-				console.log(context.state.CCS);
-
-				if (context.state.CCS.abrangencia_id) {
-					await context.sendText(flow.wannaKnowMembers.secondMessage);
-					await context.setState({ membrosNatos: await db.getMembrosNatos(context.state.CCS.abrangencia_id) });
-					await attach.sendCarouselMembrosNatos(context, context.state.membrosNatos);
-				}
-
-				await context.sendText(flow.wannaKnowMembers.thirdMessage);
+				await context.setState({ diretoria: '', diretoriaAtual: '', mapsResults: '' }); // cleaning up
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Diretoria');
-				// falls through
+
+				if (context.state.CCS.abrangencia_id) { // checking if ccs has the correct id to find the membros_natos
+					await context.setState({ membrosNatos: await db.getMembrosNatos(context.state.CCS.abrangencia_id) });
+					if (context.state.membrosNatos && context.state.membrosNatos.length !== 0) { // check if there was any results
+						await setTimeout(async (membrosNatos) => {
+							await context.sendText(flow.wannaKnowMembers.secondMessage);
+							await attach.sendCarouselMembrosNatos(context, membrosNatos);
+							await context.sendText(flow.wannaKnowMembers.thirdMessage);
+							await sendCouncilMenu(context);
+						}, 5000, context.state.membrosNatos);
+						await context.setState({ membrosNatos: '' }); // cleaning up
+					}
+				} else {
+					await sendCouncilMenu(context);
+				}
+				break;
 			case 'councilMenu':
 				await context.setState({ mapsResults: '' });
-				if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
-					await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-				} else { // "Escolha uma das opções"
-					await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
-					await metric.userAddOrUpdate(context);
-				}
-				await context.typingOff();
-				await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
+				await sendCouncilMenu(context);
 				break;
 			case 'mainMenu':
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
@@ -791,3 +794,4 @@ module.exports = async (context) => {
 		// });
 	} // echo delivery
 };
+

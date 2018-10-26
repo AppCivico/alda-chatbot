@@ -199,12 +199,11 @@ async function getMembrosNatos(AbrangenciaID) {
 		console.error('Error on getMembrosNatos => ', err);
 	});
 
-	console.log(result);
+	// console.log(result);
 
 	return result;
 }
 module.exports.getMembrosNatos = getMembrosNatos;
-getMembrosNatos(194);
 
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
