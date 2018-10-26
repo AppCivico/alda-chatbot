@@ -298,6 +298,7 @@ module.exports = async (context) => {
                 + '\nPosso te pedir um favor? Me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️ '
                 + '\nSe quiser voltar para onde estava, clique em \'Voltar.\'', await attach.getErrorQR(flow.error, context.state.lastDialog));
 						await context.setState({ dialog: '' });
+						await events.addCustomAction(context.session.user.id, 'Texto nao interpretado');
 						// await context.setState({ dialog: 'errorText' });
 						break;
 					}
@@ -770,13 +771,15 @@ module.exports = async (context) => {
 				if (await help.dissociateLabelsFromUser(context.session.user.id)) { // remove every label from user
 					await help.addUserToBlackList(context.session.user.id); // add user to the 'blacklist'
 					await context.sendText('Você quem manda. Não estarei mais te enviando nenhuma notificação. Se quiser voltar a receber nossas novidades, '
-              + 'clique na opção "Ativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
+				+ 'clique na opção "Ativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
+					await events.addCustomAction(context.session.user.id, 'Usuario desliga notificacoes');
 				}
 				break;
 			case 'enableNotifications':
 				if (await help.removeUserFromBlackList(context.session.user.id)) { // remove blacklist label from user
 					await context.sendText('Legal! Estarei te interando das novidades! Se quiser parar de receber nossas novidades, '
-              + 'clique na opção "Desativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
+					+ 'clique na opção "Desativar Notificações" no menu abaixo. ⬇️', await attach.getQR(flow.notificationDisable));
+					await events.addCustomAction(context.session.user.id, 'Usuario liga notificacoes');
 				}
 				break;
 			} // dialog switch
