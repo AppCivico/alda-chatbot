@@ -478,6 +478,7 @@ module.exports = async (context) => {
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Diretoria');
 
 				if (context.state.CCS.abrangencia_id) { // checking if ccs has the correct id to find the membros_natos
+					await context.typingOn();
 					await context.setState({ membrosNatos: await db.getMembrosNatos(context.state.CCS.abrangencia_id) });
 					if (context.state.membrosNatos && context.state.membrosNatos.length !== 0) { // check if there was any results
 						await setTimeout(async (membrosNatos) => {
@@ -485,6 +486,7 @@ module.exports = async (context) => {
 							await attach.sendCarouselMembrosNatos(context, membrosNatos);
 							await context.sendText(flow.wannaKnowMembers.thirdMessage);
 							await sendCouncilMenu(context);
+							await context.typingOff();
 						}, 5000, context.state.membrosNatos);
 						await context.setState({ membrosNatos: '' }); // cleaning up
 					}
