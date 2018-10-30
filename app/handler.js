@@ -478,9 +478,15 @@ module.exports = async (context) => {
 				await context.setState({ diretoria: '', diretoriaAtual: '', mapsResults: '' }); // cleaning up
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Diretoria');
 
-				if (context.state.CCS.abrangencia_id) { // checking if ccs has the correct id to find the membros_natos
+				// checking if user has either searchedBairro or searcherCity to find the membros_natos
+				if ((context.state.CCS.bairro && context.state.CCS.bairro.length > 0) || (context.state.CCS.municipio && context.state.CCS.municipio.length > 0)) {
 					await context.typingOn();
-					await context.setState({ membrosNatos: await db.getMembrosNatos(context.state.CCS.abrangencia_id) });
+					if (context.state.CCS.bairro && context.state.CCS.bairro.length > 0) {
+						await context.setState({ membrosNatos: await db.getMembrosNatosBairro(context.state.CCS.bairro, context.state.CCS.id) });
+					} else if ((context.state.CCS.municipio && context.state.CCS.municipio.length > 0)) {
+						await context.setState({ membrosNatos: await db.getMembrosNatosMunicipio(context.state.CCS.municipio, context.state.CCS.id) });
+					}
+
 					if (context.state.membrosNatos && context.state.membrosNatos.length !== 0) { // check if there was any results
 						await setTimeout(async (membrosNatos) => {
 							await context.sendText(flow.wannaKnowMembers.secondMessage);
@@ -490,8 +496,10 @@ module.exports = async (context) => {
 							await context.typingOff();
 						}, 5000, context.state.membrosNatos);
 						await context.setState({ membrosNatos: '' }); // cleaning up
+					} else { // no membrosNatos
+						await sendCouncilMenu(context);
 					}
-				} else {
+				} else { // no searchedBairro or searchedCity
 					await sendCouncilMenu(context);
 				}
 				break;
