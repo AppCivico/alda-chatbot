@@ -186,24 +186,39 @@ ORDER BY
 }
 module.exports.getDiretoria = getDiretoria;
 
-async function getMembrosNatos(AbrangenciaID) {
+async function getMembrosNatosBairro(bairro, ccsID) {
 	const result = await sequelize.query(`
   SELECT MEMBROS.cmd_bpm, MEMBROS.delegado
 	FROM membros_natos MEMBROS
 	INNER JOIN abrangencias LOCATION ON MEMBROS.id = LOCATION.membronato_id
-	WHERE LOCATION.id = '${AbrangenciaID}';
-   `).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Loaded membros natos from abrangencia ${AbrangenciaID} successfully!`);
+	WHERE LOCATION.bairro = '${bairro}' AND LOCATION.conselho_id = '${ccsID}';
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Loaded membros natos from abrangencia ${bairro} successfully!`);
 		return results;
 	}).catch((err) => {
-		console.error('Error on getMembrosNatos => ', err);
+		console.error('Error on getMembrosNatosBairro => ', err);
 	});
-
-	// console.log(result);
 
 	return result;
 }
-module.exports.getMembrosNatos = getMembrosNatos;
+module.exports.getMembrosNatosBairro = getMembrosNatosBairro;
+
+async function getMembrosNatosMunicipio(bairro, ccsID) {
+	const result = await sequelize.query(`
+  SELECT MEMBROS.cmd_bpm, MEMBROS.delegado
+	FROM membros_natos MEMBROS
+	INNER JOIN abrangencias LOCATION ON MEMBROS.id = LOCATION.membronato_id
+	WHERE LOCATION.municipio = '${bairro}' AND LOCATION.conselho_id = '${ccsID}';
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Loaded membros natos from abrangencia ${bairro} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getMembrosNatosMunicipio => ', err);
+	});
+
+	return result;
+}
+module.exports.getMembrosNatosMunicipio = getMembrosNatosMunicipio;
 
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`

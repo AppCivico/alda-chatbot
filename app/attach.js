@@ -6,11 +6,21 @@ const { capitalizeWords } = require('./helpers');
 
 module.exports.sendCarouselMembrosNatos = async (context, items) => {
 	const elements = [];
+	let firstCMD;
+
+	// regular case: each bairro has only 1 set of membros natos associated with it
+	// special case: some bairros have more than one set of membros natos associated with it.
+	// Meaning, the same cmd_bpm for different delegados. The special case bairros are listed below:
+	// 3 Centro, 2 Tanque, 2 Tijuca, 2 Água Santa, 2 Oswaldo Cruz, 2 Engenho de Dentro, 2 Brás de Pina, 2 Penha Circular, 2 Todos os Santos, 2 Colégio, 2 Copacabana
+
 	items.forEach(async (element) => {
-		elements.push({
-			title: capitalizeWords(element.cmd_bpm),
-			subtitle: 'Comandante do Batalhão de Polícia Militar',
-		});
+		if (!firstCMD || firstCMD !== element.cmd_bpm) { // check if colonel is different
+			elements.push({
+				title: capitalizeWords(element.cmd_bpm),
+				subtitle: 'Comandante do Batalhão de Polícia Militar',
+			});
+			firstCMD = element.cmd_bpm;
+		}
 		elements.push({
 			title: element.delegado,
 			subtitle: 'Delegado Titular da Delegacia de Polícia Civil',
