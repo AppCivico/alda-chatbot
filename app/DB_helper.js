@@ -242,8 +242,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 module.exports.getAgenda = getAgenda;
 
 module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
-	console.log('CCS_ID', CCS_ID);
-
+	// uses CCS_ID to get the newest agenda, with this agenda we get the subject_id that were discuted and with these is we get the text
 	const result = await sequelize.query(`
 	SELECT ASSUNTO.assunto
 	FROM assuntos ASSUNTO
@@ -268,8 +267,6 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	}).catch((err) => {
 		console.error('Error on getAssuntos => ', err);
 	});
-	console.log(result);
-
 	return result;
 };
 
