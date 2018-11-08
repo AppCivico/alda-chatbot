@@ -257,7 +257,6 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded assuntos from ${CCS_ID} successfully!`);
 		const assuntos = [];
-
 		if (results && results.length > 0) {
 			results.forEach((element) => {
 				assuntos.push(element.assunto.toLowerCase());
@@ -272,7 +271,7 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 
 async function getResults(CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data
+	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data, RESULTADO.id
 	FROM resultados RESULTADO
 	INNER JOIN agendas AGENDAS ON RESULTADO.agenda_id = AGENDAS.id
 	WHERE AGENDAS.conselho_id = '${CCS_ID}'
@@ -292,6 +291,36 @@ async function getResults(CCS_ID) {
 }
 
 module.exports.getResults = getResults;
+
+async function getResultsAssuntos(resultsID) {
+	const result = await sequelize.query(`
+	SELECT ASSUNTO.assunto
+	FROM assuntos ASSUNTO
+	WHERE ASSUNTO.id = ANY (
+		SELECT AGENDA_RESULTADO.assunto_id
+		FROM assunto_resultado AGENDA_RESULTADO
+		WHERE AGENDA_RESULTADO.resultado_id = '${resultsID}'
+		);
+		`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Loaded last assuntos dos resultados from ${resultsID} successfully!`);
+		const assuntos = [];
+		if (results && results.length > 0) {
+			results.forEach((element) => {
+				assuntos.push(element.assunto.toLowerCase());
+			});
+		}
+		return assuntos;
+	}).catch((err) => {
+		console.error('Error on getResults => ', err);
+	});
+	console.log('Resultados');
+
+	console.log(result);
+
+	return result;
+}
+
+module.exports.getResultsAssuntos = getResultsAssuntos;
 
 // notificar_ativacao -------------------------------------------------------------------------------
 

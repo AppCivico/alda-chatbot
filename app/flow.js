@@ -153,6 +153,7 @@ module.exports = {
 			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
+		assuntos: 'Os assuntos que discutimos nessa última reunião foram: ',
 
 	},
 	mainMenu: {
