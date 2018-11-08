@@ -115,7 +115,7 @@ module.exports = {
 	wannaKnowMembers: {
 		firstMessage: 'Legal! Vou te mostrar quem faz parte do Conselho',
 		secondMessage: 'Além desses membros, moradores eleitos para essas funções, fazem parte da diretoria de cada Conselho os chamados membros natos: ' +
-		'o Comandante do Batalhão de Polícia Militar da área e o Delegado Titular da Delegacia de Polícia Civil mais próxima.',
+			'o Comandante do Batalhão de Polícia Militar da área e o Delegado Titular da Delegacia de Polícia Civil mais próxima.',
 		thirdMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
 	},
 	councilMenu: {
@@ -138,7 +138,7 @@ module.exports = {
 		link: 'http://www.africau.edu/images/default/sample.pdf',
 		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
 			' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
-		emptyAssuntos: 'Esse CCS ainda não produz ata no modelo/formato “Ata Eletrônica”',
+		emptyAssuntos: 'Esse CCS ainda não disponibilizou os assuntos discutidos na última reunião.',
 		// menu --
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
 		menuPostback: ['calendar', 'results', 'join'],
@@ -153,6 +153,7 @@ module.exports = {
 			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
+		assuntos: 'Os assuntos que discutimos nessa última reunião foram: ',
 
 	},
 	mainMenu: {

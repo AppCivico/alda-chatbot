@@ -128,7 +128,7 @@ module.exports = async (context) => {
 				if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'wannaKnowMembers' });
+					await context.setState({ dialog: 'results' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -556,7 +556,7 @@ module.exports = async (context) => {
 				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
 				if (context.state.assuntos.length === 0) {
 					await context.sendText(flow.subjects.emptyAssuntos);
-				} else { // TODO This will be updated to receive a link to a PDF
+				} else {
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
@@ -572,12 +572,15 @@ module.exports = async (context) => {
             || context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
+					await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
+					if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
+						await context.sendText(`${flow.results.assuntos} \n- ${context.state.assuntos2.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					}
 					if (context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length < 2000) {
 						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
 					}
 					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
               + 'no arquivo que você pode baixar clicando abaixo. 👇');
-					// await context.sendFile(context.state.results.link_download);
 					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
 				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));

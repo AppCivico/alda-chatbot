@@ -54,7 +54,7 @@ async function getCCSsFromMunicipio(Municipio) {
 	}).catch((err) => {
 		console.error('Error on getCCSsFromMunicipio => ', err);
 	});
-	if (indexRemove) { await result.splice(indexRemove, 1);	} // removing that empty bairro
+	if (indexRemove) { await result.splice(indexRemove, 1); } // removing that empty bairro
 	// filtering out entries with repeated municipio and id, except on municipio rio de janeiro because of colegio and centro
 	if (result && result[0] && result[0].municipio.toLowerCase() !== 'rio de janeiro') {
 		result = result.filter((thing, index, self) => self.findIndex(t => t.municipio === thing.municipio && t.id === thing.id) === index);
@@ -224,7 +224,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
 	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
-	WHERE conselho_id = ${CCS_ID}
+	WHERE conselho_id = '${CCS_ID}'
 	ORDER BY data DESC, hora DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -242,16 +242,26 @@ async function getAgenda(CCS_ID) { // also known as calendário
 module.exports.getAgenda = getAgenda;
 
 module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
+	// uses CCS_ID to get the newest agenda, with this agenda we get the subject_id that were discuted and with these is we get the text
 	const result = await sequelize.query(`
-	SELECT DISTINCT assunto
-	FROM assuntos
-	WHERE conselho_id = ${CCS_ID} AND ano = 2017;
+	SELECT ASSUNTO.assunto
+	FROM assuntos ASSUNTO
+	WHERE ASSUNTO.id = ANY (
+		SELECT AGENDA_ASSUNTO.assunto_id
+		FROM assunto_agenda AGENDA_ASSUNTO
+		WHERE AGENDA_ASSUNTO.agenda_id = (
+			SELECT id FROM agendas AGENDA
+			WHERE AGENDA.conselho_id = '${CCS_ID}'
+			ORDER BY AGENDA.data DESC, AGENDA.hora
+			DESC limit 1));
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		const assuntos = [];
-		results.forEach((element) => {
-			assuntos.push(element.assunto.toLowerCase());
-		});
 		console.log(`Loaded assuntos from ${CCS_ID} successfully!`);
+		const assuntos = [];
+		if (results && results.length > 0) {
+			results.forEach((element) => {
+				assuntos.push(element.assunto.toLowerCase());
+			});
+		}
 		return assuntos;
 	}).catch((err) => {
 		console.error('Error on getAssuntos => ', err);
@@ -259,16 +269,16 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	return result;
 };
 
-async function getResults(conselhoID) {
+async function getResults(CCS_ID) {
 	const result = await sequelize.query(`
-	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data
+	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data, RESULTADO.id
 	FROM resultados RESULTADO
 	INNER JOIN agendas AGENDAS ON RESULTADO.agenda_id = AGENDAS.id
-	WHERE AGENDAS.conselho_id = '${conselhoID}'
+	WHERE AGENDAS.conselho_id = '${CCS_ID}'
 	ORDER BY AGENDAS.updated_at DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Loaded last resultados from ${conselhoID} successfully!`);
+		console.log(`Loaded last resultados from ${CCS_ID} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getResults => ', err);
@@ -281,6 +291,36 @@ async function getResults(conselhoID) {
 }
 
 module.exports.getResults = getResults;
+
+async function getResultsAssuntos(resultsID) {
+	const result = await sequelize.query(`
+	SELECT ASSUNTO.assunto
+	FROM assuntos ASSUNTO
+	WHERE ASSUNTO.id = ANY (
+		SELECT AGENDA_RESULTADO.assunto_id
+		FROM assunto_resultado AGENDA_RESULTADO
+		WHERE AGENDA_RESULTADO.resultado_id = '${resultsID}'
+		);
+		`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`Loaded last assuntos dos resultados from ${resultsID} successfully!`);
+		const assuntos = [];
+		if (results && results.length > 0) {
+			results.forEach((element) => {
+				assuntos.push(element.assunto.toLowerCase());
+			});
+		}
+		return assuntos;
+	}).catch((err) => {
+		console.error('Error on getResults => ', err);
+	});
+	console.log('Resultados');
+
+	console.log(result);
+
+	return result;
+}
+
+module.exports.getResultsAssuntos = getResultsAssuntos;
 
 // notificar_ativacao -------------------------------------------------------------------------------
 
