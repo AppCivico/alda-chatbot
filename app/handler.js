@@ -30,6 +30,15 @@ async function sendCouncilMenu(context) {
 	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
 }
 
+async function sendGreetings(context) {
+	await context.typingOn();
+	await context.sendImage(flow.greetings.greetImage);
+	await context.sendText(flow.greetings.welcome);
+	await context.typingOff();
+	await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
+	await metric.userAddOrUpdate(context);
+	await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
+}
 
 module.exports = async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
@@ -125,7 +134,9 @@ module.exports = async (context) => {
 					break;
 				}
 			} else if (context.event.isText) {
-				if (context.event.message.text === process.env.RESTART) { // for quick testing
+				if (!context.state.dialog) { // in case a user manages to send a text message without starting the dialog properly
+					await context.setState({ dialog: 'greetings' });
+				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
 					await context.setState({ dialog: 'results' });
@@ -315,13 +326,7 @@ module.exports = async (context) => {
 			}
 			switch (context.state.dialog) {
 			case 'greetings':
-				await context.typingOn();
-				await context.sendImage(flow.greetings.greetImage);
-				await context.sendText(flow.greetings.welcome);
-				await context.typingOff();
-				await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
-				await metric.userAddOrUpdate(context);
-				await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
+				await sendGreetings(context);
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
@@ -572,10 +577,10 @@ module.exports = async (context) => {
             || context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
-					await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
-					if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
-						await context.sendText(`${flow.results.assuntos} \n- ${context.state.assuntos2.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
-					}
+					// await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
+					// if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
+					// 	await context.sendText(`${flow.results.assuntos} \n- ${context.state.assuntos2.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					// }
 					if (context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length < 2000) {
 						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
 					}
@@ -807,6 +812,7 @@ module.exports = async (context) => {
 				throw error;
 			});
 		}
+
 		// });
 	} // echo delivery
 };
