@@ -30,6 +30,15 @@ async function sendCouncilMenu(context) {
 	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
 }
 
+async function sendGreetings(context) {
+	await context.typingOn();
+	await context.sendImage(flow.greetings.greetImage);
+	await context.sendText(flow.greetings.welcome);
+	await context.typingOff();
+	await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
+	await metric.userAddOrUpdate(context);
+	await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
+}
 
 module.exports = async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
@@ -315,13 +324,7 @@ module.exports = async (context) => {
 			}
 			switch (context.state.dialog) {
 			case 'greetings':
-				await context.typingOn();
-				await context.sendImage(flow.greetings.greetImage);
-				await context.sendText(flow.greetings.welcome);
-				await context.typingOff();
-				await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
-				await metric.userAddOrUpdate(context);
-				await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
+				await sendGreetings(context);
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
@@ -795,18 +798,24 @@ module.exports = async (context) => {
 				break;
 			} // dialog switch
 		} catch (error) {
+			if (!context.state.dialog) { // in case a user manages to send a text message without starting the dialog properly
+				await context.setState({ dialog: 'greetings' });
+				await sendGreetings(context);
+			} else {
 			// await Sentry.captureException(error);
-			const date = new Date();
-			console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
-			console.log(error);
-			await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
+				const date = new Date();
+				console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
+				console.log(error);
+				await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
 
-			await Sentry.configureScope(async (scope) => {
-				scope.setUser({ username: context.session.user.first_name });
-				scope.setExtra('state', context.state);
-				throw error;
-			});
+				await Sentry.configureScope(async (scope) => {
+					scope.setUser({ username: context.session.user.first_name });
+					scope.setExtra('state', context.state);
+					throw error;
+				});
+			}
 		}
+
 		// });
 	} // echo delivery
 };
