@@ -577,10 +577,10 @@ module.exports = async (context) => {
             || context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
 					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
 				} else {
-					await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
-					if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
-						await context.sendText(`${flow.results.assuntos} \n- ${context.state.assuntos2.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
-					}
+					// await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
+					// if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
+					// 	await context.sendText(`${flow.results.assuntos} \n- ${context.state.assuntos2.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					// }
 					if (context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length < 2000) {
 						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
 					}
