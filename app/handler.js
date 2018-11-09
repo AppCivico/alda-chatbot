@@ -134,7 +134,9 @@ module.exports = async (context) => {
 					break;
 				}
 			} else if (context.event.isText) {
-				if (context.event.message.text === process.env.RESTART) { // for quick testing
+				if (!context.state.dialog) { // in case a user manages to send a text message without starting the dialog properly
+					await context.setState({ dialog: 'greetings' });
+				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
 					await context.setState({ dialog: 'results' });
@@ -798,22 +800,17 @@ module.exports = async (context) => {
 				break;
 			} // dialog switch
 		} catch (error) {
-			if (!context.state.dialog) { // in case a user manages to send a text message without starting the dialog properly
-				await context.setState({ dialog: 'greetings' });
-				await sendGreetings(context);
-			} else {
 			// await Sentry.captureException(error);
-				const date = new Date();
-				console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
-				console.log(error);
-				await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
+			const date = new Date();
+			console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
+			console.log(error);
+			await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
 
-				await Sentry.configureScope(async (scope) => {
-					scope.setUser({ username: context.session.user.first_name });
-					scope.setExtra('state', context.state);
-					throw error;
-				});
-			}
+			await Sentry.configureScope(async (scope) => {
+				scope.setUser({ username: context.session.user.first_name });
+				scope.setExtra('state', context.state);
+				throw error;
+			});
 		}
 
 		// });
