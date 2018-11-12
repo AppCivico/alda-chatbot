@@ -560,9 +560,11 @@ module.exports = async (context) => {
 				await context.typingOn();
 				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
 				if (context.state.assuntos.length === 0) {
-					await context.sendText(flow.subjects.emptyAssuntos);
-				} else {
+					// await context.sendText(flow.subjects.emptyAssuntos);
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+				} else {
+					await context.sendText(`${flow.subjects.firstMessage} \n- ${['Leitura e Aprovação da ATA anterior',
+						'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
 				await context.typingOff();
