@@ -559,12 +559,11 @@ module.exports = async (context) => {
 			case 'subjects':
 				await context.typingOn();
 				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
-				if (context.state.assuntos.length === 0) {
-					// await context.sendText(flow.subjects.emptyAssuntos);
-					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
-				} else {
+				if (!context.state.assuntos || context.state.assuntos.length === 0) { // no subjects so we show the standard ones
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${['Leitura e Aprovação da ATA anterior',
 						'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+				} else {
+					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				await context.sendText(flow.subjects.thirdMessage, await attach.getQR(flow.subjects));
 				await context.typingOff();
@@ -577,7 +576,7 @@ module.exports = async (context) => {
 				// if we don't have any results or if result is not a valid url we send this default message
 				if (!context.state.results || context.state.results === null
             || context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
-					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não disponibilizou seus resultados mais recentes!`);
+					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não utiliza o formato de ata eletrônica. Que tal sugerir à diretoria do seu Conselho? 🙂`);
 				} else {
 					// await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
 					// if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
@@ -591,7 +590,6 @@ module.exports = async (context) => {
 					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
 				}
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
-				// });
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Resultados');
 				break;
 			case 'join':
