@@ -269,12 +269,15 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	return result;
 };
 
-async function getResults(CCS_ID) {
+async function getResults(CCS_ID) { // get most recent results from before the current day
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD');
+
 	const result = await sequelize.query(`
 	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data, RESULTADO.id
 	FROM resultados RESULTADO
 	INNER JOIN agendas AGENDAS ON RESULTADO.agenda_id = AGENDAS.id
-	WHERE AGENDAS.conselho_id = '${CCS_ID}'
+	WHERE AGENDAS.conselho_id = '${CCS_ID}' AND AGENDAS.data <= '${date}'
 	ORDER BY AGENDAS.updated_at DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -284,7 +287,7 @@ async function getResults(CCS_ID) {
 		console.error('Error on getResults => ', err);
 	});
 
-	if (result.length === 0) {
+	if (!result || result.length === 0) {
 		return undefined;
 	}
 	return result[0];

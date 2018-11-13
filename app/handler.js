@@ -518,6 +518,7 @@ module.exports = async (context) => {
 			case 'calendar': // agenda
 				await context.typingOn();
 				await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+
 				if (context.state.agenda) { // check if we have an agenda to show
 					if (help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())) { // check if next reunion is going to happen today or after today
 						await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
@@ -572,23 +573,26 @@ module.exports = async (context) => {
 			case 'results':
 				// showing the results of the most recent reunião based of agenda.
 				// If we have an agenda but no results for that agenda we show the results from the most recent agenda.
-				await context.setState({ results: await db.getResults(context.state.CCS.id) });
-				// if we don't have any results or if result is not a valid url we send this default message
-				if (!context.state.results || context.state.results === null
-            || context.state.results.length === 0 || (await help.urlExists(context.state.results.link_download)) === false) {
-					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não utiliza o formato de ata eletrônica. Que tal sugerir à diretoria do seu Conselho? 🙂`);
-				} else {
-					// await context.setState({ assuntos2: await db.getResultsAssuntos(context.state.results.id) });
-					// if (context.state.assuntos2 && context.state.assuntos2.length !== 0) { // we show the results subjects assuntos
-					// 	await context.sendText(`${flow.results.assuntos} \n- ${context.state.assuntos2.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
-					// }
-					if (context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length < 2000) {
-						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
-					}
-					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
-              + 'no arquivo que você pode baixar clicando abaixo. 👇');
-					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
+				await context.setState({ results: await db.getResults(context.state.CCS.id), sent: false });
+
+				// check if we have a valid text to send
+				if (context.state.results && context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length <= 2000) {
+					await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
+					await context.setState({ sent: true });
 				}
+				if (context.state.results && context.state.results.link_download
+					&& await help.urlExists(context.state.results.link_download) === true) { // check if link exists and is valid
+					await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
+							+ 'no arquivo que você pode baixar clicando abaixo. 👇');
+					await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
+					await context.setState({ sent: true });
+				}
+
+				if (context.state.sent === false) { // in case we couldn't send neither the text nor the link
+					await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não utiliza o formato de ata eletrônica. Que tal sugerir à diretoria do seu Conselho? 🙂`);
+				}
+
+				await context.setState({ sent: '' });
 				await context.sendText(flow.results.secondMessage, await attach.getQR(flow.results));
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Resultados');
 				break;
