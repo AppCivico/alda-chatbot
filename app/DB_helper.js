@@ -220,12 +220,16 @@ async function getMembrosNatosMunicipio(bairro, ccsID) {
 }
 module.exports.getMembrosNatosMunicipio = getMembrosNatosMunicipio;
 
+// gets the next agenda from the CCS. This means the closest data after the present day.
 async function getAgenda(CCS_ID) { // also known as calendário
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD');
+
 	const result = await sequelize.query(`
 	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
-	WHERE conselho_id = '${CCS_ID}'
-	ORDER BY data DESC, hora DESC
+	WHERE conselho_id = '${CCS_ID}' and data >= '${date}'
+	ORDER BY data ASC, hora ASC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
@@ -243,6 +247,10 @@ module.exports.getAgenda = getAgenda;
 
 module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	// uses CCS_ID to get the newest agenda, with this agenda we get the subject_id that were discuted and with these is we get the text
+	// Remember: closest agenda after today
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD');
+
 	const result = await sequelize.query(`
 	SELECT ASSUNTO.assunto
 	FROM assuntos ASSUNTO
@@ -251,9 +259,9 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 		FROM assunto_agenda AGENDA_ASSUNTO
 		WHERE AGENDA_ASSUNTO.agenda_id = (
 			SELECT id FROM agendas AGENDA
-			WHERE AGENDA.conselho_id = '${CCS_ID}'
-			ORDER BY AGENDA.data DESC, AGENDA.hora
-			DESC limit 1));
+			WHERE AGENDA.conselho_id = '${CCS_ID}' AND AGENDA.data > '${date}'
+			ORDER BY AGENDA.data ASC, AGENDA.hora ASC
+			limit 1));
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded assuntos from ${CCS_ID} successfully!`);
 		const assuntos = [];
