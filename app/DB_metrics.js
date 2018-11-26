@@ -45,7 +45,7 @@ async function checkChatbotUser(UserID) {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM chatbot_users WHERE user_id = ${UserID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Checked if ${UserID} and exists successfully! => ${results[0].exists}`);
+		console.log(`Checked if ${UserID} exists successfully! => ${results[0].exists}`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on checkChatbotUser => ', err);
@@ -156,15 +156,19 @@ async function updatePhoneChatbotUserNoCCS(UserID, phone) {
 async function userAddOrUpdate(context) {
 	let CCSID;
 	if (context.state.CCS && context.state.CCS.id) {
-		CCSID = context.state.CCS.id2;
+		CCSID = context.state.CCS.id;
 	}
-	if (CCSID && CCSID.length > 0) { // check if user has an CCS
+	if (CCSID && CCSID.toString().length > 0) { // check if user has an CCS
 		if (await checkChatbotUser(context.session.user.id) !== true) { // if user doesn't exist we add him to database
 			await addChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, CCSID);
-		} else { await updateCcsChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, CCSID); }
-	} else if (await checkChatbotUser(context.session.user.id) !== true) { // if user doesn't exist we add him to database
+		} else { // user exists
+			await updateCcsChatbotUser(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`, CCSID);
+		}
+	} else if (await checkChatbotUser(context.session.user.id) !== true) { // no CCS if user doesn't exist we add him to database
 		await addChatbotUserNoCCS(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`);
-	} else { await updateCcsChatbotUserNoCCS(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`); }
+	} else {
+		await updateCcsChatbotUserNoCCS(context.session.user.id, `${context.session.user.first_name} ${context.session.user.last_name}`);
+	}
 }
 
 
