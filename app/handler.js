@@ -23,7 +23,12 @@ async function sendCouncilMenu(context) {
 	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
 		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 	} else { // "Escolha uma das opções"
-		await context.sendText(flow.councilMenu.firstMessage, await attach.getQR(flow.councilMenu));
+		await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) }); // getting agenda to check if we should send "subjects" option
+		if (context.state.agenda && help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())) { // we can send it
+			await context.sendText(flow.councilMenu.firstMessage, await attach.getQRCouncilMenu(flow.councilMenu, true));
+		} else {
+			await context.sendText(flow.councilMenu.firstMessage, await attach.getQRCouncilMenu(flow.councilMenu, false));
+		}
 		await metric.userAddOrUpdate(context);
 	}
 	await context.typingOff();
@@ -139,7 +144,7 @@ module.exports = async (context) => {
 				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'subjects' });
+					await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -514,6 +519,7 @@ module.exports = async (context) => {
 				break;
 			case 'mainMenu':
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
+
 				break;
 			case 'calendar': // agenda
 				await context.typingOn();
@@ -525,8 +531,8 @@ module.exports = async (context) => {
 						await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
 						await context.sendText(context.state.ageMsg);
 						await context.setState({ ageMsg: '' });
-						await context.sendText(flow.calendar.secondMessage, await attach.getQR(flow.calendar));
-						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+						await context.sendText(flow.calendar.secondMessage, await attach.getQRCouncilMenu(flow.calendar, true));
+						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist !==
 							// before adding the user+ccs on the table we check if it's already there
 							if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
 								await db.addAgenda(
@@ -540,20 +546,20 @@ module.exports = async (context) => {
 					} else { // last reunion already happened
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia '
                 + `${help.formatDateDay(context.state.agenda.data)}.`);
-						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQR(flow.calendar));
+						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist !==
+							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', await attach.getQRCouncilMenu(flow.calendar, false));
 							// before adding the user+ccs on the table we check if it's already there
 							if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) === true) { // !== true
 								await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
 							}
 							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
-						} else {
-							await context.sendText('Você pode ver o que vimos na última reunião clicando abaixo! 😊', await attach.getQR(flow.calendar));
+						} else { // User is on the blacklist
+							await context.sendText('Você pode ver o que vimos na última reunião clicando abaixo! 😊', await attach.getQRCouncilMenu(flow.calendar, false));
 						}
 					}
 				} else { // no agenda at all, probably an error
-					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
-					await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".');
+					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`);
+					await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".', await attach.getQRCouncilMenu(flow.calendar), false);
 					await context.typingOff();
 				}
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Agenda');
@@ -570,7 +576,7 @@ module.exports = async (context) => {
 							'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 					} else { // no agenda today or after so NO subjects at all
 						await context.sendText('Infelizmente, ainda não tem uma reunião agendada para o seu CCS. Não sabemos que assuntos serão discutidos na próxima reunião. ');
-						await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".');
+						await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".', await attach.getQR(flow.subjects));
 					}
 				} else {
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);

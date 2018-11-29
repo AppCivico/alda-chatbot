@@ -118,6 +118,33 @@ module.exports.getQR = async (opt) => {
 	return { quick_replies: elements };
 };
 
+// get quick_replies opject with elements array
+// Boolean to check if we should include "results" or not
+module.exports.getQRCouncilMenu = async (opt, sendResults) => {
+	const elements = [];
+	const firstArray = opt.menuOptions;
+
+	firstArray.forEach((element, index) => {
+		if (opt.menuPostback[index] === 'subjects') {
+			if (sendResults === true) {
+				elements.push({
+					content_type: 'text',
+					title: element,
+					payload: opt.menuPostback[index],
+				});
+			}
+		} else {
+			elements.push({
+				content_type: 'text',
+				title: element,
+				payload: opt.menuPostback[index],
+			});
+		}
+	});
+
+	return { quick_replies: elements };
+};
+
 module.exports.getQRLocation = async (opt) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
