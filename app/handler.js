@@ -577,7 +577,14 @@ module.exports = async (context) => {
 
 				// check if we have a valid text to send
 				if (context.state.results && context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length <= 2000) {
-					await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.results.texto}`);
+					await context.setState({ resultTexts: await help.separateString(context.state.results.texto) });
+					if (context.state.resultTexts && context.state.resultTexts.firstString) {
+						await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.resultTexts.firstString}`);
+
+						if (context.state.resultTexts.secondString) {
+							await context.sendText(context.state.resultTexts.secondString);
+						}
+					}
 					await context.setState({ sent: true });
 				}
 				if (context.state.results && context.state.results.link_download
