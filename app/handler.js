@@ -139,7 +139,7 @@ module.exports = async (context) => {
 				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'results' });
+					await context.setState({ dialog: 'subjects' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -553,6 +553,7 @@ module.exports = async (context) => {
 					}
 				} else { // no agenda at all, probably an error
 					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`, await attach.getQR(flow.calendar));
+					await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".');
 					await context.typingOff();
 				}
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Agenda');
@@ -561,8 +562,16 @@ module.exports = async (context) => {
 				await context.typingOn();
 				await context.setState({ assuntos: await db.getAssuntos(context.state.CCS.id) });
 				if (!context.state.assuntos || context.state.assuntos.length === 0) { // no subjects so we show the standard ones
-					await context.sendText(`${flow.subjects.firstMessage} \n- ${['Leitura e Aprovação da ATA anterior',
-						'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					// checking if there is an agenda for this ccs so we can show the standard subjects every reunion tends to have
+					await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+					// check if we have an agenda to show and if next reunion is going to happen today or after today
+					if (context.state.agenda && help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())) {
+						await context.sendText(`${flow.subjects.firstMessage} \n- ${['Leitura e Aprovação da ATA anterior',
+							'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					} else { // no agenda today or after so NO subjects at all
+						await context.sendText('Infelizmente, ainda não tem uma reunião agendada para o seu CCS. Não sabemos que assuntos serão discutidos na próxima reunião. ');
+						await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".');
+					}
 				} else {
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}

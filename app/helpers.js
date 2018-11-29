@@ -45,7 +45,7 @@ module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairr
 
 // separates string in the first dot on the second half of the string
 module.exports.separateString = (someString) => {
-	if (someString.trim()[-1] !== '.') { // trying to guarantee the last char is a dot do we never use halfLength alone as the divisor
+	if (someString.trim()[someString.length - 1] !== '.') { // trying to guarantee the last char is a dot do we never use halfLength alone as the divisor
 		someString += '.'; // eslint-disable-line no-param-reassign
 	}
 	const halfLength = Math.ceil(someString.length / 2.5); // getting more than half the length (the bigger the denominator the shorter the firstString tends to be)

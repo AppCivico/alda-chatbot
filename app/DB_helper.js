@@ -222,14 +222,11 @@ module.exports.getMembrosNatosMunicipio = getMembrosNatosMunicipio;
 
 // gets the next agenda from the CCS. This means the closest data after the present day.
 async function getAgenda(CCS_ID) { // also known as calendário
-	let date = new Date();
-	date = await moment(date).format('YYYY-MM-DD');
-
 	const result = await sequelize.query(`
 	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
-	WHERE conselho_id = '${CCS_ID}' and data >= '${date}'
-	ORDER BY data ASC, hora ASC
+	WHERE conselho_id = '${CCS_ID}'
+	ORDER BY data DESC, hora DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded agendas from ${CCS_ID} successfully!`);
