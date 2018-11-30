@@ -126,8 +126,9 @@ module.exports = {
 	},
 	calendar: {
 		firstMessage: 'A data da próxima reunião do seu CCS é Y e vai acontecer no local Z.',
-		secondMessage: 'Você pode ver o que será discutido na próxima reunião, clicando em "Assuntos" ou ver o que foi discutido na reunião anterior, ' +
+		preMenuMsg: 'Você pode ver o que será discutido na próxima reunião, clicando em "Assuntos" ou ver o que foi discutido na reunião anterior, ' +
 			'clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Assuntos', 'Resultados', 'Fazer parte'],
 		menuPostback: ['subjects', 'results', 'join'],
 	},
@@ -136,8 +137,9 @@ module.exports = {
 		title: 'Baixar Arquivo',
 		sub: 'Baixe para ficar por dentro dos assuntos tratatos.',
 		link: 'http://www.africau.edu/images/default/sample.pdf',
-		thirdMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
+		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, ' +
 			' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		emptyAssuntos: 'Esse CCS ainda não disponibilizou os assuntos discutidos na última reunião.',
 		// menu --
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
@@ -149,8 +151,9 @@ module.exports = {
 		sub: 'Veja os resultados de nossos esforços.',
 		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 		// link: 'http://www.africau.edu/images/default/sample.pdf',
-		secondMessage: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
+		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, ' +
 			'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
 		assuntos: 'Os assuntos que discutimos nessa última reunião foram: ',
@@ -268,4 +271,25 @@ module.exports = {
 			payload: 'disableNotifications',
 		},
 	],
+	calendarOpt: {
+		content_type: 'text',
+		title: 'Calendário',
+		payload: 'calendar',
+	},
+	subjectsOpt: {
+		content_type: 'text',
+		title: 'Assuntos',
+		payload: 'subjects',
+	},
+	resultsOpt: {
+		content_type: 'text',
+		title: 'Resultados',
+		payload: 'results',
+	},
+	joinOpt: {
+		content_type: 'text',
+		title: 'Fazer Parte',
+		payload: 'join',
+	},
+
 };
