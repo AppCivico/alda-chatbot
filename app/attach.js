@@ -118,6 +118,7 @@ module.exports.getQR = async (opt) => {
 	return { quick_replies: elements };
 };
 
+
 module.exports.getQRLocation = async (opt) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;

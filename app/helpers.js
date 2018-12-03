@@ -43,6 +43,23 @@ module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairr
 	return theBairros;
 };
 
+// separates string in the first dot on the second half of the string
+module.exports.separateString = (someString) => {
+	if (someString.trim()[someString.length - 1] !== '.') { // trying to guarantee the last char is a dot so we never use halfLength alone as the divisor
+		someString += '.'; // eslint-disable-line no-param-reassign
+	}
+	const halfLength = Math.ceil(someString.length / 2.5); // getting more than half the length (the bigger the denominator the shorter the firstString tends to be)
+	const newString = someString.substring(halfLength); // get the second half of the original string
+	const sentenceDot = new RegExp('(?<!www)\\.(?!com|br|rj|sp|mg|bra|gov|org)', 'i');// Regex -> Don't consider dots present in e-mails and urls
+	// getting the index (in relation to the original string -> halfLength) of the first dot on the second half of the string. +1 to get the actual dot.
+	const dotIndex = halfLength + newString.search(sentenceDot) + 1;
+
+	const firstString = someString.substring(0, dotIndex);
+	const secondString = someString.substring(dotIndex);
+
+	return { firstString, secondString };
+};
+
 // find every object on municipios array with the same bairro (allows duplicated bairros if the conselho_id are different)
 module.exports.findBairroCCSID = async function findBairroCCSID(sameMunicipio, wantedBairro) {
 	const theBairros = [];
