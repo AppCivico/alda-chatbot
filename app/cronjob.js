@@ -141,7 +141,8 @@ const newAgenda = new Cron.CronJob(
 				if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 					for (const element of notifications) { // eslint-disable-line
 						const agenda = await db.getAgenda(element.conselho_id); // getting most recent agenda
-						if (agenda.id !== element.ultima_agenda) { // meaning: the newest agenda is the one the user saw, so there's nothing to do -> agenda.id !== element.ultima_agenda
+						// if: the newest agenda is the one the user saw, so there's nothing to do -> agenda.id !== element.ultima_agenda
+						if (agenda && agenda.id && agenda.id !== element.ultima_agenda) {
 							const message = `Temos uma nova reunião agendada para o *${element.ccs}*! Atenção para data e local:\n\n` +
 							`${await help.getAgendaMessage(agenda)}`;
 							if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
@@ -163,22 +164,3 @@ const newAgenda = new Cron.CronJob(
 );
 
 module.exports.newAgenda = newAgenda;
-
-// const DockerTest = new Cron.CronJob(
-// 	'*/5 * * * * 1-5', async () => {
-// 		console.log('Rodando o docker');
-// 		// console.log(await db.getAgenda(1087));
-
-// 		await broadcast.sendAgendaNotification('1864330513659814', 'Teste do docker');
-// 	}, (() => {
-// 		console.log('Crontab \'agendaChange\' stopped.');
-// 	}),
-// 	true, /* Starts the job right now (no need for MissionTimer.start()) */
-// 	'America/Sao_Paulo',
-// 	false, // context
-// 	// Below: runOnInit => true is useful only for tests
-// 	true // eslint-disable-line comma-dangle
-// );
-
-// module.exports.DockerTest = DockerTest;
-
