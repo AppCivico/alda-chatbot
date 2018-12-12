@@ -598,6 +598,14 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 */
 
 /*
+	Query para o dataStudio, conselhos por AISp
+	SELECT abrangencias.aisp, COUNT(*)
+	FROM abrangencias INNER JOIN chatbot_users ON
+	(chatbot_users.ccs_id = abrangencias.conselho_id)
+	GROUP BY abrangencias.aisp;
+*/
+
+/*
 		Cada vez que um usuário vê o calendário/agenda do seu CCS, ele entra para a tabela notificar_agenda que guarda, além da agenda e do usuário em questão,
 		o endereço e a data da agenda no momento em que o usuário a consultou e se o aviso em questão já foi enviado(ou se ele precisa ser enviado ainda).
 		Existe um timer/crontab rodando de duas em duas horas, das 8h às 22h, de seg a sex que avisa aos usuários se houve alguma alteração no estado da agenda.
