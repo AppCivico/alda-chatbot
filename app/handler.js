@@ -63,7 +63,6 @@ async function sendGreetings(context) {
 	await context.typingOff();
 	await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
 	await metric.userAddOrUpdate(context);
-	await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
 }
 
 module.exports = async (context) => {
@@ -351,21 +350,28 @@ module.exports = async (context) => {
 				await context.setState({ dialog: 'mainMenu' });
 			}
 			switch (context.state.dialog) {
+			case 'start':
+				await sendGreetings(context);
+				await events.addCustomAction(context.session.user.id, 'Usuario comeca dialogo');
+				break;
 			case 'greetings':
 				await sendGreetings(context);
+				await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
 				break;
 			case 'aboutMe':
 				await context.sendText(flow.aboutMe.firstMessage);
 				await context.sendText(flow.aboutMe.secondMessage);
+				await events.addCustomAction(context.session.user.id, 'Usuario quer saber mais Alda');
 				// falls through
 			case 'aboutMeMenu':
 				await context.sendText(flow.aboutMe.thirdMessage, await attach.getQR(flow.aboutMe));
 				break;
 			case 'whichCCS':
+				await context.typingOn();
 				await context.sendText(flow.whichCCS.firstMessage);
 				await context.sendText(flow.whichCCS.secondMessage);
-				await context.typingOn();
 				await context.sendImage(flow.whichCCS.CCSImage);
+				await events.addCustomAction(context.session.user.id, 'Usuario quer saber mais CCS');
 				await context.typingOff();
 				// falls through
 			case 'whichCCSMenu': // asks user if he wants to find his CCS or confirm if we already have one stored
