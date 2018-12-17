@@ -139,7 +139,6 @@ module.exports = async (context) => {
 					break;
 				case 'checkBairroFromGeo': // check centro and colegio
 					await context.setState({ municipiosFound: await db.getCCSsFromMunicipio('rio de janeiro'), theBairro: await help.formatString(context.state.mapsBairro) });
-
 					if ('centro'.includes(context.state.theBairro)) { // special case: check if user wants to know about centro on capital
 						await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
 						await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
@@ -153,6 +152,10 @@ module.exports = async (context) => {
 						await attach.sendColegioConfirmation(context, context.state.bairro);
 						await context.setState({ dialog: 'confirmBairro' });
 					}
+					break;
+				case 'checkPaqueta':
+					await context.setState({ CCS: await db.getCCSsFromID(1043) });
+					await context.setState({ dialog: 'nearestCouncil', asked: false });
 					break;
 				default:
 					await context.setState({ dialog: context.event.quickReply.payload });
@@ -237,6 +240,9 @@ module.exports = async (context) => {
                   + `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
 							await attach.sendColegioConfirmation(context, context.state.bairro);
 							await context.setState({ dialog: 'confirmBairro' });
+						} else if ('paqueta'.includes(context.state.userInput)) { // paqueta case
+							await context.setState({ CCS: await db.getCCSsFromID(1043) });
+							await context.setState({ dialog: 'nearestCouncil', asked: false });
 						} else { // regular case
 							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
 							if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
@@ -457,12 +463,15 @@ module.exports = async (context) => {
 				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
 					await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
 				}
-
 				await metric.userAddOrUpdate(context);
-				await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
-				await context.setState({
-					otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
-				}); // get other bairros on this ccs
+				if (context.state.CCS.bairro === 'Paquetá') { // check if user is on Paquetá (island) to show the correct related bairros
+					await context.setState({ otherBairros: ['Paquetá'] });
+				} else {
+					await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
+					await context.setState({
+						otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
+					}); // get other bairros on this ccs
+				}
 				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
 					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
               + `${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
@@ -732,7 +741,9 @@ module.exports = async (context) => {
 								await context.setState({ mapsBairro: await help.getNeighborhood(context.state.mapsResults[0].address_components) });
 								await context.setState({ mapsResults: '' });
 								if (context.state.mapsBairro) {
-									if (context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio') {
+									if (context.state.mapsBairro === 'Paquetá') {
+										await context.sendText('Hmm, você está querendo saber sobre o bairro Paquetá na Ilha de Paquetá? 🤔', await attach.getQR(flow.checkPaqueta));
+									} else if (context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio') {
 										// await await context.setState({ mapsBairro: 'Centro' }); // for testing, we can change the above conditional to !== 'centro'
 										await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.mapsBairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
 										// confirmation here sends user to 'checkBairroFromGeo'

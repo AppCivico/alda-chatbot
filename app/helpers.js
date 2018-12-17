@@ -109,6 +109,7 @@ module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agen
 module.exports.getNeighborhood = async (results) => {
 	let neighborhood = results.find(x => x.types.includes('sublocality'));
 	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
+	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_2')); }
 	return neighborhood.long_name;
 };
 module.exports.checkIfInRio = async (results) => {

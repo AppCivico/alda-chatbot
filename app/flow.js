@@ -73,6 +73,10 @@ module.exports = {
 		menuOptions: ['Sim, é esse mesmo', 'Não é esse'],
 		menuPostback: ['checkBairroFromGeo', 'wantToChange'],
 	},
+	checkPaqueta: {
+		menuOptions: ['Sim, exatamente', 'Não, é outro'],
+		menuPostback: ['checkPaqueta', 'wantToChange'],
+	},
 	notFound: {
 		menuOptions: ['Enviar localização', 'Digitar de novo', 'Agora não'],
 		menuPostback: ['sendLocation', 'wantToType1', 'noLocation'],

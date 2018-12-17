@@ -119,6 +119,35 @@ async function getCCSsFromBairroExact(Bairro) {
 }
 module.exports.getCCSsFromBairroExact = getCCSsFromBairroExact;
 
+async function getCCSsFromID(CCSID) {
+	const result = await sequelize.query(`
+    SELECT CCS.ccs, CCS.id, CCS.status, LOCATION.regiao, LOCATION.municipio, LOCATION.bairro, LOCATION.regiao_novo, LOCATION.meta_regiao, LOCATION.id as abrangencia_id
+	FROM conselhos CCS
+	INNER JOIN abrangencias LOCATION ON CCS.id = LOCATION.conselho_id
+	WHERE CCS.id = '${CCSID}'
+	ORDER BY CCS.id;
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		results.forEach((element) => {
+			if (element.bairro === null) {
+				element.bairro = element.municipio; // eslint-disable-line no-param-reassign
+			}
+		});
+		console.log(`Got CCS ${CCSID} successfully!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getCCSsFromBairro => ', err);
+	});
+
+	if (result) {
+		// result = result.filter((thing, index, self) => self.findIndex(t => t.bairro === thing.bairro && t.id === thing.id) === index);
+		if (CCSID === 1043) { // check if it's paquetá (island) to change the bairro we will show the user
+			result[0].bairro = 'Paquetá';
+		}
+	}
+	return result[0];
+}
+module.exports.getCCSsFromID = getCCSsFromID;
+
 // get every bairro on the same CCS
 module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
 	const result = await sequelize.query(`

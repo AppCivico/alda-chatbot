@@ -71,8 +71,8 @@ typings/
 # for prod container
 run-container.sh
 
-# google map api 
-secret-geolocation-api.json
+# google api key 
+google-secret-key.json
 
 # Documents for consultation
 *.pdf
@@ -83,4 +83,5 @@ secret-geolocation-api.json
 .vscode
 .vstags
 
+# for random testing
 test.js
