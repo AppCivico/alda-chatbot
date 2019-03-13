@@ -74,15 +74,17 @@ module.exports = async (context) => {
 		try {
 			// we reload politicianData on every useful event
 			await context.setState({ politicianData: await appcivicoApi.getPoliticianData(context.event.rawEvent.recipient.id) });
+			console.log('politicianData', context.state.politicianData);
+
 			// we update context data at every interaction (post ony on the first time)
-			await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
+			console.log(await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
 				fb_id: context.session.user.id,
 				name: `${context.session.user.first_name} ${context.session.user.last_name}`,
 				gender: context.session.user.gender === 'male' ? 'M' : 'F',
 				origin_dialog: 'greetings',
 				picture: context.session.user.profile_pic,
 				// session: JSON.stringify(context.state),
-			});
+			}));
 
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value

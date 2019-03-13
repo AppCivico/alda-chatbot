@@ -18,11 +18,11 @@ const messageWaiting = eval(process.env.TIME_WAIT); // eslint-disable-line no-ev
 // };
 
 const bot = new MessengerBot({
-  // mapPageToAccessToken,
-  accessToken: config.accessToken,
-  appSecret: config.appSecret,
-  verifyToken: config.verifyToken,
-  sessionStore: new FileSessionStore(),
+	// mapPageToAccessToken,
+	accessToken: config.accessToken,
+	appSecret: config.appSecret,
+	verifyToken: config.verifyToken,
+	sessionStore: new FileSessionStore(),
 });
 
 if (messageWaiting) { bot.use(withTyping({ delay: messageWaiting })); }
@@ -34,11 +34,11 @@ bot.onEvent(handler);
 const server = createServer(bot);
 
 server.listen(process.env.API_PORT, () => {
-  console.log(`Server is running on ${process.env.API_PORT} port...`);
-  console.log(`App: ${process.env.APP} & Page: ${process.env.PAGE} & Appcivico: ${process.env.APPCIVICO_USER}`);
-  console.log(`Cronjob activatedCCS is running? => ${cronjobs.activatedCCS.running ? cronjobs.activatedCCS.running : 'Nope'}`);
-  console.log(`Cronjob agendaChange is running? => ${cronjobs.agendaChange.running ? cronjobs.agendaChange.running : 'Nope'}`);
-  console.log(`Cronjob activatedCCS is running? => ${cronjobs.newAgenda.running ? cronjobs.newAgenda.running : 'Nope'}`);
+	console.log(`Server is running on ${process.env.API_PORT} port...`);
+	console.log(`App: ${process.env.APP} & Page: ${process.env.PAGE} & Appcivico: ${process.env.APPCIVICO_USER}`);
+	console.log(`Cronjob activatedCCS is running? => ${cronjobs.activatedCCS.running ? cronjobs.activatedCCS.running : 'Nope'}`);
+	console.log(`Cronjob agendaChange is running? => ${cronjobs.agendaChange.running ? cronjobs.agendaChange.running : 'Nope'}`);
+	console.log(`Cronjob activatedCCS is running? => ${cronjobs.newAgenda.running ? cronjobs.newAgenda.running : 'Nope'}`);
 });
 
 process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });
