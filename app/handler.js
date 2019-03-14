@@ -74,17 +74,15 @@ module.exports = async (context) => {
 		try {
 			// we reload politicianData on every useful event
 			await context.setState({ politicianData: await appcivicoApi.getPoliticianData(context.event.rawEvent.recipient.id) });
-			console.log('politicianData', context.state.politicianData);
-
 			// we update context data at every interaction (post ony on the first time)
-			console.log(await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
+			await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
 				fb_id: context.session.user.id,
 				name: `${context.session.user.first_name} ${context.session.user.last_name}`,
 				gender: context.session.user.gender === 'male' ? 'M' : 'F',
 				origin_dialog: 'greetings',
 				picture: context.session.user.profile_pic,
 				// session: JSON.stringify(context.state),
-			}));
+			});
 
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
@@ -354,7 +352,7 @@ module.exports = async (context) => {
 						break;
 					default: // regular text message => error treatment
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
-						await context.setState({ dialog: '' });
+						await context.setState({ dialog: 'holdOn' });
 						console.log('Entrei aqui');
 
 						if (context.state.politicianData.use_dialogflow === 1) { // check if politician is using dialogFlow
