@@ -9,8 +9,7 @@ const pageID = process.env.PAGE_ID;
 
 async function load() {
 	const politicianData = await getPoliticianData(pageID); // need politician id
-	console.log(`Ìd do ${politicianData.name}:`, politicianData.id);
-
+	console.log(`Id do ${politicianData.name}:`, politicianData.id);
 
 	fs.readdirSync(testFolder).forEach(async (file) => {
 		const obj = JSON.parse(await fs.readFileSync(testFolder + file, 'utf8'));
