@@ -1,4 +1,4 @@
-function quickReplyContext(payload, dialog, CCS = undefined, bairro = undefined, adress = undefined, retry_count = 0, lastActivity = new Date()) {
+function quickReplyContext(payload, dialog, CCS, bairro, adress, retry_count = 0, lastActivity = new Date()) {
 	return {
 		state: {
 			dialog,
@@ -7,12 +7,19 @@ function quickReplyContext(payload, dialog, CCS = undefined, bairro = undefined,
 			bairro,
 			adress,
 			geoLocation: { lat: -23.5733, long: -46.6417 },
+			lastQRpayload: payload,
+			politicianData: {
+				user_id: 2000,
+				use_dialogflow: 1,
+				id: 1000,
+			},
 		},
 		session: {
 			lastActivity,
 			user: {
 				first_name: 'Userton',
 				last_name: 'McTest',
+				id: 1000,
 			},
 		},
 		event: {
@@ -22,29 +29,38 @@ function quickReplyContext(payload, dialog, CCS = undefined, bairro = undefined,
 				quickReply: { payload },
 				text: 'This qr was clicked',
 			},
-			rawEvent: { timestamp: new Date() },
+			rawEvent: { timestamp: new Date(), recipient: { id: 1000 } },
 		},
 		sendText: jest.fn(),
+		sendButtonTemplate: jest.fn(),
+		sendAttachment: jest.fn(),
 		setState: jest.fn(),
 		resetState: jest.fn(),
 		sendImage: jest.fn(),
+		sendVideo: jest.fn(),
+		sendAudio: jest.fn(),
 		typingOn: jest.fn(),
 		typingOff: jest.fn(),
 	};
 }
-
 module.exports.quickReplyContext = quickReplyContext;
 
 function textContext(text, dialog, lastActivity = new Date()) {
 	return {
 		state: {
 			dialog,
+			politicianData: {
+				user_id: 2000,
+				use_dialogflow: 1,
+				id: 1000,
+			},
 		},
 		session: {
 			lastActivity,
 			user: {
 				first_name: 'Userton',
 				last_name: 'McTest',
+				id: 1000,
 			},
 		},
 		event: {
@@ -54,15 +70,18 @@ function textContext(text, dialog, lastActivity = new Date()) {
 			message: {
 				text,
 			},
-			rawEvent: { timestamp: new Date() },
+			rawEvent: { timestamp: new Date(), recipient: { id: 1000 } },
 		},
 		sendText: jest.fn(),
+		sendButtonTemplate: jest.fn(),
+		sendAttachment: jest.fn(),
 		setState: jest.fn(),
 		resetState: jest.fn(),
 		sendImage: jest.fn(),
+		sendVideo: jest.fn(),
+		sendAudio: jest.fn(),
 		typingOn: jest.fn(),
 		typingOff: jest.fn(),
-		sendButtonTemplate: jest.fn(),
 	};
 }
 
@@ -78,6 +97,7 @@ function getAttachments(dialog, lastActivity = new Date()) {
 			user: {
 				first_name: 'Userton',
 				last_name: 'McTest',
+				id: 1000,
 			},
 		},
 		event: {
@@ -85,9 +105,15 @@ function getAttachments(dialog, lastActivity = new Date()) {
 			rawEvent: { timestamp: new Date() },
 		},
 		sendText: jest.fn(),
+		sendButtonTemplate: jest.fn(),
+		sendAttachment: jest.fn(),
 		setState: jest.fn(),
-		// resetState: jest.fn(),
+		resetState: jest.fn(),
 		sendImage: jest.fn(),
+		sendVideo: jest.fn(),
+		sendAudio: jest.fn(),
+		typingOn: jest.fn(),
+		typingOff: jest.fn(),
 	};
 }
 
@@ -97,12 +123,18 @@ function getLocation(dialog, lastActivity = new Date()) {
 	return {
 		state: {
 			dialog,
+			politicianData: {
+				user_id: 2000,
+				use_dialogflow: 1,
+				id: 1000,
+			},
 		},
 		session: {
 			lastActivity,
 			user: {
 				first_name: 'Userton',
 				last_name: 'McTest',
+				id: 1000,
 			},
 		},
 		event: {
@@ -110,13 +142,18 @@ function getLocation(dialog, lastActivity = new Date()) {
 			location: {
 				coordinates: { lat: -23.5733, long: -46.6417 },
 			},
-			rawEvent: { timestamp: new Date() },
+			rawEvent: { timestamp: new Date(), recipient: { id: 1000 } },
 		},
 		sendText: jest.fn(),
+		sendButtonTemplate: jest.fn(),
+		sendAttachment: jest.fn(),
 		setState: jest.fn(),
-		typingOn: jest.fn(),
-		// resetState: jest.fn(),
+		resetState: jest.fn(),
 		sendImage: jest.fn(),
+		sendVideo: jest.fn(),
+		sendAudio: jest.fn(),
+		typingOn: jest.fn(),
+		typingOff: jest.fn(),
 	};
 }
 

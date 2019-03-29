@@ -47,6 +47,7 @@ async function checkMenu(CCSID, oldOptions) {
 }
 
 async function sendCouncilMenu(context) {
+	await context.setState({ mapsResults: '' });
 	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
 		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 	} else { // "Escolha uma das opções"
@@ -194,7 +195,7 @@ module.exports = async (context) => {
 				} else if (restartList.includes(await help.formatString(context.event.message.text))) {
 					await context.setState({ dialog: 'greetings' });
 				} else {
-					switch (context.state.dialog) {
+					switch (context.state.dialog) { // handling text is each of these dialogs
 					case 'retryType':
 						// falls through
 					case 'sendLocation':
@@ -382,6 +383,7 @@ module.exports = async (context) => {
 				await context.sendImage(flow.greetings.likeImage);
 				await context.setState({ dialog: 'mainMenu' });
 			}
+
 			switch (context.state.dialog) {
 			case 'start':
 				await sendGreetings(context);
@@ -423,8 +425,8 @@ module.exports = async (context) => {
 				break;
 			case 'sendLocation':
 				await context.sendText(flow.sendLocation.firstMessage);
-				await context.sendText('Ao clicar no botão, um mapa da sua localização atual aparecerá. Você poderá mover o cursor e dar zoom para ajustar a localização, caso necessário.');
-				await context.sendText(flow.sendLocation.secondMessage, await attach.getQRLocation(flow.sendLocation));
+				await context.sendText(flow.sendLocation.secondMessage);
+				await context.sendText(flow.sendLocation.thirdMessage, await attach.getQRLocation(flow.sendLocation));
 				break;
 			case 'wantToChange': // comes from sendLocation flow
 				await context.setState({ geoLocation: undefined });
@@ -432,7 +434,7 @@ module.exports = async (context) => {
 				await context.sendText(flow.wantToChange.secondMessage);
 				break;
 			case 'retryType': // comes from text flow
-				await context.sendText('Tudo bem. Vamos encontrar o conselho mais adequado para sua região.');
+				await context.sendText(flow.wantToType.retryType);
 				// falls through
 			case 'wantToType1': // asking for municipio
 				await context.setState({ geoLocation: undefined, bairro: undefined });
@@ -450,14 +452,12 @@ module.exports = async (context) => {
 			case 'wantToType2': // asking for bairro
 				await context.setState({ retryCount: 0 });
 				await context.setState({ unfilteredBairros: await help.listBairros(context.state.municipiosFound) }); // getting a set of random bairros to suggest to the user
-				await context.setState({
-					sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
-				}); // get other bairros on this ccs
+				// get other bairros on this ccs
+				await context.setState({ sugestaoBairro: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos) });
 				if (!context.state.sugestaoBairro || context.state.sugestaoBairro.length === 0) {
-					await context.sendText('Legal. Agora digite o *bairro* da cidade Rio de Janeiro.');
+					await context.sendText(flow.wantToType2.noSugestao);
 				} else {
-					await context.sendText('Legal. Agora digite o *bairro* da cidade Rio de Janeiro. '
-              + `Você pode tentar bairros como ${context.state.sugestaoBairro.join(', ')} e outros.`);
+					await context.sendText(flow.wantToType2.withSugestao.replace('<sugestao>', context.state.sugestaoBairro.join(', ')));
 				}
 				await events.addCustomAction(context.session.user.id, 'Pedimos Bairro ao Usuario');
 				break;
@@ -544,7 +544,7 @@ module.exports = async (context) => {
 				if (Object.keys(context.state.diretoriaAtual).length > 0) { // if there's at least one active member today we show the members(s)
 					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
 					await attach.sendCarouselDiretoria(context, context.state.diretoriaAtual);
-				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit from elements in carousel)
+				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit for elements in carousel)
 					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
 					await attach.sendCarouselDiretoria(context, context.state.diretoria);
 				}
@@ -580,7 +580,6 @@ module.exports = async (context) => {
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'councilMenu': // 'Escolha uma das opções:'
-				await context.setState({ mapsResults: '' });
 				await sendCouncilMenu(context);
 				break;
 			case 'calendar': // agenda
@@ -742,12 +741,11 @@ module.exports = async (context) => {
 				await context.sendText(flow.phone.firstMessage, await attach.getQR(flow.phone));
 				break;
 			case 'gotPhone':
-				await context.sendText('Guardamos seu telefone! Como posso te ajudar?', await attach.getQR(flow.userData));
+				await context.sendText(flow.phone.gotPhone, await attach.getQR(flow.userData));
 				break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
 				await context.setState({ municipiosFound: undefined, bairro: undefined });
-
 				await context.typingOn();
 				try {
 					await context.setState({
@@ -812,11 +810,7 @@ module.exports = async (context) => {
 				break;
 			}
 			case 'notFoundFromGeo':
-				await context.sendText(
-					'Não encontrei nenhum conselho no local em questão. '
-            + 'Quer tentar novamente?',
-					await attach.getQRLocation(flow.geoMenu),
-				);
+				await context.sendText(flow.foundLocation.notFoundFromGeo, await attach.getQRLocation(flow.geoMenu));
 				break;
 				// Admin flow ---------------------------------------------------------------------------
 			case 'adminStart':

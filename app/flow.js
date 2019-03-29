@@ -50,16 +50,21 @@ module.exports = {
 	},
 	sendLocation: {
 		firstMessage: 'Ótimo! 👍',
-		secondMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
+		secondMessage: 'Ao clicar no botão, um mapa da sua localização atual aparecerá. Você poderá mover o cursor e dar zoom para ajustar a localização, caso necessário.',
+		thirdMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 		menuOptions: ['Voltar'],
 		menuPostback: ['whichCCSMenu'],
 	},
 	wantToType: {
 		firstMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
 		secondMessage: 'Legal. Agora digite o *bairro* dessa cidade:',
+		retryType: 'Tudo bem. Vamos encontrar o conselho mais adequado para sua região.',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
-
+	},
+	wantToType2: {
+		noSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro.',
+		withSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro. `Você pode tentar bairros como <sugestao> e outros.',
 	},
 	foundLocation: {
 		firstMessage: 'Encontrei o seguinte município:',
@@ -67,6 +72,7 @@ module.exports = {
 		menuOptions: ['Sim, avançar', 'Não, digitar outro'],
 		menuPostback: ['preNearestCouncil', 'wantToChange'],
 		noFindGeo: 'Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu!',
+		notFoundFromGeo: 'Não encontrei nenhum conselho no local em questão. Quer tentar novamente?',
 		noSecond: 'Deseja tentar novamente? Você pode tentar me enviar sua localização de novo ou digitar a cidade em que você se encontra.',
 	},
 	checkBairro: {
@@ -184,6 +190,7 @@ module.exports = {
 		emailExample: 'Exemplo: alda@chatbot.com',
 		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
 		phoneExample: 'Exemplo: 2299999-8888',
+		gotPhone: 'Guardamos seu telefone! Como posso te ajudar?',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],

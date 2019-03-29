@@ -1,15 +1,16 @@
 const { sequelize } = require('./server/index.js');
 const { moment } = require('./helpers');
 
-sequelize
-	.authenticate()
-	.then(() => {
-		console.log('Connection has been established successfully.');
-	})
-	.catch((err) => {
-		console.error('Unable to connect to the database:', err);
-	});
-
+if (process.env.TEST !== 'true') {
+	sequelize
+		.authenticate()
+		.then(() => {
+			console.log('Connection has been established successfully.');
+		})
+		.catch((err) => {
+			console.error('Unable to connect to the database:', err);
+		});
+}
 module.exports.sequelize = sequelize;
 
 // module.exports.getCCS = async function getCCS() { // unused
