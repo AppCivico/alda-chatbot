@@ -7,6 +7,8 @@ const attach = require('../app/attach');
 const events = require('../app/events');
 const appcivicoApi = require('../app/chatbot_api');
 const help = require('../app/helpers');
+const dialogs = require('../app/dialogs');
+const metric = require('../app/DB_metrics');
 
 jest.mock('../app/attach');
 jest.mock('../app/DB_helper');
@@ -17,6 +19,7 @@ jest.mock('../app/events');
 jest.mock('../app/chatbot_api');
 jest.mock('../app/send_issue');
 jest.mock('../app/dialogFlow');
+jest.mock('../app/dialogs');
 
 it('aboutMe-Claro', async () => {
 	const context = cont.quickReplyContext(flow.greetings.menuPostback[0], 'aboutMe');
@@ -194,7 +197,7 @@ it('wannaKnowMembers - notWannaKnow + menu', async () => {
 
 	context.state.dialog = 'councilMenu';
 	await handler(context);
-	await expect(context.setState).toBeCalledWith({ mapsResults: '' });
+	await expect(dialogs.sendCouncilMenu).toBeCalledWith(context, metric, events);
 });
 
 it('goBackMenu button', async () => {
@@ -242,11 +245,23 @@ it('notMe button', async () => {
 });
 
 // misc dialogs
-// TODO start and greetings
 // TODO email and reAskMail on text
 // TODO whatsApp, gotPhone and reAskPhone on text
 // TODO notFoundFromGeo is a part of nearestCouncil
 
+it('start', async () => {
+	const context = cont.quickReplyContext('start', 'start');
+	await handler(context);
+	await expect(dialogs.sendGreetings).toBeCalledWith(context, metric);
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario comeca dialogo');
+});
+
+it('greetings', async () => {
+	const context = cont.quickReplyContext('greetings', 'greetings');
+	await handler(context);
+	await expect(dialogs.sendGreetings).toBeCalledWith(context, metric);
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Saudacoes');
+});
 
 it('join', async () => {
 	const context = cont.quickReplyContext('join', 'join');
@@ -254,7 +269,6 @@ it('join', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.join.firstMessage, await attach.getQR(flow.join));
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario quer fazer parte');
 });
-
 
 it('keepMe', async () => {
 	const context = cont.quickReplyContext('keepMe', 'keepMe');

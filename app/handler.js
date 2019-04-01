@@ -15,6 +15,7 @@ const appcivicoApi = require('./chatbot_api');
 const { apiai } = require('./helpers');
 const { createIssue } = require('./send_issue');
 const { checkPosition } = require('./dialogFlow');
+const dialogs = require('./dialogs');
 
 const { restartList } = require('./helpers');
 
@@ -24,51 +25,6 @@ const mailRegex = new RegExp(/\S+@\S+/);
 const timeLimit = 1000 * 60 * 60 * 24 * 3; // 60 minutes * 24 hours  * 3 days => 1000 * 60 * 60 * 24 * 3
 const calendarQROpt = [flow.subjectsOpt, flow.resultsOpt, flow.joinOpt];
 
-async function checkMenu(CCSID, oldOptions) {
-	// cheking which quick_reply options we can show in the menu
-	// { quick_replies: await checkMenu(context, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]) }
-	// each flow._opt passed will be added to the final options if it's present and matches the requirements (like having an agenda to show subjects)
-	const options = [];
-	if (oldOptions.find(obj => obj.payload === 'calendar')) { options.push(flow.calendarOpt); }
-	if (oldOptions.find(obj => obj.payload === 'subjects')) { // before checking the database we can check if we would have sent this optins in the first pplace
-		const agenda = await db.getAgenda(CCSID); // getting agenda to check if we should send "subjects" option
-		if (agenda && help.dateComparison(agenda.data) >= help.dateComparison(new Date())) { // we can send it
-			options.push(flow.subjectsOpt);
-		}
-	}
-	if (oldOptions.find(obj => obj.payload === 'results')) {
-		const resuts = await db.getResults(CCSID); // check if we have a valid text to send
-		if (resuts && resuts.texto && resuts.texto.length > 0 && resuts.texto.length <= 2000) {
-			options.push(flow.resultsOpt); // we can send it
-		}
-	}
-	if (oldOptions.find(obj => obj.payload === 'join')) { options.push(flow.joinOpt); }
-	return options;
-}
-
-async function sendCouncilMenu(context) {
-	await context.setState({ mapsResults: '' });
-	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
-		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-	} else { // "Escolha uma das opções"
-		await context.sendText(
-			flow.councilMenu.firstMessage,
-			{ quick_replies: await checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]) },
-		);
-		await metric.userAddOrUpdate(context);
-	}
-	await context.typingOff();
-	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
-}
-
-async function sendGreetings(context) {
-	await context.typingOn();
-	await context.sendImage(flow.greetings.greetImage);
-	await context.sendText(flow.greetings.welcome);
-	await context.typingOff();
-	await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
-	await metric.userAddOrUpdate(context);
-}
 
 module.exports = async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
@@ -180,7 +136,7 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isText) {
 				if (!context.state.dialog) { // in case a user manages to send a text message without starting the dialog properly
-					await context.setState({ dialog: 'greetings' });
+					await context.setState({ dialog: 'start' });
 				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
@@ -386,11 +342,11 @@ module.exports = async (context) => {
 
 			switch (context.state.dialog) {
 			case 'start':
-				await sendGreetings(context);
+				await dialogs.sendGreetings(context, metric);
 				await events.addCustomAction(context.session.user.id, 'Usuario comeca dialogo');
 				break;
 			case 'greetings':
-				await sendGreetings(context);
+				await dialogs.sendGreetings(context, metric);
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
 				break;
 			case 'aboutMe':
@@ -535,52 +491,13 @@ module.exports = async (context) => {
 				await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
 				break;
 			case 'wannaKnowMembers':
-				await context.typingOn();
-				await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.id) }); // all the members of the the diretoria
-				await context.setState({ diretoriaAtual: [] }); // stored active members on present date
-				await context.state.diretoria.forEach((element) => { // check which members of the diretoria aren't active today
-					if (Date.parse(element.fim_gestao) > new Date()) { context.state.diretoriaAtual.push(element); }
-				});
-				if (Object.keys(context.state.diretoriaAtual).length > 0) { // if there's at least one active member today we show the members(s)
-					await context.sendText(`${flow.wannaKnowMembers.firstMessage} ${context.state.CCS.ccs} atualmente.`);
-					await attach.sendCarouselDiretoria(context, context.state.diretoriaAtual);
-				} else { // if there's no active members we show the last 10 that became members (obs: 10 is the limit for elements in carousel)
-					await context.sendText(`Não temos uma diretoria ativa atualmente para o ${context.state.CCS.ccs}.\nVeja quem já foi membro:`);
-					await attach.sendCarouselDiretoria(context, context.state.diretoria);
-				}
-				await context.setState({ diretoria: '', diretoriaAtual: '', mapsResults: '' }); // cleaning up
-				await events.addCustomAction(context.session.user.id, 'Usuario ve Diretoria');
-
-				// checking if user has either searchedBairro or searcherCity to find the membros_natos
-				if ((context.state.CCS.bairro && context.state.CCS.bairro.length > 0) || (context.state.CCS.municipio && context.state.CCS.municipio.length > 0)) {
-					await context.typingOn();
-					if (context.state.CCS.bairro && context.state.CCS.bairro.length > 0) {
-						await context.setState({ membrosNatos: await db.getMembrosNatosBairro(context.state.CCS.bairro, context.state.CCS.id) });
-					} else if ((context.state.CCS.municipio && context.state.CCS.municipio.length > 0)) {
-						await context.setState({ membrosNatos: await db.getMembrosNatosMunicipio(context.state.CCS.municipio, context.state.CCS.id) });
-					}
-
-					if (context.state.membrosNatos && context.state.membrosNatos.length !== 0) { // check if there was any results
-						await setTimeout(async (membrosNatos) => {
-							await context.sendText(flow.wannaKnowMembers.secondMessage);
-							await attach.sendCarouselMembrosNatos(context, membrosNatos);
-							await context.sendText(flow.wannaKnowMembers.thirdMessage);
-							await sendCouncilMenu(context);
-							await context.typingOff();
-						}, 5000, context.state.membrosNatos);
-						await context.setState({ membrosNatos: '' }); // cleaning up
-					} else { // no membrosNatos
-						await sendCouncilMenu(context);
-					}
-				} else { // no searchedBairro or searchedCity
-					await sendCouncilMenu(context);
-				}
+				await dialogs.wannaKnowMembers(context, db, metric, events);
 				break;
 			case 'mainMenu': // 'Veja como eu posso te ajudar por aqui'
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'councilMenu': // 'Escolha uma das opções:'
-				await sendCouncilMenu(context);
+				await dialogs.sendCouncilMenu(context, metric, events, db);
 				break;
 			case 'calendar': // agenda
 				await context.typingOn();
@@ -593,7 +510,7 @@ module.exports = async (context) => {
 						await context.sendText(context.state.ageMsg);
 						await context.setState({ ageMsg: '' });
 						// sending menu options
-						await context.setState({ QROptions: await checkMenu(context.state.CCS.id, calendarQROpt) });
+						await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 						if (context.state.QROptions.find(obj => obj.payload === 'results') && context.state.QROptions.find(obj => obj.payload === 'subjects')) { // check if we can send results and subjects (this whole part is necessary because the text changes)
 							await context.sendText(flow.calendar.preMenuMsg, { quick_replies: context.state.QROptions });
 						} else { // send text for no results
@@ -614,16 +531,16 @@ module.exports = async (context) => {
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia '
                 + `${help.formatDateDay(context.state.agenda.data)}.`);
 						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist !==
-							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', { quick_replies: await checkMenu(context.state.CCS.id, calendarQROpt) });
+							await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', { quick_replies: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 							// before adding the user+ccs on the table we check if it's already there
 							if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
 								await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
 							}
 							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
 						} else { // User is on the blacklist
-							await context.setState({ QROptions: await checkMenu(context.state.CCS.id, calendarQROpt) });
+							await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 							if (context.state.QROptions.find(obj => obj.payload === 'results')) { // check if we can send results (this whole part is necessary because the text changes)
-								await context.sendText('Você pode ver os nossos últimos resultados clicando abaixo! 😊', { quick_replies: await checkMenu(context.state.CCS.id, calendarQROpt) });
+								await context.sendText('Você pode ver os nossos últimos resultados clicando abaixo! 😊', { quick_replies: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 							} else { // send text for no results
 								await context.sendText(flow.calendar.preMenuMsgExtra, { quick_replies: context.state.QROptions });
 							}
@@ -631,7 +548,7 @@ module.exports = async (context) => {
 					}
 				} else { // no agenda at all, probably an error
 					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`);
-					await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".', { quick_replies: await checkMenu(context.state.CCS.id, calendarQROpt) });
+					await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".', { quick_replies: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 				}
 				await context.typingOff();
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Agenda');
@@ -654,7 +571,7 @@ module.exports = async (context) => {
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
 				// sending menu options
-				await context.setState({ QROptions: await checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.resultsOpt, flow.joinOpt]) });
+				await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.resultsOpt, flow.joinOpt], db) });
 				if (context.state.QROptions.find(obj => obj.payload === 'results')) { // check if we can send results (this whole part is necessary because the text changes)
 					await context.sendText(flow.subjects.preMenuMsg, { quick_replies: context.state.QROptions });
 				} else { // send text for no results
@@ -694,7 +611,7 @@ module.exports = async (context) => {
 				await context.setState({ sent: '' });
 
 				// sending menu options
-				await context.setState({ QROptions: await checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.joinOpt]) });
+				await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.joinOpt], db) });
 				if (context.state.QROptions.find(obj => obj.payload === 'subjects')) { // check if we can send subjects (this whole part is necessary because the text changes)
 					await context.sendText(flow.results.preMenuMsg, { quick_replies: context.state.QROptions });
 				} else { // send text for no subjects

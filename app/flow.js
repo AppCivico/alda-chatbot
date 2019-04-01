@@ -64,7 +64,7 @@ module.exports = {
 	},
 	wantToType2: {
 		noSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro.',
-		withSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro. `Você pode tentar bairros como <sugestao> e outros.',
+		withSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro. Você pode tentar bairros como <sugestao> e outros.',
 	},
 	foundLocation: {
 		firstMessage: 'Encontrei o seguinte município:',
@@ -127,6 +127,7 @@ module.exports = {
 		secondMessage: 'Além desses membros, moradores eleitos para essas funções, fazem parte da diretoria de cada Conselho os chamados membros natos: '
 			+ 'o Comandante do Batalhão de Polícia Militar da área e o Delegado Titular da Delegacia de Polícia Civil mais próxima.',
 		thirdMessage: 'Bacana, né? Olha só o que mais você pode fazer por aqui!',
+		notActive: 'Não temos uma diretoria ativa atualmente para o <ccs>.\nVeja quem já foi membro:',
 	},
 	councilMenu: {
 		firstMessage: 'Escolha uma das opções:',

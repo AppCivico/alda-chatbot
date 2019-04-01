@@ -3,6 +3,7 @@ const moment = require('moment');
 const accents = require('remove-accents');
 const Sentry = require('@sentry/node');
 const dialogFlow = require('apiai-promise');
+const flow = require('./flow');
 const postback = require('./postback');
 
 Sentry.init({
@@ -12,6 +13,7 @@ module.exports.Sentry = Sentry;
 
 moment.locale('pt-BR');
 module.exports.moment = moment;
+
 
 async function formatDialogFlow(text) {
 	let result = text.toLowerCase();
@@ -28,18 +30,33 @@ module.exports.urlExists = util.promisify(require('url-exists'));
 function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
 }
-module.exports.formatDate = formatDate;
-
-module.exports.formatDateDay = function formatDateDay(date) {
-	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
-};
-
-module.exports.dateComparison = function formatDateDay(date) {
-	return `${moment(date).format('YYYY-MM-DD')}`;
-};
-
+module.exports.formatDateDay = date => `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
+async function dateComparison(date) { return `${moment(date).format('YYYY-MM-DD')}`; }
 module.exports.capitalizeWords = str => str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 
+module.exports.dateComparison = dateComparison;
+module.exports.formatDate = formatDate;
+module.exports.checkMenu = async (CCSID, oldOptions, db) => {
+	// cheking which quick_reply options we can show in the menu
+	// { quick_replies: await checkMenu(context, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]) }
+	// each flow._opt passed will be added to the final options if it's present and matches the requirements (like having an agenda to show subjects)
+	const options = [];
+	if (oldOptions.find(obj => obj.payload === 'calendar')) { options.push(flow.calendarOpt); }
+	if (oldOptions.find(obj => obj.payload === 'subjects')) { // before checking the database we can check if we would have sent this optins in the first pplace
+		const agenda = await db.getAgenda(CCSID); // getting agenda to check if we should send "subjects" option
+		if (agenda && dateComparison(agenda.data) >= dateComparison(new Date())) { // we can send it
+			options.push(flow.subjectsOpt);
+		}
+	}
+	if (oldOptions.find(obj => obj.payload === 'results')) {
+		const resuts = await db.getResults(CCSID); // check if we have a valid text to send
+		if (resuts && resuts.texto && resuts.texto.length > 0 && resuts.texto.length <= 2000) {
+			options.push(flow.resultsOpt); // we can send it
+		}
+	}
+	if (oldOptions.find(obj => obj.payload === 'join')) { options.push(flow.joinOpt); }
+	return options;
+};
 // find every object on municipios array with the same bairro (remove duplicated bairros)
 module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];
@@ -193,7 +210,6 @@ async function linkUserToCustomLabel(labelName, UserID) { // eslint-disable-line
 }
 
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
-
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
