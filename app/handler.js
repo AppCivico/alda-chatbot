@@ -145,7 +145,7 @@ module.exports = async (context) => {
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
 					} else {
-						await context.sendText('Vocẽ não é um administrador! Esse menu é proibido!');
+						await context.sendText('Você não é um administrador! Esse menu é proibido!');
 						await context.setState({ dialog: 'whichCCSMenu', labels: '', isAdmin: '' });
 					}
 				} else if (restartList.includes(await help.formatString(context.event.message.text))) {

@@ -115,27 +115,12 @@ it('wannaKnowMembers - active members', async () => {
 	await expect(context.setState).toBeCalledWith({ mapsResults: '' }); // sendCouncilMenu
 });
 
-it('wannaKnowMembers - no membrosNatos', async () => {
-	const context = cont.quickReplyContext();
-	context.state.CCS = templateCCS; context.state.diretoriaAtual = []; context.state.diretoria = [];
-	await dialogs.wannaKnowMembers(context, db, metric, events);
-	// skip diretoria
-	await expect((context.state.CCS.bairro && context.state.CCS.bairro.length > 0) || (context.state.CCS.municipio && context.state.CCS.municipio.length > 0)).toBeTruthy();
-	await expect((context.state.CCS.bairro && context.state.CCS.bairro.length > 0)).toBeTruthy();
-	await expect(context.setState).toBeCalledWith({ membrosNatos: await db.getMembrosNatosBairro(context.state.CCS.bairro, context.state.CCS.id) });
-	// await expect(context.setState).toBeCalledWith({ membrosNatos: await db.getMembrosNatosMunicipio(context.state.CCS.municipio, context.state.CCS.id) });
-
-	await expect(context.state.membrosNatos && context.state.membrosNatos.length !== 0).toBeFalsy();
-	await expect(context.setState).toBeCalledWith({ mapsResults: '' }); // sendCouncilMenu
-});
-
-it('wannaKnowMembers - membrosNatos', async () => {
+it('wannaKnowMembers - membrosNatos and bairro', async () => {
 	jest.useFakeTimers();
 	const context = cont.quickReplyContext();
 	context.state.CCS = templateCCS; context.state.diretoriaAtual = []; context.state.diretoria = [];
-	context.state.membrosNatos = [
-		{ nome: 'Rachel Owlglass', cargo: 'Delegado (a)' },
-	];
+	context.state.membrosNatos = [{ nome: 'Rachel Owlglass', cargo: 'Delegado (a)' }];
+
 	await dialogs.wannaKnowMembers(context, db, metric, events);
 	// skip diretoria
 	await expect((context.state.CCS.bairro && context.state.CCS.bairro.length > 0) || (context.state.CCS.municipio && context.state.CCS.municipio.length > 0)).toBeTruthy();
@@ -149,5 +134,20 @@ it('wannaKnowMembers - membrosNatos', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.secondMessage);
 	await expect(attach.sendCarouselMembrosNatos).toBeCalledWith(context, context.state.membrosNatos);
 	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.thirdMessage);
+	await expect(context.setState).toBeCalledWith({ mapsResults: '' }); // sendCouncilMenu
+});
+
+it('wannaKnowMembers - no membrosNatos and no bairro', async () => {
+	const context = cont.quickReplyContext();
+	context.state.CCS = templateCCS; context.state.diretoriaAtual = []; context.state.diretoria = [];
+	context.state.CCS.bairro = undefined;
+
+	await dialogs.wannaKnowMembers(context, db, metric, events);
+	// skip diretoria
+	await expect((context.state.CCS.bairro && context.state.CCS.bairro.length > 0)).toBeFalsy();
+	await expect((context.state.CCS.municipio && context.state.CCS.municipio.length > 0) && (!context.state.membrosNatos || context.state.membrosNatos.length === 0)).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ membrosNatos: await db.getMembrosNatosMunicipio(context.state.CCS.municipio, context.state.CCS.id) });
+
+	await expect(context.state.membrosNatos && context.state.membrosNatos.length !== 0).toBeFalsy();
 	await expect(context.setState).toBeCalledWith({ mapsResults: '' }); // sendCouncilMenu
 });

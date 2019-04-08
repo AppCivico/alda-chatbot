@@ -187,7 +187,10 @@ it('nearestLocation - neverWent + menu - no metric', async () => {
 });
 
 // TODO nearestLocation with metric (insert checkChatbotUser into updateWentBeforeChatbotUser)
-// TODO wannaKnowMembers
+// misc dialogs
+// TODO email and reAskMail on text
+// TODO whatsApp, gotPhone and reAskPhone on text
+// TODO notFoundFromGeo is a part of nearestCouncil
 
 it('wannaKnowMembers - notWannaKnow + menu', async () => {
 	const context = cont.quickReplyContext(flow.wentAlready.menuPostback[1], 'wentAlreadyMenu');
@@ -243,11 +246,6 @@ it('notMe button', async () => {
 	await handler(context);
 	await expect(context.sendText).toBeCalledWith(flow.aboutMe.thirdMessage, await attach.getQR(flow.aboutMe));
 });
-
-// misc dialogs
-// TODO email and reAskMail on text
-// TODO whatsApp, gotPhone and reAskPhone on text
-// TODO notFoundFromGeo is a part of nearestCouncil
 
 it('start', async () => {
 	const context = cont.quickReplyContext('start', 'start');
