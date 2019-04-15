@@ -162,7 +162,7 @@ module.exports = {
 		txt1: 'Você quer sugerir algum assunto específico pra ser debatido na próxima reunião do seu Conselho? Eu posso encaminhar pra diretoria! 😁',
 		noPauta1: 'Tudo bem, então!',
 		askPauta1: 'Legal! Pode digitar pra mim o tema que você quer que seja debatido.',
-		askPauta2: 'Legal, agradecemos a sugestão.',
+		askPauta2: 'Agradecemos a sugestão.',
 		menuOptions: ['Sim', 'Não'],
 		menuPostback: ['askPauta', 'noPauta'],
 	},
