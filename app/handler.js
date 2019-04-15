@@ -50,6 +50,7 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'whichCCSMenu' });
 				}
 			} else if (context.event.isPostback) {
+				await context.setState({ questionNumber: '' });
 				if (context.event.postback.payload.slice(0, 9) === 'confirmBa') { // from confirmBairro
 					await context.setState({
 						CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmBa', ''), 10)),
@@ -64,6 +65,7 @@ module.exports = async (context) => {
 					await context.setState({ dialog: context.event.postback.payload });
 				}
 			} else if (context.event.isQuickReply) {
+				await context.setState({ questionNumber: '' });
 				switch (context.event.quickReply.payload) {
 				case 'notMe':
 					await context.sendText(flow.aboutMe.notNow);
@@ -136,7 +138,11 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'subjectsFollowUp' });
 					break;
 				default:
-					await context.setState({ dialog: context.event.quickReply.payload });
+					if (context.event.quickReply.payload.slice(0, 3) === 'seq') {
+						await context.setState({ questionNumber: context.event.quickReply.payload.replace('seq', ''), dialog: 'sequence' });
+					} else {
+						await context.setState({ dialog: context.event.quickReply.payload });
+					}
 					break;
 				}
 			} else if (context.event.isText) {
@@ -307,26 +313,37 @@ module.exports = async (context) => {
 						await events.addCustomAction(context.session.user.id, 'Usuario deixou sugestao');
 						await context.setState({ dialog: 'subjectsFollowUp' });
 						break;
+					case 'sequence':
+						if (context.state.questionNumber === '3') { // criticas
+							await context.setState({ dialog: 'endSequence' });
+						} else if (context.state.questionNumber === '7') { // dificuldades
+							await context.setState({ dialog: 'endSequence' });
+						}
+						break;
 					default: // regular text message => error treatment
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
-						await context.setState({ dialog: 'holdOn' });
-						console.log('Entrei aqui');
+						if (context.state.whatWasTyped === 'teste') {
+							await context.setState({ questionNumber: '1', dialog: 'sequence' });
+						} else {
+							await context.setState({ dialog: 'holdOn' });
+							console.log('Entrei aqui');
 
-						if (context.state.politicianData.use_dialogflow === 1) { // check if politician is using dialogFlow
-							console.log('Está usando df');
+							if (context.state.politicianData.use_dialogflow === 1) { // check if politician is using dialogFlow
+								console.log('Está usando df');
 
-							await context.setState({
-								apiaiResp: await apiai.textRequest(await help.formatDialogFlow(context.state.whatWasTyped),
-									{ sessionId: context.session.user.id }),
-							});
-							// await context.setState({ resultParameters: context.state.apiaiResp.result.parameters }); // getting the entities
-							await context.setState({ intentName: context.state.apiaiResp.result.metadata.intentName }); // getting the intent
-							await checkPosition(context);
-						} else { // not using dialogFlow
-							console.log('Não usando df');
-							await createIssue(context);
+								await context.setState({
+									apiaiResp: await apiai.textRequest(await help.formatDialogFlow(context.state.whatWasTyped),
+										{ sessionId: context.session.user.id }),
+								});
+								// await context.setState({ resultParameters: context.state.apiaiResp.result.parameters }); // getting the entities
+								await context.setState({ intentName: context.state.apiaiResp.result.metadata.intentName }); // getting the intent
+								await checkPosition(context);
+							} else { // not using dialogFlow
+								console.log('Não usando df');
+								await createIssue(context);
+							}
+							await events.addCustomAction(context.session.user.id, 'Texto nao interpretado');
 						}
-						await events.addCustomAction(context.session.user.id, 'Texto nao interpretado');
 						break;
 					}
 				}
@@ -788,7 +805,7 @@ module.exports = async (context) => {
 				break;
 			case 'broadcast':
 				await context.sendText('Ok! Aqui você poderá enviar uma mensagem para todos os usuários que se vincularam a um conselho.'
-            + '\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
+					+ '\nDigite apenas o número (id) do conselho desejado, entre 1001 e 1110. Por exemplo: O CCS Casimiro de Abreu é o 1031 e o CCS AISP 27 é o 1011.', await attach.getQR(flow.warnCalendar));
 				break;
 			case 'writeMessage':
 				await context.sendText(`Tudo bem! Escreva sua mensagem abaixo, ela será enviada para todos os usuários que visualizaram o CCS ${context.state.broadcastNumber}.`);
@@ -812,9 +829,16 @@ module.exports = async (context) => {
 			case 'metrics':
 				await context.sendText(
 					'Insira o id do broadcast que você deseja. Exemplo: 332286104187677. Esse id é dado depois que você envia um broadcast. '
-            + '(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
+					+ '(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
 					await attach.getQR(flow.metrics),
 				);
+				break;
+				// sequence questions
+			case 'sequence':
+				await context.sendText(flow.sequencia[context.state.questionNumber].question, await attach.getQR(flow.sequencia[context.state.questionNumber]));
+				break;
+			case 'endSequence':
+				await context.sendText(flow.sequencia[context.state.questionNumber].followUp, { quick_replies: [flow.goBackMenu] });
 				break;
 				// Notifications flow ---------------------------------------------------------------------------
 			case 'disableNotifications':

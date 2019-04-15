@@ -312,5 +312,49 @@ module.exports = {
 		title: 'Fazer Parte',
 		payload: 'join',
 	},
+	goBackMenu: {
+		content_type: 'text',
+		title: 'Voltar para o menu',
+		payload: 'goBackMenu',
+	},
+	sequencia: {
+		1: {
+			question: 'Oi, <nome>! Perguntinha rápida, você conseguiu ir na reunião do seu Conselho que aconteceu ontem?',
+			menuOptions: ['Sim', 'Não deu'],
+			menuPostback: ['seq2', 'seq5'],
+		},
+		2: {
+			question: 'Eba, que bom! 😍\n E me conta, a reunião foi boa?',
+			menuOptions: ['Foi legal!', 'Não gostei muito'],
+			menuPostback: ['seq3', 'seq4'],
+		},
+		3: {
+			question: 'Amei! Obrigada por compartilhar comigo',
+			menuOptions: ['Voltar para o menu'],
+			menuPostback: ['goBackMenu'],
+		},
+		4: {
+			question: 'Vish, entendo, Pra gente conseguir melhorar as reuniões cada vez mais, preciso que você me conte: o que mais te desagradou nela?',
+			followUp: 'Tá bem! Eu vou conversar sobre essas críticas com os diretores dos Conselhos e vamos trabalhar para modiicar essa situação. Obrigado pela ajuda! 💪',
+			menuOptions: [],
+			menuPostback: [],
+		},
+		5: {
+			question: 'Ah, que pena. 😕\nMas você costuma ir nas reuniões ou nunca tem conseguido?',
+			menuOptions: ['Eu vou sim!', 'Eu nunca vou'],
+			menuPostback: ['seq6', 'seq7'],
+		},
+		6: {
+			question: 'Ah, então tudo bem! Te aviso da próxima! 😍',
+			menuOptions: ['Voltar para o menu'],
+			menuPostback: ['goBackMenu'],
+		},
+		7: {
+			question: 'Poxa, que pena. Por que isso acontece? Tem alguma razão?',
+			followUp: 'Entendi! Obrigada por compartilhar comigo! Vou ler tudo com calma e, se for algo que eu possa mudar pra te ajudar, eu vou fazer. 💪',
+			menuOptions: [],
+			menuPostback: [],
+		},
+	},
 
 };
