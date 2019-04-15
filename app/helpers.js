@@ -194,7 +194,7 @@ module.exports.formatString = formatString;
 // link an user to an agendaLabel
 // each angendaLabel is 'agenda' + 'ID of the CCS' -> agenda1110
 // All of the are going to be created and associated
-async function linkUserToCustomLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
+async function linkUserToCustomLabel(UserID, labelName) { // eslint-disable-line no-unused-vars
 	const ourLabels = await postback.listAllLabels(); // get all labels we have
 	const theOneLabel = await ourLabels.data.find(x => x.name === labelName); // find the one label with the name same (we need the id)
 

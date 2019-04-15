@@ -21,9 +21,40 @@ module.exports = {
 		return pollData;
 	},
 
-	async postRecipient(user_id, recipient) {
+	async postRecipient(politician_id, recipient) {
 		const recipientData_qs = queryString.stringify(recipient);
-		const res = await request.post(`${apiUri}/api/chatbot/recipient?${recipientData_qs}&security_token=${security_token}&`).query({ politician_id: user_id });
+		const res = await request.post(`${apiUri}/api/chatbot/recipient?${recipientData_qs}&security_token=${security_token}&`).query({ politician_id });
+		const recipientData = await res.json();
+		// console.log('recipientData', recipientData);
+		return recipientData;
+	},
+
+	async postRecipientLabel(politician_id, fb_id, label) {
+		const recipient = {
+			fb_id,
+			custom_labels: [{ name: label }],
+		};
+		const recipientData_qs = queryString.stringify(recipient);
+		const res = await request.post(`${apiUri}/api/chatbot/recipient?${recipientData_qs}&security_token=${security_token}&`).query({ politician_id });
+		const recipientData = await res.json();
+		// console.log('recipientData', recipientData);
+		return recipientData;
+	},
+
+	async deleteRecipientLabel(politician_id, fb_id, label) {
+		const recipient = {
+			fb_id,
+			custom_labels: [{ name: label, deleted: 1 }],
+		};
+		const recipientData_qs = queryString.stringify(recipient);
+		const res = await request.post(`${apiUri}/api/chatbot/recipient?${recipientData_qs}&security_token=${security_token}&`).query({ politician_id });
+		const recipientData = await res.json();
+		// console.log('recipientData', recipientData);
+		return recipientData;
+	},
+
+	async getRecipient(politician_id, fb_id) {
+		const res = await request.get(`${apiUri}/api/chatbot/recipient?fb_id=${fb_id}&security_token=${security_token}&`).query({ politician_id });
 		const recipientData = await res.json();
 		// console.log('recipientData', recipientData);
 		return recipientData;

@@ -444,7 +444,8 @@ module.exports = async (context) => {
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
 				// link user to the correspondent ccs_tag
 				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-					await help.linkUserToCustomLabel(`ccs${context.state.CCS.id}`, context.session.user.id);
+					await help.linkUserToCustomLabel(context.session.user.id, `ccs${context.state.CCS.id}`);
+					await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `ccs${context.state.CCS.id}`);
 				}
 				await metric.userAddOrUpdate(context);
 				if (context.state.CCS.bairro === 'Paquetá') { // check if user is on Paquetá (island) to show the correct related bairros
@@ -525,7 +526,8 @@ module.exports = async (context) => {
 									new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
 								); // if it's not we add it
 							}
-							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
+							await help.linkUserToCustomLabel(context.session.user.id, `agenda${context.state.agenda.id}`); // create an agendaLabel using agenda_id
+							await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
 						}
 					} else { // last reunion already happened
 						await context.sendText('Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia '
@@ -536,7 +538,8 @@ module.exports = async (context) => {
 							if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
 								await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
 							}
-							await help.linkUserToCustomLabel(`agenda${context.state.agenda.id}`, context.session.user.id); // create an agendaLabel using agenda_id
+							await help.linkUserToCustomLabel(context.session.user.id, `agenda${context.state.agenda.id}`); // create an agendaLabel using agenda_id
+							await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
 						} else { // User is on the blacklist
 							await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 							if (context.state.QROptions.find(obj => obj.payload === 'results')) { // check if we can send results (this whole part is necessary because the text changes)
