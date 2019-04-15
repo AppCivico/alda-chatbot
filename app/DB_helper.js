@@ -272,7 +272,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 }
 module.exports.getAgenda = getAgenda;
 
-module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
+module.exports.getAssuntos = async (CCS_ID) => {
 	// uses CCS_ID to get the newest agenda, with this agenda we get the subject_id that were discuted and with these is we get the text
 	// Remember: closest agenda after today
 	let date = new Date();
@@ -303,6 +303,24 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 	});
 	return result;
 };
+
+async function savePautaSugestao(UserID, CCS_ID, pauta) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	const agenda = await sequelize.query(`SELECT id from agendas WHERE conselho_id = '${CCS_ID}' ORDER BY data DESC NULLS LAST LIMIT 1;`);
+
+	if (agenda && agenda[0] && agenda[0][0] && agenda[0][0].id) {
+		await sequelize.query(`
+		INSERT INTO pautas_sugeridas(user_id, agenda_id, sugestao, created_at, updated_at)
+		VALUES (${UserID}, ${agenda[0][0].id}, '${pauta}', '${date}', '${date}');
+		`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+			console.log(`Added ${UserID}'s suggestion on agenda ${agenda[0][0].id} successfully!`);
+		}).catch((err) => {
+			console.error('Error on savePautaSugestao => ', err);
+		});
+	}
+}
+module.exports.savePautaSugestao = savePautaSugestao;
 
 async function getResults(CCS_ID) { // get most recent results from before the current day
 	let date = new Date();
@@ -591,7 +609,7 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	conselho_id INT     NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	created_at timestamp without time zone NOT NULL,
-  	updated_at timestamp without time zone NOT NULL
+  updated_at timestamp without time zone NOT NULL
 	);
 */
 
@@ -601,8 +619,8 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	user_id BIGINT NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	agendas_id integer NOT NULL,
-    endereco text NOT NULL,
-    data_hora timestamp without time zone NOT NULL,
+  endereco text NOT NULL,
+  data_hora timestamp without time zone NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);
@@ -614,6 +632,17 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	user_id BIGINT NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	ultima_agenda integer NOT NULL,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE pautas_sugeridas (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	agenda_id INTEGER NOT NULL,
+	sugestao text NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);

@@ -130,6 +130,11 @@ module.exports = async (context) => {
 					await context.setState({ CCS: await db.getCCSsFromID(1043) });
 					await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 					break;
+				case 'noPauta':
+					await context.sendText(flow.pautas.noPauta1);
+					await events.addCustomAction(context.session.user.id, 'Usuario nao deixou sugestao');
+					await context.setState({ dialog: 'subjectsFollowUp' });
+					break;
 				default:
 					await context.setState({ dialog: context.event.quickReply.payload });
 					break;
@@ -294,6 +299,13 @@ module.exports = async (context) => {
 						} else {
 							await context.sendText('Erro! Entrada inválida! Tente novamente.');
 						} // after this flow we return to the metrics dialog
+						break;
+					case 'subjects':
+					case 'askPauta':
+						await db.savePautaSugestao(context.session.user.id, context.state.CCS.id, context.event.message.text);
+						await context.sendText(flow.pautas.askPauta2);
+						await events.addCustomAction(context.session.user.id, 'Usuario deixou sugestao');
+						await context.setState({ dialog: 'subjectsFollowUp' });
 						break;
 					default: // regular text message => error treatment
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
@@ -537,7 +549,7 @@ module.exports = async (context) => {
 					}
 				} else { // no agenda at all, probably an error
 					await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`);
-					await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".', { quick_replies: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
+					await context.sendText(flow.subjects.novidades, { quick_replies: await help.checkMenu(context.state.CCS.id, calendarQROpt, db) });
 				}
 				await context.typingOff();
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Agenda');
@@ -554,21 +566,28 @@ module.exports = async (context) => {
 							'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 					} else { // no agenda today or after so NO subjects at all
 						await context.sendText('Infelizmente, ainda não tem uma reunião agendada para o seu CCS. Não sabemos que assuntos serão discutidos na próxima reunião. ');
-						await context.sendText('Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".', await attach.getQR(flow.subjects));
+						await context.sendText(flow.subjects.novidades, await attach.getQR(flow.subjects));
 					}
 				} else { // sending the bullet point list with the subjects
 					await context.sendText(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 				}
-				// sending menu options
+
+				await context.sendText(flow.pautas.txt1, await attach.getQR(flow.pautas));
+
+				await context.typingOff();
+				await events.addCustomAction(context.session.user.id, 'Usuario ve Assuntos');
+				break;
+			case 'subjectsFollowUp':
+				// sending menu options after pautas
 				await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.resultsOpt, flow.joinOpt], db) });
 				if (context.state.QROptions.find(obj => obj.payload === 'results')) { // check if we can send results (this whole part is necessary because the text changes)
 					await context.sendText(flow.subjects.preMenuMsg, { quick_replies: context.state.QROptions });
 				} else { // send text for no results
 					await context.sendText(flow.subjects.preMenuMsgExtra, { quick_replies: context.state.QROptions });
 				}
-
-				await context.typingOff();
-				await events.addCustomAction(context.session.user.id, 'Usuario ve Assuntos');
+				break;
+			case 'askPauta':
+				await context.sendText(flow.pautas.askPauta1);
 				break;
 			case 'results': // on results we have to check if there is a future agenda so that we can show the subjects
 				await context.typingOn();

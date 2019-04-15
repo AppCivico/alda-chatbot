@@ -144,6 +144,7 @@ module.exports = {
 		menuPostback: ['subjects', 'results', 'join'],
 	},
 	subjects: {
+		novidades: 'Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".',
 		firstMessage: 'Para a próxima reunião as pautas são:',
 		title: 'Baixar Arquivo',
 		sub: 'Baixe para ficar por dentro dos assuntos tratatos.',
@@ -156,6 +157,14 @@ module.exports = {
 		menuOptions: ['Calendário', 'Resultados', 'Fazer parte'],
 		menuPostback: ['calendar', 'results', 'join'],
 		imageLink: 'https://cdn2.iconfinder.com/data/icons/business-office-icons/256/To-do_List-512.png',
+	},
+	pautas: {
+		txt1: 'Você quer sugerir algum assunto específico pra ser debatido na próxima reunião do seu Conselho? Eu posso encaminhar pra diretoria! 😁',
+		noPauta1: 'Tudo bem, então!',
+		askPauta1: 'Legal! Pode digitar pra mim o tema que você quer que seja debatido.',
+		askPauta2: 'Legal, agradecemos a sugestão.',
+		menuOptions: ['Sim', 'Não'],
+		menuPostback: ['askPauta', 'noPauta'],
 	},
 	results: {
 		title: 'Baixar Arquivo',
