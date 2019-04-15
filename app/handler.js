@@ -54,12 +54,12 @@ module.exports = async (context) => {
 					await context.setState({
 						CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmBa', ''), 10)),
 					});
-					await context.setState({ dialog: 'nearestCouncil', asked: false });
+					await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 				} else if (context.event.postback.payload.slice(0, 9) === 'confirmMu') { // from confirmMunicipio
 					await context.setState({
 						CCS: context.state.municipiosFound.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmMu', ''), 10)),
 					});
-					await context.setState({ dialog: 'nearestCouncil', asked: false });
+					await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 				} else {
 					await context.setState({ dialog: context.event.postback.payload });
 				}
@@ -83,7 +83,7 @@ module.exports = async (context) => {
 						await context.setState({ dialog: 'notFoundFromGeo' });
 					} else if (context.state.CCSGeo.length === 1) {
 						await context.setState({ CCS: context.state.CCSGeo[0] });
-						await context.setState({ dialog: 'nearestCouncil', asked: false });
+						await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 					} else { // more than one bairro was found
 						await context.sendText(`Hmm, encontrei ${context.state.CCSGeo.length} bairros na minha pesquisa. 🤔 `
                 + 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
@@ -128,7 +128,7 @@ module.exports = async (context) => {
 					break;
 				case 'checkPaqueta':
 					await context.setState({ CCS: await db.getCCSsFromID(1043) });
-					await context.setState({ dialog: 'nearestCouncil', asked: false });
+					await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 					break;
 				default:
 					await context.setState({ dialog: context.event.quickReply.payload });
@@ -153,19 +153,12 @@ module.exports = async (context) => {
 				} else {
 					switch (context.state.dialog) { // handling text is each of these dialogs
 					case 'retryType':
-						// falls through
 					case 'sendLocation':
-						// falls through
 					case 'whichCCSMenu':
-						// falls through
 					case 'wantToChange':
-						// falls through
 					case 'municipioNotFound':
-						// falls through
 					case 'confirmMunicipio':
-						// falls through
 					case 'nearestCouncil':
-						// falls through
 					case 'wantToType1': // user entered city text
 						await context.setState({ cameFromGeo: false });
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
@@ -182,7 +175,7 @@ module.exports = async (context) => {
 								await context.setState({ dialog: 'municipioNotFound' });
 							} else if (context.state.municipiosFound.length === 1) { // we found exactly one municipio with what was typed by the user
 								await context.setState({ CCS: context.state.municipiosFound[0] });
-								await context.setState({ dialog: 'nearestCouncil', asked: false });
+								await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 							} else { // more than one municipio was found
 								await context.sendText(`Hmm, encontrei ${context.state.municipiosFound.length} municípios na minha pesquisa. 🤔 `
                     + 'Me ajude a confirmar qual municípios você quer escolhendo uma das opções abaixo. ');
@@ -192,9 +185,7 @@ module.exports = async (context) => {
 						} // else text length
 						break;
 					case 'bairroNotFound':
-						// falls through
 					case 'confirmBairro':
-						// falls through
 					case 'wantToType2': // user entered bairro text
 						await context.setState({ cameFromGeo: false });
 						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
@@ -215,14 +206,14 @@ module.exports = async (context) => {
 							await context.setState({ dialog: 'confirmBairro' });
 						} else if ('paqueta'.includes(context.state.userInput)) { // paqueta case
 							await context.setState({ CCS: await db.getCCSsFromID(1043) });
-							await context.setState({ dialog: 'nearestCouncil', asked: false });
+							await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 						} else { // regular case
 							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
 							if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
 								await context.setState({ dialog: 'bairroNotFound' });
 							} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
 								await context.setState({ CCS: context.state.bairro[0] });
-								await context.setState({ dialog: 'nearestCouncil', asked: false });
+								await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 							} else { // more than one bairro was found
 								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 `
                     + 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
@@ -232,7 +223,6 @@ module.exports = async (context) => {
 						}
 						break;
 					case 'reAskMail':
-						// falls throught
 					case 'eMail':
 						await context.setState({ eMail: context.event.message.text.toLowerCase() });
 						if (mailRegex.test(context.state.eMail)) { // valid mail
@@ -246,7 +236,6 @@ module.exports = async (context) => {
 						}
 						break;
 					case 'reAskPhone':
-						// falls throught
 					case 'whatsApp':
 						await context.setState({ phone: `+55${context.event.message.text.replace(/[- .)(]/g, '')}` });
 						if (phoneRegex.test(context.state.phone)) { // valid phone
@@ -290,7 +279,6 @@ module.exports = async (context) => {
 						} // not changing dialog --> admin goes back to 'warnCalendar'
 						break;
 					case 'writeMessage':
-						// falls throught
 					case 'agendaMessage':
 						await context.setState({ broadcastText: context.event.message.text, dialog: 'agendaConfirmText' });
 						break;
@@ -440,7 +428,6 @@ module.exports = async (context) => {
 				await context.sendText(`${flow.foundLocation.secondMessage}`, await attach.getQR(flow.foundLocation));
 				break;
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
-				// falls throught
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
 				// link user to the correspondent ccs_tag
 				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
@@ -474,11 +461,10 @@ module.exports = async (context) => {
 							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
 						}
 					}
-				} else if (context.state.asked === 'abcTest') {
-					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
-					// await context.sendText('O que deseja saber do seu conselho?', await attach.getQR(flow.councilMenu));
+				} else if (context.state.asked === true) { // user already saw the conselhos questions
+					await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready)); // wentAlreadyMenu
 				} else { // ask user if he already went to one of the meetings
-					// await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
+					await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
 					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
 				}
 				await events.addCustomAction(context.session.user.id, 'Econtramos-Confirmamos Conselho');
