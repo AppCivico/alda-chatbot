@@ -208,6 +208,19 @@ async function linkUserToCustomLabel(UserID, labelName) { // eslint-disable-line
 	}
 	return newLabel;
 }
+module.exports.buildSeqAnswers = async (context) => {
+	if (context.state.questionNumber === '2' || context.state.questionNumber === '1') {
+		await context.setState({ seqAnswers: { foiConselho: null, gostou: null, costumaIr: null }, seqInput: '' });
+	}
+	const aux = context.state.seqAnswers;
+	if (context.state.questionNumber === '2') { aux.foiConselho = true; } // Foi ao conselho - sim
+	if (context.state.questionNumber === '5') { aux.foiConselho = false; } // não
+	if (context.state.questionNumber === '3') { aux.gostou = true; } // gostou - sim
+	if (context.state.questionNumber === '4') { aux.gostou = false; } // não
+	if (context.state.questionNumber === '6') { aux.costumaIr = true; } // Costuma ir - sim
+	if (context.state.questionNumber === '7') { aux.costumaIr = false; } // não
+	await context.setState({ seqAnswers: aux });
+};
 
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
@@ -219,5 +232,4 @@ module.exports.checkUserOnLabel = postback.checkUserOnLabel;
 module.exports.getLabelID = postback.getLabelID;
 module.exports.formatDialogFlow = formatDialogFlow;
 module.exports.apiai = dialogFlow(process.env.DIALOGFLOW_TOKEN);
-
 module.exports.restartList = ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'ooi', 'comecar', 'começar', 'start', 'iniciar conversa', 'iniciar'];

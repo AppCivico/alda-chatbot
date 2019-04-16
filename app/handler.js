@@ -314,10 +314,8 @@ module.exports = async (context) => {
 						await context.setState({ dialog: 'subjectsFollowUp' });
 						break;
 					case 'sequence':
-						if (context.state.questionNumber === '3') { // criticas
-							await context.setState({ dialog: 'endSequence' });
-						} else if (context.state.questionNumber === '7') { // dificuldades
-							await context.setState({ dialog: 'endSequence' });
+						if (context.state.questionNumber === '4' || context.state.questionNumber === '7') {
+							await context.setState({ seqInput: context.event.message.text, dialog: 'endSequence' });
 						}
 						break;
 					default: // regular text message => error treatment
@@ -835,9 +833,14 @@ module.exports = async (context) => {
 				break;
 				// sequence questions
 			case 'sequence':
+				await help.buildSeqAnswers(context);
+				if (context.state.questionNumber === '3' || context.state.questionNumber === '6') {
+					await db.saveSeqAnswer(context.session.user.id, '123', context.state.seqAnswers, context.state.seqInput);
+				}
 				await context.sendText(flow.sequencia[context.state.questionNumber].question, await attach.getQR(flow.sequencia[context.state.questionNumber]));
 				break;
 			case 'endSequence':
+				await db.saveSeqAnswer(context.session.user.id, '123', context.state.seqAnswers, context.state.seqInput);
 				await context.sendText(flow.sequencia[context.state.questionNumber].followUp, { quick_replies: [flow.goBackMenu] });
 				break;
 				// Notifications flow ---------------------------------------------------------------------------

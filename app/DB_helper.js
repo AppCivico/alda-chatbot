@@ -560,8 +560,7 @@ module.exports.getNovaAgenda = async function getNovaAgenda() {
 
 // updates value of notificado from PK
 module.exports.updateNovaAgenda = async function updateNovaAgenda(PK, boolean) {
-	let date = new Date();
-	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 	await sequelize.query(`
 	UPDATE notificar_nova_agenda
@@ -584,6 +583,22 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	WHERE agendas_id = ${PK} AND NOT notificado;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`getAgendaNotificationFromID from ${PK} was successful!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getAgendaNotificationFromID => ', err);
+	});
+
+	return result;
+};
+
+// sequencia --------------------------------------------------------------------------------
+module.exports.saveSeqAnswer = async (UserID, agendaID, answers, input) => {
+	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	const result = await sequelize.query(`
+	INSERT INTO enquete_participacao(user_id, agenda_id, foi_ao_conselho, gostou, constuma_ir, input, created_at, updated_at)
+	VALUES ('${UserID}', '${agendaID}', ${answers.foiConselho},  ${answers.gostou},  ${answers.costumaIr}, NULLIF ('${input}', ''), '${date}', '${date}');
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`saveSeqAnswer from user ${UserID} and agenda ${agendaID} was successful!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getAgendaNotificationFromID => ', err);
@@ -643,6 +658,20 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	user_id BIGINT NOT NULL,
 	agenda_id INTEGER NOT NULL,
 	sugestao text NOT NULL,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE enquete_participacao (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	agenda_id INTEGER NOT NULL,
+	foi_ao_conselho boolean,
+	gostou boolean,
+	constuma_ir boolean,
+	input text,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);
