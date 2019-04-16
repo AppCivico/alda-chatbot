@@ -381,7 +381,7 @@ module.exports.getResultsAssuntos = getResultsAssuntos;
 // notificar_ativacao -------------------------------------------------------------------------------
 
 // check if notification_ativacao with UserID, CCS_ID exists already
-module.exports.checkNotificationAtivacao = async function checkNotificationAtivacao(UserID, CCS_ID) {
+module.exports.checkNotificationAtivacao = async (UserID, CCS_ID) => {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id = ${UserID} AND conselho_id = ${CCS_ID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -411,7 +411,7 @@ module.exports.addNotActive = addNotActive;
 // addNotActive('1864330513659814', 1017); // to test: change status of ccs_1017 to ativo and then back to inativo
 
 // get every notification that wasn't already sent but only if the status of the ccs is now 'Ativo'
-module.exports.getActivatedNotification = async function getActivatedNotification() {
+module.exports.getActivatedNotification = async () => {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.conselho_id, CCS.id, CCS.status
 	FROM notificar_ativacao AS NOTIFICATION
@@ -428,7 +428,7 @@ module.exports.getActivatedNotification = async function getActivatedNotificatio
 };
 
 // updates value of notificado from PK
-module.exports.updateNotification = async function updateNotification(PK) {
+module.exports.updateNotification = async (PK) => {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -446,7 +446,7 @@ module.exports.updateNotification = async function updateNotification(PK) {
 // notificar_agenda -------------------------------------------------------------------------------
 
 // check if notification_agenda with UserID, CCS_ID exists already
-module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, agendaID) {
+module.exports.checkNotificationAgenda = async (UserID, agendaID) => {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id = ${UserID} AND agendas_id = ${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -476,7 +476,7 @@ module.exports.addAgenda = addAgenda;
 // addAgenda('1864330513659814', '1', 'Na rua tal e tal', '2018-04-10 00:00:00'); // test
 
 // get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
-module.exports.getAgendaNotification = async function getActivatedNotification() {
+module.exports.getAgendaNotification = async () => {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
 	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
@@ -495,7 +495,7 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 };
 
 // updates value of notificado from PK
-module.exports.updateAgenda = async function updateAgenda(PK, boolean) {
+module.exports.updateAgenda = async (PK, boolean) => {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -512,7 +512,7 @@ module.exports.updateAgenda = async function updateAgenda(PK, boolean) {
 
 // notificar_nova_agenda -------------------------------------------------------------------------------
 // check if notificar_nova_agenda with UserID, CCS_ID exists already
-module.exports.checkNovaAgenda = async function checkNovaAgenda(UserID, agendaID) {
+module.exports.checkNovaAgenda = async (UserID, agendaID) => {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM notificar_nova_agenda WHERE user_id = ${UserID} AND ultima_agenda = ${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -541,7 +541,7 @@ async function addNovaAgenda(UserID, agendaID) {
 module.exports.addNovaAgenda = addNovaAgenda;
 
 // get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
-module.exports.getNovaAgenda = async function getNovaAgenda() {
+module.exports.getNovaAgenda = async () => {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ultima_agenda, AGENDAS.conselho_id, CONSELHOS.ccs
 	FROM notificar_nova_agenda AS NOTIFICATION
@@ -559,7 +559,7 @@ module.exports.getNovaAgenda = async function getNovaAgenda() {
 };
 
 // updates value of notificado from PK
-module.exports.updateNovaAgenda = async function updateNovaAgenda(PK, boolean) {
+module.exports.updateNovaAgenda = async (PK, boolean) => {
 	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 	await sequelize.query(`
@@ -576,7 +576,7 @@ module.exports.updateNovaAgenda = async function updateNovaAgenda(PK, boolean) {
 // broadcast -------------------------------------------------------------------------------
 
 // get every open agenda to warn with a broadcast
-module.exports.getAgendaNotificationFromID = async function getAgendaNotificationFromID(PK) {
+module.exports.getAgendaNotificationFromID = async (PK) => {
 	const result = await sequelize.query(`
 	SELECT user_id, data_hora, agendas_id, endereco, updated_at
 	FROM notificar_agenda
@@ -607,6 +607,21 @@ module.exports.saveSeqAnswer = async (UserID, agendaID, answers, input) => {
 	return result;
 };
 
+async function getYesterdayAgenda() {
+	const result = await sequelize.query(`
+	SELECT agendas_id, user_id
+	FROM notificar_agenda
+	WHERE data_hora > now() - interval '3 day';
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log('getYesterdayAgenda was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getYesterdayAgenda => ', err);
+	});
+	return result;
+}
+
+module.exports.getYesterdayAgenda = getYesterdayAgenda;
 /* creating unaccent dictionary funcion
 	user=> CREATE EXTENSION unaccent;
 	CREATE EXTENSION

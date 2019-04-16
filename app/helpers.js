@@ -209,6 +209,11 @@ async function linkUserToCustomLabel(UserID, labelName) { // eslint-disable-line
 	return newLabel;
 }
 module.exports.buildSeqAnswers = async (context) => {
+	if (context.state.questionNumber.length > 1) {
+		await context.setState({ agendaId: context.state.questionNumber.slice(1) });
+		await context.setState({ questionNumber: context.state.questionNumber.slice(0, 1) });
+	}
+
 	if (context.state.questionNumber === '2' || context.state.questionNumber === '1') {
 		await context.setState({ seqAnswers: { foiConselho: null, gostou: null, costumaIr: null }, seqInput: '' });
 	}

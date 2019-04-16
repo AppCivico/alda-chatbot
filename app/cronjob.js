@@ -59,8 +59,6 @@ const activatedCCS = new Cron.CronJob(
 	false // eslint-disable-line comma-dangle
 );
 
-module.exports.activatedCCS = activatedCCS;
-
 // Cronjob to notificate  users that there was a change in the agenda("calendário") they saw
 const agendaChange = new Cron.CronJob(
 	'00 00 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 00 8-22/2 * * 1-5
@@ -126,8 +124,6 @@ const agendaChange = new Cron.CronJob(
 	false // eslint-disable-line comma-dangle
 );
 
-module.exports.agendaChange = agendaChange;
-
 // Cronjob to notificate users that there was a change in the agenda("calendário") they saw
 const newAgenda = new Cron.CronJob(
 	'00 30 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
@@ -162,4 +158,33 @@ const newAgenda = new Cron.CronJob(
 	false // eslint-disable-line comma-dangle
 );
 
+// Cronjob to notificate users that there was a change in the agenda("calendário") they saw
+const enqueteParticipacao = new Cron.CronJob(
+	'00 30 10 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
+		let notifications;
+		await Sentry.configureScope(async (scope) => {
+			notifications = await db.getYesterdayAgenda();
+			scope.setExtra('notifications', notifications);
+
+			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
+			for (const element of notifications) { // eslint-disable-line
+					await broadcast.sendEnqueteParticipacao(element.user_id, element.agendas_id);
+				}
+			}
+		});
+	}, (() => {
+		console.log('Crontab \'enqueteParticipacao\' stopped.');
+	}),
+	true, /* Starts the job right now (no need for MissionTimer.start()) */
+	'America/Sao_Paulo',
+	false, // context
+	// Below: runOnInit => true is useful only for tests
+	true // eslint-disable-line comma-dangle
+);
+
+module.exports.activatedCCS = activatedCCS;
+module.exports.agendaChange = agendaChange;
 module.exports.newAgenda = newAgenda;
+module.exports.enqueteParticipacao = enqueteParticipacao;
+
+// */5 * * * * *

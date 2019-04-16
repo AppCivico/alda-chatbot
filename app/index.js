@@ -39,6 +39,7 @@ server.listen(process.env.API_PORT, () => {
 	console.log(`Cronjob activatedCCS is running? => ${cronjobs.activatedCCS.running ? cronjobs.activatedCCS.running : 'Nope'}`);
 	console.log(`Cronjob agendaChange is running? => ${cronjobs.agendaChange.running ? cronjobs.agendaChange.running : 'Nope'}`);
 	console.log(`Cronjob activatedCCS is running? => ${cronjobs.newAgenda.running ? cronjobs.newAgenda.running : 'Nope'}`);
+	console.log(`Cronjob enqueteParticipacao is running? => ${cronjobs.enqueteParticipacao.running ? cronjobs.enqueteParticipacao.running : 'Nope'}`);
 });
 
 process.on('SIGINT', () => { console.log('Bye bye!'); process.exit(); });

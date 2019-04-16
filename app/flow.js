@@ -324,7 +324,7 @@ module.exports = {
 			menuPostback: ['seq2', 'seq5'],
 		},
 		2: {
-			question: 'Eba, que bom! 😍\n E me conta, a reunião foi boa?',
+			question: 'Eba, que bom! 😍\nE me conta, a reunião foi boa?',
 			menuOptions: ['Foi legal!', 'Não gostei muito'],
 			menuPostback: ['seq3', 'seq4'],
 		},

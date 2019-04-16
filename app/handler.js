@@ -835,12 +835,12 @@ module.exports = async (context) => {
 			case 'sequence':
 				await help.buildSeqAnswers(context);
 				if (context.state.questionNumber === '3' || context.state.questionNumber === '6') {
-					await db.saveSeqAnswer(context.session.user.id, '123', context.state.seqAnswers, context.state.seqInput);
+					await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
 				}
 				await context.sendText(flow.sequencia[context.state.questionNumber].question, await attach.getQR(flow.sequencia[context.state.questionNumber]));
 				break;
 			case 'endSequence':
-				await db.saveSeqAnswer(context.session.user.id, '123', context.state.seqAnswers, context.state.seqInput);
+				await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
 				await context.sendText(flow.sequencia[context.state.questionNumber].followUp, { quick_replies: [flow.goBackMenu] });
 				break;
 				// Notifications flow ---------------------------------------------------------------------------
