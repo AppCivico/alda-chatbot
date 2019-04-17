@@ -56,7 +56,7 @@ const activatedCCS = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	false,
 );
 
 // Cronjob to notificate  users that there was a change in the agenda("calendário") they saw
@@ -121,12 +121,12 @@ const agendaChange = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	false,
 );
 
 // Cronjob to notificate users that there was a change in the agenda("calendário") they saw
 const newAgenda = new Cron.CronJob(
-	'00 30 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
+	'00 30 8-22/2 * * 1-5', async () => { // every two hours and 30m from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
 		let notifications = 'not loaded';
 		await Sentry.configureScope(async (scope) => {
 			notifications = await db.getNovaAgenda();
@@ -155,12 +155,12 @@ const newAgenda = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	false,
 );
 
-// Cronjob to notificate users that there was a change in the agenda("calendário") they saw
+// Cronjob to send the follow up enquete to the users
 const enqueteParticipacao = new Cron.CronJob(
-	'00 30 10 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
+	'00 00 15 * * *', async () => { // at the fithteenth hour from monday through sunday 00 30 15 * * 1-5
 		let notifications;
 		await Sentry.configureScope(async (scope) => {
 			notifications = await db.getYesterdayAgenda();
@@ -168,7 +168,7 @@ const enqueteParticipacao = new Cron.CronJob(
 
 			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
 			for (const element of notifications) { // eslint-disable-line
-					await broadcast.sendEnqueteParticipacao(element.user_id, element.agendas_id);
+					await broadcast.sendEnqueteParticipacao(element.user_id, element.agendas_id, element.user_name);
 				}
 			}
 		});
@@ -179,7 +179,7 @@ const enqueteParticipacao = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	true // eslint-disable-line comma-dangle
+	false,
 );
 
 module.exports.activatedCCS = activatedCCS;

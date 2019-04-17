@@ -101,8 +101,15 @@ module.exports.sendAdminBroadcast = async (text, label) => {
 // sendAdminBroadcast('test', process.env.LABEL_ADMIN);
 
 // creates and send an admin broadcast
-module.exports.sendEnqueteParticipacao = async (USER_ID, agendaID) => {
-	const response = await client.sendText(USER_ID, sequencia[1].question, {
+module.exports.sendEnqueteParticipacao = async (USER_ID, agendaID, userName) => {
+	let textToSend = sequencia[1].question;
+	if (userName && userName.length > 0) { // if we have an user name, replace <nome> with the username but only what comes before the first whitespace (he first name)
+		textToSend = textToSend.replace('<nome>', userName.split(' ')[0]);
+	} else {
+		textToSend = textToSend.replace(', <nome>', ''); // else remove <nome> and comma
+	}
+
+	const response = await client.sendText(USER_ID, textToSend, {
 		quick_replies: [
 			{
 				content_type: 'text',

@@ -209,15 +209,17 @@ async function linkUserToCustomLabel(UserID, labelName) { // eslint-disable-line
 	return newLabel;
 }
 module.exports.buildSeqAnswers = async (context) => {
+	// check if button clicked came from the broadcast (length > 1 -> questionNumber + agendaId) containing the agendaID after the question number
 	if (context.state.questionNumber.length > 1) {
-		await context.setState({ agendaId: context.state.questionNumber.slice(1) });
+		await context.setState({ agendaId: context.state.questionNumber.slice(1) }); // set which agenda (comes from the broadcast)
 		await context.setState({ questionNumber: context.state.questionNumber.slice(0, 1) });
 	}
 
-	if (context.state.questionNumber === '2' || context.state.questionNumber === '1') {
-		await context.setState({ seqAnswers: { foiConselho: null, gostou: null, costumaIr: null }, seqInput: '' });
+	// if it's the first or second question, reset all the values
+	if (context.state.questionNumber === '2' || context.state.questionNumber === '1') { // === '1' can only happen through the text test, not from the broadcast
+		await context.setState({ seqAnswers: { foiConselho: null, gostou: null, costumaIr: null }, seqInput: '' }); // resetting values
 	}
-	const aux = context.state.seqAnswers;
+	const aux = context.state.seqAnswers; // for each questionNumber reached, we store which option was chosen by the user
 	if (context.state.questionNumber === '2') { aux.foiConselho = true; } // Foi ao conselho - sim
 	if (context.state.questionNumber === '5') { aux.foiConselho = false; } // não
 	if (context.state.questionNumber === '3') { aux.gostou = true; } // gostou - sim

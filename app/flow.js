@@ -162,7 +162,7 @@ module.exports = {
 		txt1: 'Você quer sugerir algum assunto específico pra ser debatido na próxima reunião do seu Conselho? Eu posso encaminhar pra diretoria! 😁',
 		noPauta1: 'Tudo bem, então!',
 		askPauta1: 'Legal! Pode digitar pra mim o tema que você quer que seja debatido.',
-		askPauta2: 'Agradecemos a sugestão.',
+		askPauta2: 'Obrigada pela sua sugestão! Vou encaminhar para a diretoria do seu Conselho! :)',
 		menuOptions: ['Sim', 'Não'],
 		menuPostback: ['askPauta', 'noPauta'],
 	},
@@ -335,7 +335,7 @@ module.exports = {
 		},
 		4: {
 			question: 'Vish, entendo, Pra gente conseguir melhorar as reuniões cada vez mais, preciso que você me conte: o que mais te desagradou nela?',
-			followUp: 'Tá bem! Eu vou conversar sobre essas críticas com os diretores dos Conselhos e vamos trabalhar para modiicar essa situação. Obrigado pela ajuda! 💪',
+			followUp: 'Tá bem! Eu vou conversar sobre essas críticas com os diretores dos Conselhos e vamos trabalhar para modificar essa situação. Obrigado pela ajuda! 💪',
 			menuOptions: [],
 			menuPostback: [],
 		},

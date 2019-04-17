@@ -579,7 +579,7 @@ module.exports.updateNovaAgenda = async (PK, boolean) => {
 module.exports.getAgendaNotificationFromID = async (PK) => {
 	const result = await sequelize.query(`
 	SELECT user_id, data_hora, agendas_id, endereco, updated_at
-	FROM notificar_agenda
+	FROM notificar_agenda 
 	WHERE agendas_id = ${PK} AND NOT notificado;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`getAgendaNotificationFromID from ${PK} was successful!`);
@@ -608,10 +608,12 @@ module.exports.saveSeqAnswer = async (UserID, agendaID, answers, input) => {
 };
 
 async function getYesterdayAgenda() {
+	// get ids and name rom users that are linked to one agenda that happened the day before
 	const result = await sequelize.query(`
-	SELECT agendas_id, user_id
-	FROM notificar_agenda
-	WHERE data_hora > now() - interval '3 day';
+	SELECT AGENDA.agendas_id, AGENDA.user_id, USERS.user_name
+	FROM notificar_agenda as AGENDA
+	INNER JOIN chatbot_users USERS ON AGENDA.user_id = USERS.user_id
+	WHERE AGENDA.data_hora > now() - interval '1 day';
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log('getYesterdayAgenda was successful!');
 		return results;

@@ -313,15 +313,15 @@ module.exports = async (context) => {
 						await events.addCustomAction(context.session.user.id, 'Usuario deixou sugestao');
 						await context.setState({ dialog: 'subjectsFollowUp' });
 						break;
-					case 'sequence':
+					case 'sequence': // text on sequece, we save the input and go to the final part of the enquete
 						if (context.state.questionNumber === '4' || context.state.questionNumber === '7') {
 							await context.setState({ seqInput: context.event.message.text, dialog: 'endSequence' });
 						}
 						break;
-					default: // regular text message => error treatment
+					default: // regular text message
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
-						if (context.state.whatWasTyped === 'teste') {
-							await context.setState({ questionNumber: '1', dialog: 'sequence' });
+						if (context.state.whatWasTyped === 'enquete') {
+							await context.setState({ questionNumber: '1', dialog: 'sequence', agendaId: '100' });
 						} else {
 							await context.setState({ dialog: 'holdOn' });
 							console.log('Entrei aqui');
@@ -834,12 +834,12 @@ module.exports = async (context) => {
 				// sequence questions
 			case 'sequence':
 				await help.buildSeqAnswers(context);
-				if (context.state.questionNumber === '3' || context.state.questionNumber === '6') {
+				if (context.state.questionNumber === '3' || context.state.questionNumber === '6') { // save answer and finish quiz, without the followUp message
 					await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
 				}
-				await context.sendText(flow.sequencia[context.state.questionNumber].question, await attach.getQR(flow.sequencia[context.state.questionNumber]));
+				await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name), await attach.getQR(flow.sequencia[context.state.questionNumber]));
 				break;
-			case 'endSequence':
+			case 'endSequence': // save answer and send the followUp message
 				await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
 				await context.sendText(flow.sequencia[context.state.questionNumber].followUp, { quick_replies: [flow.goBackMenu] });
 				break;
