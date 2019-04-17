@@ -69,6 +69,100 @@ async function wannaKnowMembers(context, db, metric, events) {
 	}
 }
 
+async function wantToTypeCidade(context, help, db) {
+	await context.setState({ cameFromGeo: false });
+	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
+	if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
+		await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
+		await context.setState({ dialog: 'wantToType1' });
+	} else if ('rio de janeiro'.includes(context.state.userInput) || 'capital'.includes(context.state.userInput)) { // special case: 'rio de janeiro' or 'capital'
+		await context.setState({ municipiosFound: await db.getCCSsFromMunicipio('rio de janeiro') });
+		await context.setState({ dialog: 'wantToType2' });
+	} else {
+		await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
+
+		if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
+			await context.setState({ dialog: 'municipioNotFound' });
+		} else if (context.state.municipiosFound.length === 1) { // we found exactly one municipio with what was typed by the user
+			await context.setState({ CCS: context.state.municipiosFound[0] });
+			await context.setState({ dialog: 'nearestCouncil' }); // asked: false
+		} else { // more than one municipio was found
+			await context.sendText(`Hmm, encontrei ${context.state.municipiosFound.length} municípios na minha pesquisa. 🤔 `
+				+ 'Me ajude a confirmar qual municípios você quer escolhendo uma das opções abaixo. ');
+			await attach.sendMunicipioConfirmation(context, context.state.municipiosFound);
+			await context.setState({ dialog: 'confirmMunicipio' });
+		}
+	} // else text length
+}
+
+async function wantToTypeBairro(context, help, db) {
+	await context.setState({ cameFromGeo: false });
+	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
+	if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
+		await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
+		await context.setState({ dialog: 'wantToType2' });
+	} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'centro'.includes(context.state.userInput)) { // special case: check if user wants to know about centro on capital
+		await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
+		await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
+			+ `${context.state.municipiosFound[0].municipio}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
+		await attach.sendCentroConfirmation(context, context.state.bairro);
+		await context.setState({ dialog: 'confirmBairro' });
+	} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'colegio'.includes(context.state.userInput)) { // special case: check if user wants to know about colegio on capital
+		await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
+		await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
+			+ `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
+		await attach.sendColegioConfirmation(context, context.state.bairro);
+		await context.setState({ dialog: 'confirmBairro' });
+	} else if ('paqueta'.includes(context.state.userInput)) { // paqueta case
+		await context.setState({ CCS: await db.getCCSsFromID(1043) });
+		await context.setState({ dialog: 'nearestCouncil' }); // asked: false
+	} else { // regular case
+		await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
+		if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
+			await context.setState({ dialog: 'bairroNotFound' });
+		} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
+			await context.setState({ CCS: context.state.bairro[0] });
+			await context.setState({ dialog: 'nearestCouncil' }); // asked: false
+		} else { // more than one bairro was found
+			await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 `
+				+ 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
+			await attach.sendConselhoConfirmation(context, context.state.bairro);
+			await context.setState({ dialog: 'confirmBairro' });
+		}
+	}
+}
+
+module.exports.denunciaMenu = async (context) => { // denunciaMenu
+	await context.setState({ denunciaCCS: context.state.CCS, onDenuncia: false }); // denunciaCCS is only used in the context of denuncia
+	await context.setState({ CCS: context.state.oldCCS }); // if user had a CCS before he's not gonna lose it
+	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
+};
+
+
+module.exports.denunciaStart = async (context) => { // denunciaMenu
+	await context.sendText(flow.denunciaStart.txt1.replace('<nome>', context.session.user.first_name));
+	await context.sendText(flow.denunciaStart.txt2);
+	if (context.state.CCS && context.state.CCS.bairro) { // if user has ccs and bairro show "confirmar" option
+		await context.sendText(flow.denunciaHasBairro.txt1.replace('<bairro>', context.state.CCS.bairro), await attach.getQR(flow.denunciaHasBairro));
+	} else {
+		await context.sendText(flow.denunciaNoBairro.txt1, await attach.getQR(flow.denunciaNoBairro));
+	}
+};
+
+module.exports.optDenun = async (context) => {
+	if (context.state.optDenunNumber === '4') {
+		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
+		await context.sendText('Um endereço');
+		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
+		await context.sendText('Outro endereço', { quick_replies: [flow.goBackMenu] });
+	} else {
+		await context.sendText(flow.optDenun[context.state.optDenunNumber]);
+		await context.sendText('Um endereço', { quick_replies: [flow.goBackMenu] });
+	}
+};
+
 module.exports.sendGreetings = sendGreetings;
 module.exports.sendCouncilMenu = sendCouncilMenu;
 module.exports.wannaKnowMembers = wannaKnowMembers;
+module.exports.wantToTypeCidade = wantToTypeCidade;
+module.exports.wantToTypeBairro = wantToTypeBairro;

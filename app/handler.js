@@ -132,6 +132,12 @@ module.exports = async (context) => {
 					await context.setState({ CCS: await db.getCCSsFromID(1043) });
 					await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 					break;
+				case 'denunciaType':
+					await context.setState({ onDenuncia: true, oldCCS: context.state.CCS, dialog: 'wantToType1' });
+					break;
+				case 'denunciaLocation':
+					await context.setState({ onDenuncia: true, oldCCS: context.state.CCS, dialog: 'sendLocation' });
+					break;
 				case 'noPauta':
 					await context.sendText(flow.pautas.noPauta1);
 					await events.addCustomAction(context.session.user.id, 'Usuario nao deixou sugestao');
@@ -140,6 +146,8 @@ module.exports = async (context) => {
 				default:
 					if (context.event.quickReply.payload.slice(0, 3) === 'seq') {
 						await context.setState({ questionNumber: context.event.quickReply.payload.replace('seq', ''), dialog: 'sequence' });
+					} else if (context.event.quickReply.payload.slice(0, 8) === 'optDenun') {
+						await context.setState({ optDenunNumber: context.event.quickReply.payload.replace('optDenun', ''), dialog: 'optDenun' });
 					} else {
 						await context.setState({ dialog: context.event.quickReply.payload });
 					}
@@ -169,69 +177,13 @@ module.exports = async (context) => {
 					case 'wantToChange':
 					case 'municipioNotFound':
 					case 'confirmMunicipio':
-					case 'nearestCouncil':
 					case 'wantToType1': // user entered city text
-						await context.setState({ cameFromGeo: false });
-						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
-							await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
-							await context.setState({ dialog: 'wantToType1' });
-						} else if ('rio de janeiro'.includes(context.state.userInput) || 'capital'.includes(context.state.userInput)) { // special case: 'rio de janeiro' or 'capital'
-							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio('rio de janeiro') });
-							await context.setState({ dialog: 'wantToType2' });
-						} else {
-							await context.setState({ municipiosFound: await db.getCCSsFromMunicipio(context.state.userInput) });
-
-							if (!context.state.municipiosFound || context.state.municipiosFound.length === 0) {
-								await context.setState({ dialog: 'municipioNotFound' });
-							} else if (context.state.municipiosFound.length === 1) { // we found exactly one municipio with what was typed by the user
-								await context.setState({ CCS: context.state.municipiosFound[0] });
-								await context.setState({ dialog: 'nearestCouncil' }); // asked: false
-							} else { // more than one municipio was found
-								await context.sendText(`Hmm, encontrei ${context.state.municipiosFound.length} municípios na minha pesquisa. 🤔 `
-                    + 'Me ajude a confirmar qual municípios você quer escolhendo uma das opções abaixo. ');
-								await attach.sendMunicipioConfirmation(context, context.state.municipiosFound);
-								await context.setState({ dialog: 'confirmMunicipio' });
-							}
-						} // else text length
+						await dialogs.wantToTypeCidade(context, help, db);
 						break;
 					case 'bairroNotFound':
 					case 'confirmBairro':
 					case 'wantToType2': // user entered bairro text
-						await context.setState({ cameFromGeo: false });
-						await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
-						if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
-							await context.sendText('Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.');
-							await context.setState({ dialog: 'wantToType2' });
-						} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'centro'.includes(context.state.userInput)) { // special case: check if user wants to know about centro on capital
-							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'centro') });
-							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
-                  + `${context.state.municipiosFound[0].municipio}. 📍 Escolha qual dos seguintes complementos melhor se encaixa na sua região:`);
-							await attach.sendCentroConfirmation(context, context.state.bairro);
-							await context.setState({ dialog: 'confirmBairro' });
-						} else if (context.state.municipiosFound[0].municipio.toLowerCase() === 'rio de janeiro' && 'colegio'.includes(context.state.userInput)) { // special case: check if user wants to know about colegio on capital
-							await context.setState({ bairro: await help.findBairroCCSID(context.state.municipiosFound, 'colegio') });
-							await context.sendText(`Encontrei ${context.state.bairro.length} conselhos no bairro ${context.state.bairro[0].bairro} na cidade `
-                  + `${context.state.municipiosFound[0].municipio}. Para que eu encontre o conselho certo, escolha a delegacia de Polícia mais próxima a sua casa:`);
-							await attach.sendColegioConfirmation(context, context.state.bairro);
-							await context.setState({ dialog: 'confirmBairro' });
-						} else if ('paqueta'.includes(context.state.userInput)) { // paqueta case
-							await context.setState({ CCS: await db.getCCSsFromID(1043) });
-							await context.setState({ dialog: 'nearestCouncil' }); // asked: false
-						} else { // regular case
-							await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
-							if (!context.state.bairro || context.state.bairro === null || context.state.bairro.length === 0) {
-								await context.setState({ dialog: 'bairroNotFound' });
-							} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
-								await context.setState({ CCS: context.state.bairro[0] });
-								await context.setState({ dialog: 'nearestCouncil' }); // asked: false
-							} else { // more than one bairro was found
-								await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 `
-                    + 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
-								await attach.sendConselhoConfirmation(context, context.state.bairro);
-								await context.setState({ dialog: 'confirmBairro' });
-							}
-						}
+						await dialogs.wantToTypeBairro(context, help, db);
 						break;
 					case 'reAskMail':
 					case 'eMail':
@@ -258,10 +210,8 @@ module.exports = async (context) => {
 							await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar fone');
 						}
 						break;
-					case 'adminConfirm':
-						await context.sendText('Escolha uma das opções!');
-						break;
 					case 'adminStart':
+					case 'adminConfirm':
 						await context.sendText('Escolha uma das opções!');
 						break;
 					case 'broadcast':
@@ -320,8 +270,11 @@ module.exports = async (context) => {
 						break;
 					default: // regular text message
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
+						console.log('whatWasTyped', context.state.whatWasTyped);
 						if (context.state.whatWasTyped === 'enquete') {
 							await context.setState({ questionNumber: '1', dialog: 'sequence', agendaId: '100' });
+						} else if (context.event.message.text === 'denuncia') {
+							await context.setState({ dialog: 'denunciaStart' });
 						} else {
 							await context.setState({ dialog: 'holdOn' });
 							console.log('Entrei aqui');
@@ -456,45 +409,49 @@ module.exports = async (context) => {
 				break;
 			case 'advance': // this is used for the CCS confirmation on whichCCSMenu
 			case 'nearestCouncil': // we say/remind the user which CCS he's in and ask if he ever visited it before
-				// link user to the correspondent ccs_tag
-				if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-					await help.linkUserToCustomLabel(context.session.user.id, `ccs${context.state.CCS.id}`);
-					await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `ccs${context.state.CCS.id}`);
-				}
-				await metric.userAddOrUpdate(context);
-				if (context.state.CCS.bairro === 'Paquetá') { // check if user is on Paquetá (island) to show the correct related bairros
-					await context.setState({ otherBairros: ['Paquetá'] });
+				if (context.state.onDenuncia === true) { // if just found a ccs from denuncia dialog
+					await dialogs.denunciaMenu(context);
 				} else {
-					await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
-					await context.setState({
-						otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
-					}); // get other bairros on this ccs
-				}
-				if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
-					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
-              + `${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
-				} else if (context.state.otherBairros.length > 1) { // if there's more than one bairro we must list them appropriately
-					await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
-              + `${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
-				}
-				if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
-					await context.sendText(
-						`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`,
-						await attach.getConditionalQR([flow.notFoundBairro, flow.notFoundBairroFromGeo], context.state.cameFromGeo),
-					);
-					// before adding the user+ccs on the table we check if it's already there
+				// link user to the correspondent ccs_tag
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
-						if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
-							await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
-						}
+						await help.linkUserToCustomLabel(context.session.user.id, `ccs${context.state.CCS.id}`);
+						await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `ccs${context.state.CCS.id}`);
 					}
-				} else if (context.state.asked === true) { // user already saw the conselhos questions
-					await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready)); // wentAlreadyMenu
-				} else { // ask user if he already went to one of the meetings
-					await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
-					await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+					await metric.userAddOrUpdate(context);
+					if (context.state.CCS.bairro === 'Paquetá') { // check if user is on Paquetá (island) to show the correct related bairros
+						await context.setState({ otherBairros: ['Paquetá'] });
+					} else {
+						await context.setState({ unfilteredBairros: await db.getEveryBairro(context.state.CCS.id) }); // get other bairros on this ccs
+						await context.setState({
+							otherBairros: await context.state.unfilteredBairros.filter((item, pos, self) => self.indexOf(item) === pos),
+						}); // get other bairros on this ccs
+					}
+					if (context.state.otherBairros.length === 1) { // check if there's more than one bairro on this ccs. "Então, o Conselho mais próximo de você é o"
+						await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
+              + `${flow.nearestCouncil.secondMessage3} ${context.state.otherBairros[0]}.`);
+					} else if (context.state.otherBairros.length > 1) { // if there's more than one bairro we must list them appropriately
+						await context.sendText(`${flow.nearestCouncil.secondMessage} *${context.state.CCS.ccs}* `
+              + `${flow.nearestCouncil.secondMessage2} ${context.state.otherBairros.join(', ').replace(/,(?=[^,]*$)/, ' e')}.`);
+					}
+					if (context.state.CCS.status !== 'Ativo') { // check if ccs isn't active
+						await context.sendText(
+							`Infelizmente, o ${context.state.CCS.ccs} não se encontra em funcionamente na presente data. Deseja pesquisar outra localização?`,
+							await attach.getConditionalQR([flow.notFoundBairro, flow.notFoundBairroFromGeo], context.state.cameFromGeo),
+						);
+						// before adding the user+ccs on the table we check if it's already there
+						if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist
+							if (await db.checkNotificationAtivacao(context.session.user.id, context.state.CCS.id) !== true) {
+								await db.addNotActive(context.session.user.id, context.state.CCS.id); // if it's not we add it
+							}
+						}
+					} else if (context.state.asked === true) { // user already saw the conselhos questions
+						await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready)); // wentAlreadyMenu
+					} else { // ask user if he already went to one of the meetings
+						await context.setState({ asked: true }); // Você já foi em alguma reunião do seu Conselho?
+						await context.sendText(flow.nearestCouncil.thirdMessage, await attach.getQR(flow.nearestCouncil));
+					}
+					await events.addCustomAction(context.session.user.id, 'Econtramos-Confirmamos Conselho');
 				}
-				await events.addCustomAction(context.session.user.id, 'Econtramos-Confirmamos Conselho');
 				break;
 			case 'wentAlready':
 				await context.sendText(flow.wentAlready.firstMessage);
@@ -830,6 +787,16 @@ module.exports = async (context) => {
 					+ '(Se for um broadcast que você acabou de enviar recomendamos esperar alguns minutos para ter o resultado correto). ',
 					await attach.getQR(flow.metrics),
 				);
+				break;
+				// denuncia
+			case 'denunciaStart':
+				await dialogs.denunciaStart(context);
+				break;
+			case 'denunciaMenu':
+				await dialogs.denunciaMenu(context);
+				break;
+			case 'optDenun':
+				await dialogs.optDenun(context);
 				break;
 				// sequence questions
 			case 'sequence':

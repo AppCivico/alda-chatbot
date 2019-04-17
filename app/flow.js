@@ -172,12 +172,43 @@ module.exports = {
 		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 		// link: 'http://www.africau.edu/images/default/sample.pdf',
 		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, '
-			+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
 		assuntos: 'Os assuntos que discutimos nessa última reunião foram: ',
 
+	},
+	denunciaStart: {
+		txt1: 'Oi, <nome>, pelo que entendi você precisa fazer uma denúncia. Caso eu esteja certa, não posso te ajudar diretamente nesses casos, mas sei quem pode.',
+		txt2: 'Eu preciso que você me explique qual tipo da denúncia você gostaria de fazer. Mas antes, vamos confirmar a localização que você deseja reportar (sua casa ou local do ocorrido).',
+	},
+	denunciaHasBairro: {
+		txt1: 'Verifiquei que você está no bairro <bairro>. Podemos seguir ou deseja alterar? ',
+		menuOptions: ['Confirmar', 'Digitar Novo Local', 'Enviar Localização'],
+		menuPostback: ['denunciaMenu', 'denunciaType', 'denunciaLocation'],
+	},
+	denunciaNoBairro: {
+		txt1: 'Para te enviar os dados da Delegacia de Polícia mais próxima ou outro órgão e seguir com sua denúncia, eu preciso saber a localização de onde você sofreu a violência.',
+		menuOptions: ['Digitar Novo Local', 'Enviar Localização'],
+		menuPostback: ['denunciaType', 'denunciaLocation'],
+	},
+	denunciaMenu: {
+		txt1: 'Agora sim. Qual o tipo da denúncia? Passe para o lado para ver todas as opções.',
+		menuOptions: ['Assalto', 'Agressão na rua', 'Agressão Doméstica', 'Violência Sexual', 'Perseguição', 'Violência Policial', 'Outro'],
+		menuPostback: ['optDenun1', 'optDenun2', 'optDenun3', 'optDenun4', 'optDenun5', 'optDenun6', 'optDenun7'],
+	},
+	optDenun: {
+		1: 'Poxa, sinto muito! 😕 Eu vou te passar o endereço da Delegacia de Polícia mais próxima pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? ',
+		2: 'Poxa, sinto muito! 😕 Eu vou te passar o endereço da Delegacia de Polícia mais próxima pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? ',
+		3: 'Sinto muito por você ter passado por isso. 😞 Eu vou te passar o endereço da Delegacia de Atendimento à Mulher mais próxima da sua casa. Não deixe de ir lá, tudo bem? É super importante para que isso não aconteça novamente. Qualquer coisa, fale comigo de novo!  ',
+		4: {
+			txt1: 'Sinto muito por você ter passado por isso. 😞 Não vou dizer que imagino o que você possa estar sentindo e passando neste momento, mas posso te ajudar nos primeiros passos. A primeira coisa é você ir em um hospital de emergência para vítimas de violência sexual, tudo bem? Vou te passar o endereço mais próximo.',
+			txt2: 'Depois você precisa ir em uma Delegacia de Atendimento à Mulher e contar o que aconteceu. Fique tranquila que você vai poder falar com outra mulher lá. Aqui o endereço: ',
+		},
+		5: 'Eita, sinto muito que você esteja passando por isso. 😓 Eu vou te passar o endereço da Delegacia de Polícia mais próxima da sua casa pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? Se for algo mais específico, eles poderão te orientar melhor.',
+		6: 'Sinto muito que você tenha passado por isso. 😞 Eu sei que essa é uma situação muito delicada e, por isso, em primeiro lugar eu quero te garantir que nada do que você está me contando será visto por autoridades policiais. Eu vou te passar o endereço e contato do Ministério Público, que é o melhor lugar onde você pode fazer essa denúncia e receber orientações, tudo bem?',
+		7: 'Entendi, então vamos fazer o seguinte: vou te encaminhar o contato do Instituto de Segurança Pública e eles poderão te orientar melhor qual caminho seguir, tudo bem? ',
 	},
 	mainMenu: {
 		firstMessage: 'Veja como eu posso te ajudar por aqui:',
