@@ -798,6 +798,9 @@ module.exports = async (context) => {
 			case 'optDenun':
 				await dialogs.optDenun(context);
 				break;
+			case 'denunciaNot':
+				console.log('Todo');
+				break;
 				// sequence questions
 			case 'sequence':
 				await help.buildSeqAnswers(context);

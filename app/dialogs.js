@@ -132,13 +132,6 @@ async function wantToTypeBairro(context, help, db) {
 	}
 }
 
-module.exports.denunciaMenu = async (context) => { // denunciaMenu
-	await context.setState({ denunciaCCS: context.state.CCS, onDenuncia: false }); // denunciaCCS is only used in the context of denuncia
-	await context.setState({ CCS: context.state.oldCCS }); // if user had a CCS before he's not gonna lose it
-	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
-};
-
-
 module.exports.denunciaStart = async (context) => { // denunciaMenu
 	await context.sendText(flow.denunciaStart.txt1.replace('<nome>', context.session.user.first_name));
 	await context.sendText(flow.denunciaStart.txt2);
@@ -147,6 +140,12 @@ module.exports.denunciaStart = async (context) => { // denunciaMenu
 	} else {
 		await context.sendText(flow.denunciaNoBairro.txt1, await attach.getQR(flow.denunciaNoBairro));
 	}
+};
+
+module.exports.denunciaMenu = async (context) => { // denunciaMenu
+	await context.setState({ denunciaCCS: context.state.CCS, onDenuncia: false }); // denunciaCCS is only used in the context of denuncia
+	await context.setState({ CCS: context.state.oldCCS }); // if user had a CCS before he's not gonna lose it
+	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
 };
 
 module.exports.optDenun = async (context) => {

@@ -1,6 +1,7 @@
 const { getknowledgeBase } = require('./chatbot_api.js');
 const { createIssue } = require('./send_issue');
 const { sendAnswer } = require('./sendAnswer');
+const { denunciaStart } = require('./dialogs');
 
 async function checkPosition(context) {
 	console.log('chegou no checkPosition com', context.state.intentName);
@@ -8,6 +9,9 @@ async function checkPosition(context) {
 	switch (context.state.intentName) {
 	case 'Greetings': // user said hi
 		await context.setState({ dialog: 'greetings' });
+		break;
+	case 'denuncia':
+		await denunciaStart(context);
 		break;
 	case 'Fallback': // didn't understand what was typed
 		await createIssue(context);

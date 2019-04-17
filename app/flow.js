@@ -185,13 +185,13 @@ module.exports = {
 	},
 	denunciaHasBairro: {
 		txt1: 'Verifiquei que você está no bairro <bairro>. Podemos seguir ou deseja alterar? ',
-		menuOptions: ['Confirmar', 'Digitar Novo Local', 'Enviar Localização'],
-		menuPostback: ['denunciaMenu', 'denunciaType', 'denunciaLocation'],
+		menuOptions: ['Confirmar', 'Digitar Novo Local', 'Enviar Localização', 'Não é denúncia'],
+		menuPostback: ['denunciaMenu', 'denunciaType', 'denunciaLocation', 'denunciaNot'],
 	},
 	denunciaNoBairro: {
 		txt1: 'Para te enviar os dados da Delegacia de Polícia mais próxima ou outro órgão e seguir com sua denúncia, eu preciso saber a localização de onde você sofreu a violência.',
-		menuOptions: ['Digitar Novo Local', 'Enviar Localização'],
-		menuPostback: ['denunciaType', 'denunciaLocation'],
+		menuOptions: ['Digitar Novo Local', 'Enviar Localização', 'Não é denúncia'],
+		menuPostback: ['denunciaType', 'denunciaLocation', 'denunciaNot'],
 	},
 	denunciaMenu: {
 		txt1: 'Agora sim. Qual o tipo da denúncia? Passe para o lado para ver todas as opções.',
