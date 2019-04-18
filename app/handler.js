@@ -796,7 +796,7 @@ module.exports = async (context) => {
 				await dialogs.denunciaMenu(context);
 				break;
 			case 'optDenun':
-				await dialogs.optDenun(context);
+				await dialogs.optDenun(context, db);
 				break;
 			case 'denunciaNot':
 				console.log('Todo');

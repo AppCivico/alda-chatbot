@@ -148,7 +148,7 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
 };
 
-module.exports.optDenun = async (context) => {
+module.exports.optDenun = async (context, db) => {
 	if (context.state.optDenunNumber === '4') {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
 		await context.sendText('Um endereço');
@@ -158,6 +158,8 @@ module.exports.optDenun = async (context) => {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber]);
 		await context.sendText('Um endereço', { quick_replies: [flow.goBackMenu] });
 	}
+
+	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 };
 
 module.exports.sendGreetings = sendGreetings;

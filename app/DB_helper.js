@@ -607,7 +607,7 @@ module.exports.saveSeqAnswer = async (UserID, agendaID, answers, input) => {
 	return result;
 };
 
-async function getYesterdayAgenda() {
+module.exports.getYesterdayAgenda = async () => {
 	// get ids and name rom users that are linked to one agenda that happened the day before
 	const result = await sequelize.query(`
 	SELECT AGENDA.agendas_id, AGENDA.user_id, USERS.user_name
@@ -621,10 +621,25 @@ async function getYesterdayAgenda() {
 		console.error('Error on getYesterdayAgenda => ', err);
 	});
 	return result;
-}
+};
 
-module.exports.getYesterdayAgenda = getYesterdayAgenda;
-/* creating unaccent dictionary funcion
+// denuncia --------------------------------------------------------------------------------
+module.exports.saveDenuncia = async (UserID, CCSID, botaoID, texto) => {
+	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	const result = await sequelize.query(`
+	INSERT INTO denuncia(user_id, conselho_id, botao_id,  texto, created_at, updated_at)
+	VALUES (${UserID}, ${CCSID}, ${botaoID}, '${texto}', '${date}', '${date}');
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`saveDenuncia from user ${UserID} and CCSID ${CCSID} was successful!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on saveDenuncia => ', err);
+	});
+	return result;
+};
+
+/*
+	creating unaccent dictionary funcion
 	user=> CREATE EXTENSION unaccent;
 	CREATE EXTENSION
 	user=> select unaccent('Cajú');
@@ -632,13 +647,13 @@ module.exports.getYesterdayAgenda = getYesterdayAgenda;
 	----------
 	Caju
 	(1 row)
-
 */
+
 /*
 	CREATE TABLE notificar_ativacao(
 	ID SERIAL PRIMARY KEY,
-	user_id BIGINT  NOT NULL,
-	conselho_id INT     NOT NULL,
+	user_id BIGINT NOT NULL,
+	conselho_id INT NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	created_at timestamp without time zone NOT NULL,
   updated_at timestamp without time zone NOT NULL
@@ -693,6 +708,19 @@ module.exports.getYesterdayAgenda = getYesterdayAgenda;
 	updated_at timestamp without time zone NOT NULL
 	);
 */
+
+/*
+	CREATE TABLE denuncia (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	conselho_id INT NOT NULL,
+	botao_id INTEGER NOT NULL,
+	texto text,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
 
 /*
 	Agenda Status map:

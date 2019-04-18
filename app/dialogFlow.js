@@ -11,6 +11,7 @@ async function checkPosition(context) {
 		await context.setState({ dialog: 'greetings' });
 		break;
 	case 'denuncia':
+		await context.setState({ denunciaText: context.state.whatWasTyped });
 		await denunciaStart(context);
 		break;
 	case 'Fallback': // didn't understand what was typed
