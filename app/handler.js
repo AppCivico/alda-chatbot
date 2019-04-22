@@ -799,7 +799,7 @@ module.exports = async (context) => {
 				await dialogs.optDenun(context, db);
 				break;
 			case 'denunciaNot':
-				console.log('Todo');
+				await dialogs.denunciaNot(context, appcivicoApi.postIssue);
 				break;
 				// sequence questions
 			case 'sequence':

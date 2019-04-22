@@ -195,6 +195,7 @@ module.exports = {
 	},
 	denunciaMenu: {
 		txt1: 'Agora sim. Qual o tipo da denúncia? Passe para o lado para ver todas as opções.',
+		denunciaNot: 'Tudo bem, vou salvar o que você escreveu e te responderemos em breve.',
 		menuOptions: ['Assalto', 'Agressão na rua', 'Agressão Doméstica', 'Violência Sexual', 'Perseguição', 'Violência Policial', 'Outro'],
 		menuPostback: ['optDenun1', 'optDenun2', 'optDenun3', 'optDenun4', 'optDenun5', 'optDenun6', 'optDenun7'],
 	},

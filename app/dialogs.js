@@ -162,6 +162,12 @@ module.exports.optDenun = async (context, db) => {
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 };
 
+module.exports.denunciaNot = async (context, postIssue) => {
+	await postIssue(context.state.politicianData.user_id, context.session.user.id, context.state.denunciaText,
+		context.state.resultParameters ? context.state.resultParameters : {}, context.state.politicianData.issue_active);
+	await context.sendText(flow.denunciaMenu.denunciaNot, { quick_replies: [flow.goBackMenu] });
+};
+
 module.exports.sendGreetings = sendGreetings;
 module.exports.sendCouncilMenu = sendCouncilMenu;
 module.exports.wannaKnowMembers = wannaKnowMembers;
