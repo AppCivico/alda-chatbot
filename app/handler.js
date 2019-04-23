@@ -631,8 +631,8 @@ module.exports = async (context) => {
 				await context.sendText(flow.eMail.firstMessage, await attach.getQR(flow.eMail));
 				break;
 			case 'whatsApp':
-				await context.sendText(flow.userData.whatsApp);
-				await context.sendText(flow.userData.phoneExample);
+				await context.sendText(flow.phone.whatsApp);
+				await context.sendText(flow.phone.phoneExample);
 				break;
 			case 'reAskPhone':
 				await context.sendText(flow.phone.firstMessage, await attach.getQR(flow.phone));

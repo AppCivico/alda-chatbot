@@ -196,9 +196,7 @@ module.exports = {
 	},
 	denunciaMenu: {
 		txt1: 'Agora sim. Qual o tipo da denúncia? Passe para o lado para ver todas as opções.',
-		denunciaNot: 'Salvei a sua mensagem. Logo mais meus criadores estarão respondendo sua dúvida.\n'
-			+ 'Agora, me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️\n'
-			+ 'Se quiser voltar para onde estava, clique em \'Voltar.\'',
+		denunciaNot: 'Desculpe, não entendi sua mensagem! Mas tudo bem, salvei aqui e logo mais meus criadores responderão sua dúvida.',
 		menuOptions: ['Assalto', 'Agressão na rua', 'Agressão Doméstica', 'Violência Sexual', 'Perseguição', 'Violência Policial', 'Outro'],
 		menuPostback: ['optDenun1', 'optDenun2', 'optDenun3', 'optDenun4', 'optDenun5', 'optDenun6', 'optDenun7'],
 	},
@@ -233,9 +231,6 @@ module.exports = {
 	userData: {
 		eMail: 'Legal! Escreva seu e-mail abaixo para o conselho te manter informado. 😉',
 		emailExample: 'Exemplo: alda@chatbot.com',
-		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
-		phoneExample: 'Exemplo: 2299999-8888',
-		gotPhone: 'Guardamos seu telefone! Como posso te ajudar?',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
@@ -270,6 +265,9 @@ module.exports = {
 	},
 	phone: {
 		firstMessage: 'Esse número não é válido! Quer tentar novamente?',
+		whatsApp: 'Legal! Escreva seu telefone com o DDD para o conselho te manter informado. 😉',
+		phoneExample: 'Exemplo: 2299999-8888',
+		gotPhone: 'Guardamos seu telefone! Como posso te ajudar?',
 		menuOptions: ['Tentar Novamente', 'Voltar'],
 		menuPostback: ['whatsApp', 'join'],
 	},

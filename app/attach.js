@@ -153,7 +153,7 @@ module.exports.getQRLocation2 = async (opt) => {
 	return { quick_replies: elements };
 };
 
-module.exports.getErrorQR = async (opt, lastPostback) => {
+module.exports.getErrorQR = async (opt, lastDialog) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -165,11 +165,21 @@ module.exports.getErrorQR = async (opt, lastPostback) => {
 		});
 	});
 
+	let lastPostback = '';
+
+	if (lastDialog === 'optDenun') {
+		lastPostback = 'goBackMenu';
+	} else {
+		lastPostback = lastDialog;
+	}
+
 	elements.push({
 		content_type: 'text',
 		title: 'Voltar',
 		payload: lastPostback,
 	});
+
+	console.log('ERRORQR', elements);
 
 	return { quick_replies: elements };
 };
