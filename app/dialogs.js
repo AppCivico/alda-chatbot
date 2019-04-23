@@ -152,12 +152,12 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 module.exports.optDenun = async (context, db) => {
 	if (context.state.optDenunNumber === '4') {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
-		await context.sendText('Um endereço');
+		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
-		await context.sendText('Outro endereço', { quick_replies: [flow.goBackMenu] });
+		await context.sendText(`<Outro endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: [flow.goBackMenu] });
 	} else {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber]);
-		await context.sendText('Um endereço', { quick_replies: [flow.goBackMenu] });
+		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: [flow.goBackMenu] });
 	}
 
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
