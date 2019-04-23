@@ -613,7 +613,7 @@ module.exports.getYesterdayAgenda = async () => {
 	SELECT AGENDA.agendas_id, AGENDA.user_id, USERS.user_name
 	FROM notificar_agenda as AGENDA
 	INNER JOIN chatbot_users USERS ON AGENDA.user_id = USERS.user_id
-	WHERE AGENDA.data_hora > now() - interval '1 day';
+	WHERE date_trunc('day', AGENDA.data_hora) = CURRENT_DATE - interval '1 day';
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log('getYesterdayAgenda was successful!');
 		return results;
