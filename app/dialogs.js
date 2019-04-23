@@ -2,15 +2,6 @@ const flow = require('./flow');
 const attach = require('./attach');
 const { checkMenu } = require('./helpers');
 
-async function sendGreetings(context, metric) {
-	await context.typingOn();
-	await context.sendImage(flow.greetings.greetImage);
-	await context.sendText(flow.greetings.welcome);
-	await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
-	await context.typingOff();
-	await metric.userAddOrUpdate(context);
-}
-
 async function sendCouncilMenu(context, metric, events, db) {
 	await context.setState({ mapsResults: '' });
 	await context.typingOn();
@@ -27,7 +18,17 @@ async function sendCouncilMenu(context, metric, events, db) {
 	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
 }
 
-async function wannaKnowMembers(context, db, metric, events) {
+module.exports.sendGreetings = async (context, metric) => {
+	await context.typingOn();
+	await context.sendImage(flow.greetings.greetImage);
+	await context.sendText(flow.greetings.welcome);
+	await context.sendText(flow.greetings.firstMessage, await attach.getQR(flow.greetings));
+	await context.typingOff();
+	await metric.userAddOrUpdate(context);
+};
+
+
+module.exports.wannaKnowMembers = async (context, db, metric, events) => {
 	await context.typingOn();
 	await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.id) }); // all the members of the the diretoria
 	await context.setState({ diretoriaAtual: [] }); // stored active members on present date
@@ -67,9 +68,9 @@ async function wannaKnowMembers(context, db, metric, events) {
 	} else { // no searchedBairro or searchedCity
 		await sendCouncilMenu(context, metric, events, db);
 	}
-}
+};
 
-async function wantToTypeCidade(context, help, db) {
+module.exports.wantToTypeCidade = async (context, help, db) => {
 	await context.setState({ cameFromGeo: false });
 	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
 	if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
@@ -93,9 +94,9 @@ async function wantToTypeCidade(context, help, db) {
 			await context.setState({ dialog: 'confirmMunicipio' });
 		}
 	} // else text length
-}
+};
 
-async function wantToTypeBairro(context, help, db) {
+module.exports.wantToTypeBairro = async (context, help, db) => {
 	await context.setState({ cameFromGeo: false });
 	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
 	if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
@@ -130,7 +131,7 @@ async function wantToTypeBairro(context, help, db) {
 			await context.setState({ dialog: 'confirmBairro' });
 		}
 	}
-}
+};
 
 module.exports.denunciaStart = async (context) => { // denunciaMenu
 	await context.sendText(flow.denunciaStart.txt1.replace('<nome>', context.session.user.first_name));
@@ -162,14 +163,4 @@ module.exports.optDenun = async (context, db) => {
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 };
 
-module.exports.denunciaNot = async (context, postIssue) => {
-	await postIssue(context.state.politicianData.user_id, context.session.user.id, context.state.denunciaText,
-		context.state.resultParameters ? context.state.resultParameters : {}, context.state.politicianData.issue_active);
-	await context.sendText(flow.denunciaMenu.denunciaNot, { quick_replies: [flow.goBackMenu] });
-};
-
-module.exports.sendGreetings = sendGreetings;
 module.exports.sendCouncilMenu = sendCouncilMenu;
-module.exports.wannaKnowMembers = wannaKnowMembers;
-module.exports.wantToTypeCidade = wantToTypeCidade;
-module.exports.wantToTypeBairro = wantToTypeBairro;

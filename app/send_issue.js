@@ -22,9 +22,7 @@ async function createIssue(context) {
 		if (issueResponse && issueResponse.id) { // saved issue
 			console.log('Conseguiu enviar');
 
-			text = 'Salvei a sua mensagem. Logo mais meus criadores estarão respondendo sua dúvida.\n'
-        + 'Agora, me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️\n'
-        + 'Se quiser voltar para onde estava, clique em \'Voltar.\'';
+			text = flow.denunciaMenu.denunciaNot;
 		}
 	}
 

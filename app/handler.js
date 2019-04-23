@@ -22,7 +22,7 @@ const { restartList } = require('./helpers');
 const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
 const mailRegex = new RegExp(/\S+@\S+/);
 
-const timeLimit = 1000 * 60 * 60 * 24 * 3; // 60 minutes * 24 hours  * 3 days => 1000 * 60 * 60 * 24 * 3
+const timeLimit = 1000 * 60 * 60 * 24 * 3; // 60 minutes * 24 hours * 3 days => 1000 * 60 * 60 * 24 * 3
 const calendarQROpt = [flow.subjectsOpt, flow.resultsOpt, flow.joinOpt];
 
 
@@ -171,9 +171,9 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) { // handling text is each of these dialogs
+					// case 'whichCCSMenu':
 					case 'retryType':
 					case 'sendLocation':
-					case 'whichCCSMenu':
 					case 'wantToChange':
 					case 'municipioNotFound':
 					case 'confirmMunicipio':
@@ -537,7 +537,7 @@ module.exports = async (context) => {
 						await context.sendText(`${flow.subjects.firstMessage} \n- ${['Leitura e Aprovação da ATA anterior',
 							'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
 					} else { // no agenda today or after so NO subjects at all
-						await context.sendText('Infelizmente, ainda não tem uma reunião agendada para o seu CCS. Não sabemos que assuntos serão discutidos na próxima reunião. ');
+						await context.sendText(flow.subjects.noReunion);
 						await context.sendText(flow.subjects.novidades, await attach.getQR(flow.subjects));
 					}
 				} else { // sending the bullet point list with the subjects
@@ -799,7 +799,7 @@ module.exports = async (context) => {
 				await dialogs.optDenun(context, db);
 				break;
 			case 'denunciaNot':
-				await dialogs.denunciaNot(context, appcivicoApi.postIssue);
+				await createIssue(context);
 				break;
 				// sequence questions
 			case 'sequence':

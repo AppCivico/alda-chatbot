@@ -144,6 +144,7 @@ module.exports = {
 		menuPostback: ['subjects', 'results', 'join'],
 	},
 	subjects: {
+		noReunion: 'Infelizmente, ainda não tem uma reunião agendada para o seu CCS. Não sabemos que assuntos serão discutidos na próxima reunião.',
 		novidades: 'Fique por dentro das nossas novidades e ajude-nos a crescer clicando em "Fazer Parte".',
 		firstMessage: 'Para a próxima reunião as pautas são:',
 		title: 'Baixar Arquivo',
@@ -195,7 +196,9 @@ module.exports = {
 	},
 	denunciaMenu: {
 		txt1: 'Agora sim. Qual o tipo da denúncia? Passe para o lado para ver todas as opções.',
-		denunciaNot: 'Tudo bem, vou salvar o que você escreveu e te responderemos em breve.',
+		denunciaNot: 'Salvei a sua mensagem. Logo mais meus criadores estarão respondendo sua dúvida.\n'
+			+ 'Agora, me diga o que você quer fazer clicando em uma das opções abaixo. ⬇️\n'
+			+ 'Se quiser voltar para onde estava, clique em \'Voltar.\'',
 		menuOptions: ['Assalto', 'Agressão na rua', 'Agressão Doméstica', 'Violência Sexual', 'Perseguição', 'Violência Policial', 'Outro'],
 		menuPostback: ['optDenun1', 'optDenun2', 'optDenun3', 'optDenun4', 'optDenun5', 'optDenun6', 'optDenun7'],
 	},
@@ -262,8 +265,8 @@ module.exports = {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). '
 	+ '\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser? '
 	+ '\nSe você não tiver vendo nenhum botão abaixo dessa mensagem você deve estar usando o "Messenger Lite", por favor, tente conversar comigo com o app normal ou pelo computador',
-		menuOptions: ['Recomeçar conversa', 'Ver meu Conselho', 'Trocar Conselho'],
-		menuPostback: ['greetings', 'councilMenu', 'whichCCSMenu'],
+		menuOptions: ['Ver meu Conselho', 'Trocar Conselho'],
+		menuPostback: ['councilMenu', 'whichCCSMenu'],
 	},
 	phone: {
 		firstMessage: 'Esse número não é válido! Quer tentar novamente?',
