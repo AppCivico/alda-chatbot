@@ -264,7 +264,7 @@ module.exports = async (context) => {
               await events.addCustomAction(context.session.user.id, 'Usuario deixou sugestao');
               await context.setState({ dialog: 'subjectsFollowUp' });
               break;
-            case 'sequence': // text on sequece, we save the input and go to the final part of the enquete
+            case 'sequence': // text on sequence, we save the input and go to the final part of the enquete
               if (context.state.questionNumber === '4' || context.state.questionNumber === '7') {
                 await context.setState({ seqInput: context.event.message.text, dialog: 'endSequence' });
               }
@@ -808,12 +808,16 @@ module.exports = async (context) => {
           await help.buildSeqAnswers(context);
           if (context.state.questionNumber === '3' || context.state.questionNumber === '6') { // save answer and finish quiz, without the followUp message
             await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
+            await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name));
+            await dialogs.sendCouncilMenu(context, metric, events, db);
+          } else {
+            await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name), await attach.getQR(flow.sequencia[context.state.questionNumber]));
           }
-          await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name), await attach.getQR(flow.sequencia[context.state.questionNumber]));
           break;
         case 'endSequence': // save answer and send the followUp message
           await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
-          await context.sendText(flow.sequencia[context.state.questionNumber].followUp, { quick_replies: [flow.goBackMenu] });
+          await context.sendText(flow.sequencia[context.state.questionNumber].followUp);
+          await dialogs.sendCouncilMenu(context, metric, events, db);
           break;
           // Notifications flow ---------------------------------------------------------------------------
         case 'disableNotifications':

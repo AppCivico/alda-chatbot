@@ -3,7 +3,7 @@ const attach = require('./attach');
 const { checkMenu } = require('./helpers');
 
 async function sendCouncilMenu(context, metric, events, db) {
-  await context.setState({ mapsResults: '' });
+  await context.setState({ mapsResults: '', dialog: 'councilMenu' });
   await context.typingOn();
   if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
     await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
