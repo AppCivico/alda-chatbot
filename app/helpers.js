@@ -243,9 +243,6 @@ module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipie
 	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, newLabel); // create new ccs label
 };
 
-// await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'não vão a conselhos');
-// await appcivicoApi.getRecipient(context.state.politicianData.user_id, context.session.user.id);
-
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
