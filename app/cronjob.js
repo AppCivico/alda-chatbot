@@ -29,7 +29,7 @@ const activatedCCS = new Cron.CronJob(
 						bairros: await db.getEveryBairro(notifications[0].conselho_id),
 					};
 
-			for (const element of notifications) { // eslint-disable-line
+		for (const element of notifications) { // eslint-disable-line
 						if (element.conselho_id !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
 							// If we are not warning on the same CCS as before we have to reload the data
 							// This is an assurance in case more than one ccs gets activated
@@ -87,7 +87,7 @@ const agendaChange = new Cron.CronJob(
 							switch (element.status_id) {
 							case 1: // reunion was canceled
 								message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no local`
-										+ `${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
+							+ `${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
 								// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (status_id agenda must be 2)
 								await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
 								break;

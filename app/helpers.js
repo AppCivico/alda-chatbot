@@ -229,6 +229,23 @@ module.exports.buildSeqAnswers = async (context) => {
 	await context.setState({ seqAnswers: aux });
 };
 
+module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipient, deleteRecipientLabel, newLabel) => {
+	const user = await getRecipient(context.state.politicianData.user_id, context.session.user.id);
+	// check if user has any labels and if one of those labels is "conselho"
+	if (user && user.extra_fields && user.extra_fields.labels && user.extra_fields.labels.length > 0) {
+		const oldConselho = await user.extra_fields.labels.find(e => e.name.slice(0, 3) === 'ccs'); // search for a label that starts with 'ccs'
+
+		if (oldConselho && oldConselho.name && oldConselho.name.length > 0) { // check if we have the ccs label
+			await deleteRecipientLabel(context.state.politicianData.user_id, context.session.user.id, oldConselho.name); // delete old ccs label
+		}
+	}
+
+	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, newLabel); // create new ccs label
+};
+
+// await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'não vão a conselhos');
+// await appcivicoApi.getRecipient(context.state.politicianData.user_id, context.session.user.id);
+
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
