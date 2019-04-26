@@ -1,7 +1,7 @@
 const MaAPI = require('./chatbot_api');
 const { createIssue } = require('./send_issue');
 
-async function sendAnswer(context) { // send answer from posicionamento
+module.exports.sendAnswer = async (context) => { // send answer from posicionamento
 	// await context.setState({ currentTheme: await context.state.knowledge.knowledge_base.find(x => x.type === 'posicionamento') });
 	await context.typingOn();
 	await context.setState({ currentTheme: await context.state.knowledge.knowledge_base[0] });
@@ -13,7 +13,7 @@ async function sendAnswer(context) { // send answer from posicionamento
 		await MaAPI.logAskedEntity(context.session.user.id, context.state.politicianData.user_id, context.state.currentTheme.entities[0].id);
 
 		if (context.state.currentTheme.answer) { // if there's a text asnwer we send it
-			await context.sendText(context.state.currentTheme.answer);
+			await context.sendText(context.state.currentTheme.answer, context.state.intentQR);
 		}
 		if (context.state.currentTheme.saved_attachment_type === 'image') { // if attachment is image
 			await context.sendImage({ attachment_id: context.state.currentTheme.saved_attachment_id });
@@ -28,5 +28,4 @@ async function sendAnswer(context) { // send answer from posicionamento
 	} else { // in case there's an error
 		await createIssue(context);
 	}
-}
-module.exports.sendAnswer = sendAnswer;
+};

@@ -1,19 +1,20 @@
 const { getknowledgeBase } = require('./chatbot_api.js');
 const { createIssue } = require('./send_issue');
 const { sendAnswer } = require('./sendAnswer');
-const { denunciaStart } = require('./dialogs');
+// const { denunciaStart } = require('./dialogs');
+const { loadintentQR } = require('./dialogs');
 
-async function checkPosition(context) {
+module.exports.checkPosition = async (context, db) => {
 	console.log('chegou no checkPosition com', context.state.intentName);
 
 	switch (context.state.intentName) {
 	case 'Greetings': // user said hi
 		await context.setState({ dialog: 'greetings' });
 		break;
-	case 'denuncia':
-		await context.setState({ denunciaText: context.state.whatWasTyped });
-		await denunciaStart(context);
-		break;
+		// case 'denuncia':
+		// 	await context.setState({ denunciaText: context.state.whatWasTyped });
+		// 	await denunciaStart(context);
+		// break;
 	case 'Fallback': // didn't understand what was typed
 		await createIssue(context);
 		break;
@@ -23,13 +24,13 @@ async function checkPosition(context) {
 		// check if there's at least one answer in knowledge_base
 		if (context.state.knowledge && context.state.knowledge.knowledge_base && context.state.knowledge.knowledge_base.length >= 1) {
 			console.log('Vai enviar a resposta');
-
+			await context.setState({ intentQR: await loadintentQR(context, db) });
 			await sendAnswer(context);
 		} else { // no answers in knowledge_base (We know the entity but admin doesn't have a position)
 			await createIssue(context);
 		}
 		break;
 	}
-}
+};
 
-module.exports.checkPosition = checkPosition;
+// agradecimento - voltar para o menu

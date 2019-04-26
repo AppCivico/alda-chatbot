@@ -103,7 +103,7 @@ module.exports.sendCardWithout = async function sendCardWithLink(context, cardDa
 
 // get quick_replies opject with elements array
 // supossed to be used with menuOptions and menuPostback for each dialog on flow.js
-module.exports.getQR = async (opt) => {
+async function getQR(opt) {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -116,8 +116,8 @@ module.exports.getQR = async (opt) => {
 	});
 
 	return { quick_replies: elements };
-};
-
+}
+module.exports.getQR = getQR;
 
 module.exports.getQRLocation = async (opt) => {
 	const elements = [];
@@ -153,6 +153,23 @@ module.exports.getQRLocation2 = async (opt) => {
 	return { quick_replies: elements };
 };
 
+async function getVoltarQR(lastDialog) {
+	let lastPostback = '';
+
+	if (lastDialog === 'optDenun') {
+		lastPostback = 'goBackMenu';
+	} else {
+		lastPostback = lastDialog;
+	}
+
+	return {
+		content_type: 'text',
+		title: 'Voltar',
+		payload: lastPostback,
+	};
+}
+
+module.exports.getVoltarQR = getVoltarQR;
 module.exports.getErrorQR = async (opt, lastDialog) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
@@ -165,23 +182,24 @@ module.exports.getErrorQR = async (opt, lastDialog) => {
 		});
 	});
 
-	let lastPostback = '';
-
-	if (lastDialog === 'optDenun') {
-		lastPostback = 'goBackMenu';
-	} else {
-		lastPostback = lastDialog;
-	}
-
-	elements.push({
-		content_type: 'text',
-		title: 'Voltar',
-		payload: lastPostback,
-	});
+	elements.push(await getVoltarQR(lastDialog));
 
 	console.log('ERRORQR', elements);
 
 	return { quick_replies: elements };
+};
+
+module.exports.getCouncilMenuQR = async (CCS, checkMenu, flow, db) => {
+	let result = '';
+	if (!CCS) {
+		result = await getQR(flow.whichCCS);
+		result = result.quick_replies;
+	} else {
+		result = await checkMenu(CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db);
+	}
+	console.log(result);
+
+	return result;
 };
 
 module.exports.getConditionalQR = async (options, useSecond) => {

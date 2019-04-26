@@ -18,6 +18,8 @@ async function sendCouncilMenu(context, metric, events, db) {
 	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
 }
 
+module.exports.sendCouncilMenu = sendCouncilMenu;
+
 module.exports.sendGreetings = async (context, metric) => {
 	await context.typingOn();
 	await context.sendImage(flow.greetings.greetImage);
@@ -26,7 +28,6 @@ module.exports.sendGreetings = async (context, metric) => {
 	await context.typingOff();
 	await metric.userAddOrUpdate(context);
 };
-
 
 module.exports.wannaKnowMembers = async (context, db, metric, events) => {
 	await context.typingOn();
@@ -154,13 +155,47 @@ module.exports.optDenun = async (context, db, postRecipientLabel) => {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
 		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
-		await context.sendText(`<Outro endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: [flow.goBackMenu] });
+		await context.sendText(`<Outro endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
 	} else {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber]);
-		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: [flow.goBackMenu] });
+		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
 	}
 	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 };
 
-module.exports.sendCouncilMenu = sendCouncilMenu;
+module.exports.loadintentQR = async (context, db) => {
+	let result = '';
+	switch (context.state.intentName.toLowerCase()) {
+	case 'participar grupo':
+	case 'serviços':
+	case 'presente':
+	case 'segurança':
+	case 'reunião do conselho':
+		result = await attach.getCouncilMenuQR(context.state.CCS, checkMenu, flow, db);
+		break;
+	case 'local errado':
+		result = await attach.getQR(flow.whichCCS);
+		result = result.quick_replies;
+		break;
+	case 'sim/não':
+		result = [await attach.getVoltarQR(context.state.lastDialog)];
+		break;
+	case 'denuncia':
+		await context.setState({ denunciaText: context.state.whatWasTyped });
+		result = await attach.getQR(flow.denunciaStart);
+		result = result.quick_replies;
+		break;
+	case 'agradecimento':
+	case 'despedida':
+	case 'ok':
+	case 'parabéns':
+	case 'xingamentos':
+	default:
+		result = flow.goBackMenu;
+		break;
+	}
+
+
+	return { quick_replies: result };
+};

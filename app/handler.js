@@ -289,7 +289,7 @@ module.exports = async (context) => {
 								});
 								// await context.setState({ resultParameters: context.state.apiaiResp.result.parameters }); // getting the entities
 								await context.setState({ intentName: context.state.apiaiResp.result.metadata.intentName }); // getting the intent
-								await checkPosition(context);
+								await checkPosition(context, db);
 							} else { // not using dialogFlow
 								console.log('Não usando df');
 								await createIssue(context);
@@ -843,7 +843,8 @@ module.exports = async (context) => {
 			const date = new Date();
 			console.log(`Parece que aconteceu um erro as ${date.toLocaleTimeString('pt-BR')} de ${date.getDate()}/${date.getMonth() + 1} =>`);
 			console.log(error);
-			await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
+			// await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getQR(flow.error));
+			await context.sendText('Ops. Tive um erro interno. Tente novamente.', await attach.getErrorQR(flow.error, context.state.lastDialog));
 
 			await Sentry.configureScope(async (scope) => {
 				scope.setUser({ username: context.session.user.first_name });

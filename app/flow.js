@@ -178,11 +178,12 @@ module.exports = {
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
 		assuntos: 'Os assuntos que discutimos nessa última reunião foram: ',
-
 	},
 	denunciaStart: {
 		txt1: 'Oi, <nome>, pelo que entendi você precisa fazer uma denúncia. Caso eu esteja certa, não posso te ajudar diretamente nesses casos, mas sei quem pode.',
 		txt2: 'Eu preciso que você me explique qual tipo da denúncia você gostaria de fazer. Mas antes, vamos confirmar a localização que você deseja reportar (sua casa ou local do ocorrido).',
+		menuOptions: ['Sim', 'Não é denúncia'],
+		menuPostback: ['denunciaStart', 'denunciaNot'],
 	},
 	denunciaHasBairro: {
 		txt1: 'Verifiquei que você está no bairro <bairro>. Podemos seguir ou deseja alterar? ',
@@ -345,11 +346,11 @@ module.exports = {
 		title: 'Fazer Parte',
 		payload: 'join',
 	},
-	goBackMenu: {
+	goBackMenu: [{
 		content_type: 'text',
 		title: 'Voltar para o menu',
 		payload: 'goBackMenu',
-	},
+	}],
 	sequencia: {
 		1: {
 			question: 'Oi, <nome>! Perguntinha rápida, você conseguiu ir na reunião do seu Conselho que aconteceu ontem?',
