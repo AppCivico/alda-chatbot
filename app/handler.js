@@ -19,12 +19,8 @@ const dialogs = require('./dialogs');
 
 const { restartList } = require('./helpers');
 
-const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
-const mailRegex = new RegExp(/\S+@\S+/);
-
 const timeLimit = 1000 * 60 * 60 * 24 * 3; // 60 minutes * 24 hours * 3 days => 1000 * 60 * 60 * 24 * 3
 const calendarQROpt = [flow.subjectsOpt, flow.resultsOpt, flow.joinOpt];
-
 
 module.exports = async (context) => {
 	if (!context.event.isDelivery && !context.event.isEcho) {
@@ -172,45 +168,19 @@ module.exports = async (context) => {
 					await context.setState({ dialog: 'greetings' });
 				} else {
 					switch (context.state.dialog) { // handling text is each of these dialogs
-					// case 'whichCCSMenu':
-					case 'retryType':
-					case 'sendLocation':
-					case 'wantToChange':
-					case 'municipioNotFound':
-					case 'confirmMunicipio':
-					case 'wantToType1': // user entered city text
-						await dialogs.wantToTypeCidade(context, help, db);
+					case 'subjects':
+					case 'askPauta':
+						await db.savePautaSugestao(context.session.user.id, context.state.CCS.id, context.event.message.text);
+						await context.sendText(flow.pautas.askPauta2);
+						await events.addCustomAction(context.session.user.id, 'Usuario deixou sugestao');
+						await context.setState({ dialog: 'subjectsFollowUp' });
 						break;
-					case 'bairroNotFound':
-					case 'confirmBairro':
-					case 'wantToType2': // user entered bairro text
-						await dialogs.wantToTypeBairro(context, help, db);
-						break;
-					case 'reAskMail':
-					case 'eMail':
-						await context.setState({ eMail: context.event.message.text.toLowerCase() });
-						if (mailRegex.test(context.state.eMail)) { // valid mail
-							await context.sendText('Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️');
-							await context.setState({ dialog: 'userData' });
-							await events.addCustomAction(context.session.user.id, 'Usuario deixou e-mail com sucesso');
-							await metric.updateMailChatbotUserNoCCS(context.session.user.id, context.state.eMail);
-						} else { // invalid email
-							await context.setState({ eMail: '', dialog: 'reAskMail' });
-							await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar e-mail');
+					case 'sequence': // text on sequence, we save the input and go to the final part of the enquete
+						if (context.state.questionNumber === '4' || context.state.questionNumber === '7') {
+							await context.setState({ seqInput: context.event.message.text, dialog: 'endSequence' });
 						}
 						break;
-					case 'reAskPhone':
-					case 'whatsApp':
-						await context.setState({ phone: `+55${context.event.message.text.replace(/[- .)(]/g, '')}` });
-						if (phoneRegex.test(context.state.phone)) { // valid phone
-							await context.setState({ dialog: 'gotPhone' });
-							await events.addCustomAction(context.session.user.id, 'Usuario deixou fone com sucesso');
-							await metric.updatePhoneChatbotUserNoCCS(context.session.user.id, context.state.phone);
-						} else { // invalid phone
-							await context.setState({ phone: '', dialog: 'reAskPhone' });
-							await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar fone');
-						}
-						break;
+					// admin menu
 					case 'adminStart':
 					case 'adminConfirm':
 						await context.sendText('Escolha uma das opções!');
@@ -257,18 +227,6 @@ module.exports = async (context) => {
 							await context.sendText('Erro! Entrada inválida! Tente novamente.');
 						} // after this flow we return to the metrics dialog
 						break;
-					case 'subjects':
-					case 'askPauta':
-						await db.savePautaSugestao(context.session.user.id, context.state.CCS.id, context.event.message.text);
-						await context.sendText(flow.pautas.askPauta2);
-						await events.addCustomAction(context.session.user.id, 'Usuario deixou sugestao');
-						await context.setState({ dialog: 'subjectsFollowUp' });
-						break;
-					case 'sequence': // text on sequence, we save the input and go to the final part of the enquete
-						if (context.state.questionNumber === '4' || context.state.questionNumber === '7') {
-							await context.setState({ seqInput: context.event.message.text, dialog: 'endSequence' });
-						}
-						break;
 					default: // regular text message
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
 						console.log('whatWasTyped', context.state.whatWasTyped);
@@ -277,7 +235,6 @@ module.exports = async (context) => {
 						} else if (context.event.message.text === 'denuncia') {
 							await context.setState({ dialog: 'denunciaStart' });
 						} else {
-							await context.setState({ dialog: 'holdOn' });
 							console.log('Entrei aqui');
 
 							if (context.state.politicianData.use_dialogflow === 1) { // check if politician is using dialogFlow
@@ -289,7 +246,7 @@ module.exports = async (context) => {
 								});
 								// await context.setState({ resultParameters: context.state.apiaiResp.result.parameters }); // getting the entities
 								await context.setState({ intentName: context.state.apiaiResp.result.metadata.intentName }); // getting the intent
-								await checkPosition(context, db);
+								await checkPosition(context);
 							} else { // not using dialogFlow
 								console.log('Não usando df');
 								await createIssue(context);
@@ -311,11 +268,11 @@ module.exports = async (context) => {
 
 			switch (context.state.dialog) {
 			case 'start':
-				await dialogs.sendGreetings(context, metric);
+				await dialogs.sendGreetings(context);
 				await events.addCustomAction(context.session.user.id, 'Usuario comeca dialogo');
 				break;
 			case 'greetings':
-				await dialogs.sendGreetings(context, metric);
+				await dialogs.sendGreetings(context);
 				await events.addCustomAction(context.session.user.id, 'Usuario ve Saudacoes');
 				break;
 			case 'aboutMe':
@@ -464,13 +421,13 @@ module.exports = async (context) => {
 				await context.sendText(flow.wentAlready.secondMessage, await attach.getQR(flow.wentAlready));
 				break;
 			case 'wannaKnowMembers':
-				await dialogs.wannaKnowMembers(context, db, metric, events);
+				await dialogs.wannaKnowMembers(context);
 				break;
 			case 'mainMenu': // 'Veja como eu posso te ajudar por aqui'
 				await context.sendText(flow.mainMenu.firstMessage, await attach.getQR(flow.mainMenu));
 				break;
 			case 'councilMenu': // 'Escolha uma das opções:'
-				await dialogs.sendCouncilMenu(context, metric, events, db);
+				await dialogs.sendCouncilMenu(context);
 				break;
 			case 'calendar': // agenda
 				await context.typingOn();
@@ -798,7 +755,7 @@ module.exports = async (context) => {
 				await dialogs.denunciaMenu(context);
 				break;
 			case 'optDenun':
-				await dialogs.optDenun(context, db, appcivicoApi.postRecipientLabel);
+				await dialogs.optDenun(context, appcivicoApi.postRecipientLabel);
 				break;
 			case 'denunciaNot':
 				await createIssue(context);
@@ -809,7 +766,7 @@ module.exports = async (context) => {
 				if (context.state.questionNumber === '3' || context.state.questionNumber === '6') { // save answer and finish quiz, without the followUp message
 					await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
 					await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name));
-					await dialogs.sendCouncilMenu(context, metric, events, db);
+					await dialogs.sendCouncilMenu(context);
 				} else {
 					await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name), await attach.getQR(flow.sequencia[context.state.questionNumber]));
 				}
@@ -817,7 +774,7 @@ module.exports = async (context) => {
 			case 'endSequence': // save answer and send the followUp message
 				await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
 				await context.sendText(flow.sequencia[context.state.questionNumber].followUp);
-				await dialogs.sendCouncilMenu(context, metric, events, db);
+				await dialogs.sendCouncilMenu(context);
 				break;
 				// Notifications flow ---------------------------------------------------------------------------
 			case 'disableNotifications':

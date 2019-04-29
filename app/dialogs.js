@@ -1,8 +1,11 @@
 const flow = require('./flow');
 const attach = require('./attach');
-const { checkMenu } = require('./helpers');
+const db = require('./DB_helper');
+const metric = require('./DB_metrics');
+const events = require('./events');
+const help = require('./helpers');
 
-async function sendCouncilMenu(context, metric, events, db) {
+async function sendCouncilMenu(context) {
 	await context.setState({ mapsResults: '', dialog: 'councilMenu' });
 	await context.typingOn();
 	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
@@ -10,7 +13,7 @@ async function sendCouncilMenu(context, metric, events, db) {
 	} else { // "Escolha uma das opções"
 		await context.sendText(
 			flow.councilMenu.firstMessage,
-			{ quick_replies: await checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db) },
+			{ quick_replies: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db) },
 		);
 		await metric.userAddOrUpdate(context);
 	}
@@ -20,7 +23,7 @@ async function sendCouncilMenu(context, metric, events, db) {
 
 module.exports.sendCouncilMenu = sendCouncilMenu;
 
-module.exports.sendGreetings = async (context, metric) => {
+module.exports.sendGreetings = async (context) => {
 	await context.typingOn();
 	await context.sendImage(flow.greetings.greetImage);
 	await context.sendText(flow.greetings.welcome);
@@ -29,7 +32,7 @@ module.exports.sendGreetings = async (context, metric) => {
 	await metric.userAddOrUpdate(context);
 };
 
-module.exports.wannaKnowMembers = async (context, db, metric, events) => {
+module.exports.wannaKnowMembers = async (context) => {
 	await context.typingOn();
 	await context.setState({ diretoria: await db.getDiretoria(context.state.CCS.id) }); // all the members of the the diretoria
 	await context.setState({ diretoriaAtual: [] }); // stored active members on present date
@@ -60,18 +63,18 @@ module.exports.wannaKnowMembers = async (context, db, metric, events) => {
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				await attach.sendCarouselMembrosNatos(context, membrosNatos);
 				await context.sendText(flow.wannaKnowMembers.thirdMessage);
-				await sendCouncilMenu(context, metric, events, db);
+				await sendCouncilMenu(context);
 			}, 5000, context.state.membrosNatos);
 			await context.setState({ membrosNatos: '' }); // cleaning up
 		} else { // no membrosNatos
-			await sendCouncilMenu(context, metric, events, db);
+			await sendCouncilMenu(context);
 		}
 	} else { // no searchedBairro or searchedCity
-		await sendCouncilMenu(context, metric, events, db);
+		await sendCouncilMenu(context);
 	}
 };
 
-module.exports.wantToTypeCidade = async (context, help, db) => {
+module.exports.wantToTypeCidade = async (context) => {
 	await context.setState({ cameFromGeo: false });
 	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
 	if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
@@ -97,7 +100,7 @@ module.exports.wantToTypeCidade = async (context, help, db) => {
 	} // else text length
 };
 
-module.exports.wantToTypeBairro = async (context, help, db) => {
+module.exports.wantToTypeBairro = async (context) => {
 	await context.setState({ cameFromGeo: false });
 	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
 	if (context.state.userInput.length < 4) { // input limit  (4 because the shortest bairros have 4)
@@ -150,7 +153,7 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
 };
 
-module.exports.optDenun = async (context, db, postRecipientLabel) => {
+module.exports.optDenun = async (context, postRecipientLabel) => {
 	if (context.state.optDenunNumber === '4') {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
 		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
@@ -164,7 +167,7 @@ module.exports.optDenun = async (context, db, postRecipientLabel) => {
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 };
 
-module.exports.loadintentQR = async (context, db) => {
+module.exports.loadintentQR = async (context) => {
 	let result = '';
 	switch (context.state.intentName.toLowerCase()) {
 	case 'participar grupo':
@@ -172,7 +175,7 @@ module.exports.loadintentQR = async (context, db) => {
 	case 'presente':
 	case 'segurança':
 	case 'reunião do conselho':
-		result = await attach.getCouncilMenuQR(context.state.CCS, checkMenu, flow, db);
+		result = await attach.getCouncilMenuQR(context.state.CCS, flow);
 		break;
 	case 'local errado':
 		result = await attach.getQR(flow.whichCCS);
@@ -196,6 +199,35 @@ module.exports.loadintentQR = async (context, db) => {
 		break;
 	}
 
-
+	// if (result && result.length > 0) {
+	// 	await context.setState({ dialog: '' });
+	// }
 	return { quick_replies: result };
+};
+
+module.exports.checkEmailInput = async (context) => {
+	const mailRegex = new RegExp(/\S+@\S+/);
+	await context.setState({ eMail: context.event.message.text.toLowerCase() });
+	if (mailRegex.test(context.state.eMail)) { // valid mail
+		await context.sendText('Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️');
+		await context.setState({ dialog: 'userData' });
+		await events.addCustomAction(context.session.user.id, 'Usuario deixou e-mail com sucesso');
+		await metric.updateMailChatbotUserNoCCS(context.session.user.id, context.state.eMail);
+	} else { // invalid email
+		await context.setState({ eMail: '', dialog: 'reAskMail' });
+		await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar e-mail');
+	}
+};
+
+module.exports.checkPhoneInput = async (context) => {
+	const phoneRegex = new RegExp(/^\+55\d{2}(\d{1})?\d{8}$/);
+	await context.setState({ phone: `+55${context.event.message.text.replace(/[- .)(]/g, '')}` });
+	if (phoneRegex.test(context.state.phone)) { // valid phone
+		await context.setState({ dialog: 'gotPhone' });
+		await events.addCustomAction(context.session.user.id, 'Usuario deixou fone com sucesso');
+		await metric.updatePhoneChatbotUserNoCCS(context.session.user.id, context.state.phone);
+	} else { // invalid phone
+		await context.setState({ phone: '', dialog: 'reAskPhone' });
+		await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar fone');
+	}
 };

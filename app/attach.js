@@ -3,6 +3,7 @@
 // links is the object from flow.js from the respective dialog
 
 const { capitalizeWords } = require('./helpers');
+const { checkMenu } = require('./helpers');
 
 module.exports.sendCarouselMembrosNatos = async (context, items) => {
 	const elements = [];
@@ -189,13 +190,13 @@ module.exports.getErrorQR = async (opt, lastDialog) => {
 	return { quick_replies: elements };
 };
 
-module.exports.getCouncilMenuQR = async (CCS, checkMenu, flow, db) => {
+module.exports.getCouncilMenuQR = async (CCS, flow) => {
 	let result = '';
 	if (!CCS) {
 		result = await getQR(flow.whichCCS);
 		result = result.quick_replies;
 	} else {
-		result = await checkMenu(CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db);
+		result = await checkMenu(CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]);
 	}
 	console.log(result);
 

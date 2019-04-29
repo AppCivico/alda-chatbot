@@ -5,6 +5,7 @@ const Sentry = require('@sentry/node');
 const dialogFlow = require('apiai-promise');
 const flow = require('./flow');
 const postback = require('./postback');
+const db = require('./DB_helper');
 
 Sentry.init({
 	dsn: process.env.SENTRY_DSN, environment: process.env.ENV, captureUnhandledRejections: false,
@@ -36,7 +37,7 @@ module.exports.capitalizeWords = str => str.replace(/\w\S*/g, txt => txt.charAt(
 
 module.exports.dateComparison = dateComparison;
 module.exports.formatDate = formatDate;
-module.exports.checkMenu = async (CCSID, oldOptions, db) => {
+module.exports.checkMenu = async (CCSID, oldOptions) => {
 	// cheking which quick_reply options we can show in the menu
 	// { quick_replies: await checkMenu(context, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]) }
 	// each flow._opt passed will be added to the final options if it's present and matches the requirements (like having an agenda to show subjects)
