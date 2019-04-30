@@ -230,9 +230,9 @@ module.exports = async (context) => {
 					default: // regular text message
 						await context.setState({ lastDialog: context.state.dialog, whatWasTyped: context.event.message.text });
 						console.log('whatWasTyped', context.state.whatWasTyped);
-						if (context.state.whatWasTyped === 'enquete') {
+						if (context.state.whatWasTyped === process.env.ENQUETE_KEY) {
 							await context.setState({ questionNumber: '1', dialog: 'sequence', agendaId: '100' });
-						} else if (context.event.message.text === 'denuncia') {
+						} else if (context.event.message.text === process.env.DENUNCIA_KEY) {
 							await context.setState({ dialog: 'denunciaStart' });
 						} else {
 							console.log('Entrei aqui');
@@ -410,6 +410,7 @@ module.exports = async (context) => {
 					}
 					await events.addCustomAction(context.session.user.id, 'Econtramos-Confirmamos Conselho');
 				}
+				await context.setState({ municipiosFound: '', bairro: '' });
 				break;
 			case 'wentAlready':
 				await context.sendText(flow.wentAlready.firstMessage);
@@ -601,7 +602,7 @@ module.exports = async (context) => {
 				break;
 				// GeoLocation/GoogleMaps flow ---------------------------------------------------------------------------
 			case 'findLocation': { // user sends geolocation, we find the bairro using googleMaps and confirm at the end
-				await context.setState({ municipiosFound: undefined, bairro: undefined });
+				await context.setState({ municipiosFound: '', bairro: '' });
 				await context.typingOn();
 				try {
 					await context.setState({
@@ -762,14 +763,7 @@ module.exports = async (context) => {
 				break;
 				// sequence questions
 			case 'sequence':
-				await help.buildSeqAnswers(context);
-				if (context.state.questionNumber === '3' || context.state.questionNumber === '6') { // save answer and finish quiz, without the followUp message
-					await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
-					await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name));
-					await dialogs.sendCouncilMenu(context);
-				} else {
-					await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name), await attach.getQR(flow.sequencia[context.state.questionNumber]));
-				}
+				await dialogs.sequence(context);
 				break;
 			case 'endSequence': // save answer and send the followUp message
 				await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);

@@ -59,12 +59,14 @@ module.exports = {
 		firstMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
 		secondMessage: 'Legal. Agora digite o *bairro* dessa cidade:',
 		retryType: 'Tudo bem. Vamos encontrar o conselho mais adequado para sua região.',
+		tooShort: 'Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.',
 		// menuOptions: ['Sim, avançar', 'Não, quero trocar'],
 		// menuPostback: ['advance', 'wantToChange'],
 	},
 	wantToType2: {
 		noSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro.',
 		withSugestao: 'Legal. Agora digite o *bairro* da cidade Rio de Janeiro. Você pode tentar bairros como <sugestao> e outros.',
+		tooShort: 'Esse nome é muito pequeno! Assim não consigo achar seu bairro. Por favor, tente outra vez.',
 	},
 	foundLocation: {
 		firstMessage: 'Encontrei o seguinte município:',
@@ -232,6 +234,7 @@ module.exports = {
 	userData: {
 		eMail: 'Legal! Escreva seu e-mail abaixo para o conselho te manter informado. 😉',
 		emailExample: 'Exemplo: alda@chatbot.com',
+		sucess: 'Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
 		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],

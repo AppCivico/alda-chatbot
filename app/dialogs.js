@@ -4,6 +4,7 @@ const db = require('./DB_helper');
 const metric = require('./DB_metrics');
 const events = require('./events');
 const help = require('./helpers');
+const { postRecipient } = require('./chatbot_api');
 
 async function sendCouncilMenu(context) {
 	await context.setState({ mapsResults: '', dialog: 'councilMenu' });
@@ -78,7 +79,7 @@ module.exports.wantToTypeCidade = async (context) => {
 	await context.setState({ cameFromGeo: false });
 	await context.setState({ userInput: await help.formatString(context.event.message.text) }); // format user input
 	if (context.state.userInput.length < 3) { // input limit (3 because we can leave 'rio' as an option)
-		await context.sendText('Esse nome é muito curto! Desse jeito não conseguirei encontrar sua cidade. Por favor, tente de novo.');
+		await context.sendText(flow.wantToType.tooShort);
 		await context.setState({ dialog: 'wantToType1' });
 	} else if ('rio de janeiro'.includes(context.state.userInput) || 'capital'.includes(context.state.userInput)) { // special case: 'rio de janeiro' or 'capital'
 		await context.setState({ municipiosFound: await db.getCCSsFromMunicipio('rio de janeiro') });
@@ -134,6 +135,17 @@ module.exports.wantToTypeBairro = async (context) => {
 			await attach.sendConselhoConfirmation(context, context.state.bairro);
 			await context.setState({ dialog: 'confirmBairro' });
 		}
+	}
+};
+
+module.exports.sequence = async (context) => {
+	await help.buildSeqAnswers(context);
+	if (context.state.questionNumber === '3' || context.state.questionNumber === '6') { // save answer and finish quiz, without the followUp message
+		await db.saveSeqAnswer(context.session.user.id, context.state.agendaId, context.state.seqAnswers, context.state.seqInput);
+		await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name));
+		await sendCouncilMenu(context);
+	} else {
+		await context.sendText(flow.sequencia[context.state.questionNumber].question.replace('<nome>', context.session.user.first_name), await attach.getQR(flow.sequencia[context.state.questionNumber]));
 	}
 };
 
@@ -209,10 +221,15 @@ module.exports.checkEmailInput = async (context) => {
 	const mailRegex = new RegExp(/\S+@\S+/);
 	await context.setState({ eMail: context.event.message.text.toLowerCase() });
 	if (mailRegex.test(context.state.eMail)) { // valid mail
-		await context.sendText('Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️');
+		await context.sendText(flow.userData.sucess);
 		await context.setState({ dialog: 'userData' });
 		await events.addCustomAction(context.session.user.id, 'Usuario deixou e-mail com sucesso');
 		await metric.updateMailChatbotUserNoCCS(context.session.user.id, context.state.eMail);
+		await postRecipient(context.state.politicianData.user_id, {
+			fb_id: context.session.user.id,
+			name: `${context.session.user.first_name} ${context.session.user.last_name}`,
+			email: context.state.eMail,
+		});
 	} else { // invalid email
 		await context.setState({ eMail: '', dialog: 'reAskMail' });
 		await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar e-mail');
@@ -226,6 +243,11 @@ module.exports.checkPhoneInput = async (context) => {
 		await context.setState({ dialog: 'gotPhone' });
 		await events.addCustomAction(context.session.user.id, 'Usuario deixou fone com sucesso');
 		await metric.updatePhoneChatbotUserNoCCS(context.session.user.id, context.state.phone);
+		await postRecipient(context.state.politicianData.user_id, {
+			fb_id: context.session.user.id,
+			name: `${context.session.user.first_name} ${context.session.user.last_name}`,
+			cellphone: context.state.phone,
+		});
 	} else { // invalid phone
 		await context.setState({ phone: '', dialog: 'reAskPhone' });
 		await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar fone');

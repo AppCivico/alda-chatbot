@@ -8,11 +8,9 @@ const events = require('../app/events');
 const appcivicoApi = require('../app/chatbot_api');
 const help = require('../app/helpers');
 const dialogs = require('../app/dialogs');
-const metric = require('../app/DB_metrics');
 
 jest.mock('../app/attach');
 jest.mock('../app/DB_helper');
-jest.mock('../app/DB_metrics');
 jest.mock('../app/helpers');
 jest.mock('../app/broadcast');
 jest.mock('../app/events');
@@ -188,8 +186,6 @@ it('nearestLocation - neverWent + menu - no metric', async () => {
 
 // TODO nearestLocation with metric (insert checkChatbotUser into updateWentBeforeChatbotUser)
 // misc dialogs
-// TODO email and reAskMail on text
-// TODO whatsApp, gotPhone and reAskPhone on text
 // TODO notFoundFromGeo is a part of nearestCouncil
 
 it('wannaKnowMembers - notWannaKnow + menu', async () => {
@@ -200,7 +196,7 @@ it('wannaKnowMembers - notWannaKnow + menu', async () => {
 
 	context.state.dialog = 'councilMenu';
 	await handler(context);
-	await expect(dialogs.sendCouncilMenu).toBeCalledWith(context, metric, events);
+	await expect(dialogs.sendCouncilMenu).toBeCalledWith(context);
 });
 
 it('goBackMenu button', async () => {
@@ -250,14 +246,14 @@ it('notMe button', async () => {
 it('start', async () => {
 	const context = cont.quickReplyContext('start', 'start');
 	await handler(context);
-	await expect(dialogs.sendGreetings).toBeCalledWith(context, metric);
+	await expect(dialogs.sendGreetings).toBeCalledWith(context);
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario comeca dialogo');
 });
 
 it('greetings', async () => {
 	const context = cont.quickReplyContext('greetings', 'greetings');
 	await handler(context);
-	await expect(dialogs.sendGreetings).toBeCalledWith(context, metric);
+	await expect(dialogs.sendGreetings).toBeCalledWith(context);
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Saudacoes');
 });
 

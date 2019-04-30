@@ -1,6 +1,7 @@
 function quickReplyContext(payload, dialog, CCS, bairro, adress, retry_count = 0, lastActivity = new Date()) {
 	return {
 		state: {
+			apiaiResp: { result: { parameters: [], metadata: { intentName: '' } } },
 			dialog,
 			retry_count,
 			CCS,
@@ -8,11 +9,7 @@ function quickReplyContext(payload, dialog, CCS, bairro, adress, retry_count = 0
 			adress,
 			geoLocation: { lat: -23.5733, long: -46.6417 },
 			lastQRpayload: payload,
-			politicianData: {
-				user_id: 2000,
-				use_dialogflow: 1,
-				id: 1000,
-			},
+			politicianData: { user_id: 2000, use_dialogflow: 1, id: 1000 },
 		},
 		session: {
 			lastActivity,
@@ -48,12 +45,9 @@ module.exports.quickReplyContext = quickReplyContext;
 function textContext(text, dialog, lastActivity = new Date()) {
 	return {
 		state: {
+			apiaiResp: { result: { parameters: [], metadata: { intentName: '' } } },
 			dialog,
-			politicianData: {
-				user_id: 2000,
-				use_dialogflow: 1,
-				id: 1000,
-			},
+			politicianData: { user_id: 2000, use_dialogflow: 1, id: 1000 },
 		},
 		session: {
 			lastActivity,
@@ -91,6 +85,7 @@ function getAttachments(dialog, lastActivity = new Date()) {
 	return {
 		state: {
 			dialog,
+			politicianData: { user_id: 2000, use_dialogflow: 1, id: 1000 },
 		},
 		session: {
 			lastActivity,
@@ -102,7 +97,7 @@ function getAttachments(dialog, lastActivity = new Date()) {
 		},
 		event: {
 			hasAttachment: true,
-			rawEvent: { timestamp: new Date() },
+			rawEvent: { timestamp: new Date(), recipient: { id: 1000 } },
 		},
 		sendText: jest.fn(),
 		sendButtonTemplate: jest.fn(),
