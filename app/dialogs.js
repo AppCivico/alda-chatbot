@@ -4,7 +4,8 @@ const db = require('./DB_helper');
 const metric = require('./DB_metrics');
 const events = require('./events');
 const help = require('./helpers');
-const { postRecipient } = require('./chatbot_api');
+const appcivicoApi = require('./chatbot_api');
+
 
 async function sendCouncilMenu(context) {
 	await context.setState({ mapsResults: '', dialog: 'councilMenu' });
@@ -225,7 +226,7 @@ module.exports.checkEmailInput = async (context) => {
 		await context.setState({ dialog: 'userData' });
 		await events.addCustomAction(context.session.user.id, 'Usuario deixou e-mail com sucesso');
 		await metric.updateMailChatbotUserNoCCS(context.session.user.id, context.state.eMail);
-		await postRecipient(context.state.politicianData.user_id, {
+		await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
 			fb_id: context.session.user.id,
 			name: `${context.session.user.first_name} ${context.session.user.last_name}`,
 			email: context.state.eMail,
@@ -243,7 +244,7 @@ module.exports.checkPhoneInput = async (context) => {
 		await context.setState({ dialog: 'gotPhone' });
 		await events.addCustomAction(context.session.user.id, 'Usuario deixou fone com sucesso');
 		await metric.updatePhoneChatbotUserNoCCS(context.session.user.id, context.state.phone);
-		await postRecipient(context.state.politicianData.user_id, {
+		await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
 			fb_id: context.session.user.id,
 			name: `${context.session.user.first_name} ${context.session.user.last_name}`,
 			cellphone: context.state.phone,
@@ -252,4 +253,59 @@ module.exports.checkPhoneInput = async (context) => {
 		await context.setState({ phone: '', dialog: 'reAskPhone' });
 		await events.addCustomAction(context.session.user.id, 'Usuario nao conseguiu deixar fone');
 	}
+};
+
+module.exports.sendCalendario = async (context) => {
+	await context.setState({ agenda: await db.getAgenda(context.state.CCS.id) });
+
+	if (context.state.agenda) { // check if we have an agenda to show
+		if (help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())) { // check if next reunion is going to happen today or after today
+			await context.sendText(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+			await context.setState({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+			await context.sendText(context.state.ageMsg);
+			await context.setState({ ageMsg: '' });
+			// sending menu options
+			await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+			if (context.state.QROptions.find(obj => obj.payload === 'results') && context.state.QROptions.find(obj => obj.payload === 'subjects')) { // check if we can send results and subjects (this whole part is necessary because the text changes)
+				await context.sendText(flow.calendar.preMenuMsg, { quick_replies: context.state.QROptions });
+			} else { // send text for no results
+				await context.sendText(flow.calendar.preMenuMsgExtra, { quick_replies: context.state.QROptions });
+			}
+
+			if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist !==
+				// before adding the user+ccs on the table we check if it's already there
+				if (await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
+					await db.addAgenda(
+						context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
+						new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString(),
+					); // if it's not we add it
+				}
+				await help.linkUserToCustomLabel(context.session.user.id, `agenda${context.state.agenda.id}`); // create an agendaLabel using agenda_id
+				await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
+			}
+		} else { // last reunion already happened
+			await context.sendText(`Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ${help.formatDateDay(context.state.agenda.data)}.`);
+			if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true) { // check if user is not on the blacklist !==
+				await context.sendText('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', { quick_replies: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+				// before adding the user+ccs on the table we check if it's already there
+				if (await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) !== true) { // !== true
+					await db.addNovaAgenda(context.session.user.id, context.state.agenda.id); // if it's not we add it
+				}
+				await help.linkUserToCustomLabel(context.session.user.id, `agenda${context.state.agenda.id}`); // create an agendaLabel using agenda_id
+				await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
+			} else { // User is on the blacklist
+				await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+				if (context.state.QROptions.find(obj => obj.payload === 'results')) { // check if we can send results (this whole part is necessary because the text changes)
+					await context.sendText('Você pode ver os nossos últimos resultados clicando abaixo! 😊', { quick_replies: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+				} else { // send text for no results
+					await context.sendText(flow.calendar.preMenuMsgExtra, { quick_replies: context.state.QROptions });
+				}
+			}
+		}
+	} else { // no agenda at all, probably an error
+		await context.sendText(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`);
+		await context.sendText(flow.subjects.novidades, { quick_replies: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+	}
+
+	await events.addCustomAction(context.session.user.id, 'Usuario ve Agenda');
 };

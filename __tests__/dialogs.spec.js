@@ -6,6 +6,7 @@ const attach = require('../app/attach');
 const events = require('../app/events');
 const help = require('../app/helpers');
 const metric = require('../app/DB_metrics');
+const appcivicoApi = require('../app/chatbot_api');
 const db = require('../app/DB_helper');
 const dialogs = require('../app/dialogs');
 const { postRecipient } = require('../app/chatbot_api');
@@ -32,6 +33,8 @@ const templateCCS = {
 	abrangencia_id: 49,
 };
 
+help.checkUserOnLabel = async (id) => {	if (id === 999) { return false; }	return true; };
+help.checkNovaAgenda = async (id) => {	if (id === 999) { return false; }	return true; };
 
 it('sendGreetings', async () => {
 	const context = cont.quickReplyContext();
@@ -477,4 +480,120 @@ it('wantToTypeBairro - regular case - found more than 1 bairro', async () => {
 	+ 'Me ajude a confirmar qual bairro você quer escolhendo uma das opções abaixo. ');
 	await expect(attach.sendConselhoConfirmation).toBeCalledWith(context, context.state.bairro);
 	await expect(context.setState).toBeCalledWith({ dialog: 'confirmBairro' });
+});
+
+it('sendCalendario - no agenda', async () => {
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+
+	await dialogs.sendCalendario(context);
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+	await expect(context.state.agenda).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`Não encontrei nenhuma reunião marcada para o ${context.state.CCS.ccs}.`);
+	await expect(context.sendText).toBeCalledWith(flow.subjects.novidades, { quick_replies: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Agenda');
+});
+
+it('sendCalendario - agenda, already happened, on blacklist, no results', async () => {
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	context.state.agenda = { foo: 'bar' }; context.state.QROptions = [];
+
+	await dialogs.sendCalendario(context);
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+	await expect(context.state.agenda).toBeTruthy();
+	await expect(help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ${help.formatDateDay(context.state.agenda.data)}.`);
+
+	await expect(await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ QROptions: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+	await expect(context.state.QROptions.find(obj => obj.payload === 'results')).toBeFalsy();
+
+	await expect(context.sendText).toBeCalledWith(flow.calendar.preMenuMsgExtra, { quick_replies: context.state.QROptions });
+});
+
+it('sendCalendario - agenda, already happened, on blacklist, with results', async () => {
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	context.state.agenda = { foo: 'bar' }; context.state.QROptions = [{ content_type: 'text', title: 'Resultados', payload: 'results' }];
+
+	await dialogs.sendCalendario(context);
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+	await expect(context.state.agenda).toBeTruthy();
+	await expect(help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ${help.formatDateDay(context.state.agenda.data)}.`);
+
+	await expect(await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ QROptions: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+	await expect(context.state.QROptions.find(obj => obj.payload === 'results')).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith('Você pode ver os nossos últimos resultados clicando abaixo! 😊', { quick_replies: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+});
+
+it('sendCalendario - agenda, already happened, not on blacklist', async () => {
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	context.state.agenda = { foo: 'bar' }; context.session.user = { id: 999 };
+
+	await dialogs.sendCalendario(context);
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+	await expect(context.state.agenda).toBeTruthy();
+	await expect(help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`Ainda não tem uma reunião agendada para o seu CCS. A última que aconteceu foi no dia ${help.formatDateDay(context.state.agenda.data)}.`);
+
+	await expect(await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith('Assim que aparecer uma nova data aqui para mim, eu te aviso! 😉', { quick_replies: await help.checkMenu(context.state.CCS.id, help.calendarQROpt, db) });
+	await expect(await db.checkNovaAgenda(context.session.user.id, context.state.agenda.id) !== true).toBeTruthy();
+	await expect(db.addNovaAgenda).toBeCalledWith(context.session.user.id, context.state.agenda.id);
+	await expect(help.linkUserToCustomLabel).toBeCalledWith(context.session.user.id, `agenda${context.state.agenda.id}`);
+	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
+});
+
+it('sendCalendario - agenda, didnt happen, no result, not on blacklist, not on table', async () => {
+	help.dateComparison = async date => date;
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	const tomorrow = new Date();	tomorrow.setDate(tomorrow.getDate() + 1);
+	context.state.agenda = { foo: 'bar', date: tomorrow }; context.session.user = { id: 999 };
+	context.state.QROptions = [];
+
+	await dialogs.sendCalendario(context);
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+	await expect(context.state.agenda).toBeTruthy();
+	await expect(help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())).toBeTruthy();
+
+	await expect(context.sendText).toBeCalledWith(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+	await expect(context.setState).toBeCalledWith({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+	await expect(context.sendText).toBeCalledWith(context.state.ageMsg);
+	await expect(context.setState).toBeCalledWith({ ageMsg: '' });
+	await expect(context.state.QROptions.find(obj => obj.payload === 'results') && context.state.QROptions.find(obj => obj.payload === 'subjects')).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(flow.calendar.preMenuMsgExtra, { quick_replies: context.state.QROptions });
+
+	await expect(await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true).toBeTruthy();
+
+	await expect(await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true).toBeTruthy();
+	await expect(await db.addAgenda).toBeCalledWith(context.session.user.id, context.state.agenda.id, `${context.state.agenda.endereco}, ${context.state.agenda.bairro ? context.state.agenda.bairro : ''}`,
+		new Date(`${context.state.agenda.data} ${context.state.agenda.hora}`).toLocaleString());
+
+	await expect(help.linkUserToCustomLabel).toBeCalledWith(context.session.user.id, `agenda${context.state.agenda.id}`);
+	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
+});
+
+it('sendCalendario - agenda, didnt happen, with result, not on blacklist, on table', async () => {
+	help.dateComparison = async date => date; db.checkNotificationAgenda = async (id) => { if (id === '999') { return false; } return true; };
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	const tomorrow = new Date();	tomorrow.setDate(tomorrow.getDate() + 1);
+	context.state.agenda = { foo: 'bar', date: tomorrow }; context.session.user = { id: 999 };
+	context.state.QROptions = [{ content_type: 'text', title: 'Resultados', payload: 'results' }, { content_type: 'text', title: 'Assuntos', payload: 'subjects' }];
+
+	await dialogs.sendCalendario(context);
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+	await expect(context.state.agenda).toBeTruthy();
+	await expect(help.dateComparison(context.state.agenda.data) >= help.dateComparison(new Date())).toBeTruthy();
+
+	await expect(context.sendText).toBeCalledWith(`Veja o que encontrei sobre a próxima reunião do ${context.state.CCS.ccs}:`);
+	await expect(context.setState).toBeCalledWith({ ageMsg: await help.getAgendaMessage(context.state.agenda) });
+	await expect(context.sendText).toBeCalledWith(context.state.ageMsg);
+	await expect(context.setState).toBeCalledWith({ ageMsg: '' });
+	await expect(context.state.QROptions.find(obj => obj.payload === 'results') && context.state.QROptions.find(obj => obj.payload === 'subjects')).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(flow.calendar.preMenuMsg, { quick_replies: context.state.QROptions });
+
+	await expect(await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_BLACKLIST) !== true).toBeTruthy();
+	await expect(await db.checkNotificationAgenda(context.session.user.id, context.state.agenda.id) !== true).toBeFalsy();
+	await expect(help.linkUserToCustomLabel).toBeCalledWith(context.session.user.id, `agenda${context.state.agenda.id}`);
+	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
 });
