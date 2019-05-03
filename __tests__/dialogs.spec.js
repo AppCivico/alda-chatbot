@@ -263,30 +263,28 @@ it('sequence - not question 3', async () => {
 it('optDenun - option 4', async () => {
 	const context = cont.quickReplyContext();
 	context.state.optDenunNumber = '4'; context.state.denunciaCCS = { bairro: 'foobar' };
-	const postRecipientLabel = jest.fn();
 
-	await dialogs.optDenun(context, postRecipientLabel);
+	await dialogs.optDenun(context);
 	await expect(context.state.optDenunNumber === '4').toBeTruthy();
 	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber].txt1);
 	await expect(context.sendText).toBeCalledWith(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
 	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber].txt2);
 	await expect(context.sendText).toBeCalledWith(`<Outro endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
 
-	await expect(postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
+	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 });
 
 it('optDenun - not option 4', async () => {
 	const context = cont.quickReplyContext();
 	context.state.optDenunNumber = '3'; context.state.denunciaCCS = { bairro: 'foobar' };
-	const postRecipientLabel = jest.fn();
 
-	await dialogs.optDenun(context, postRecipientLabel);
+	await dialogs.optDenun(context);
 	await expect(context.state.optDenunNumber === '4').toBeFalsy();
 	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber]);
 	await expect(context.sendText).toBeCalledWith(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
 
-	await expect(postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
+	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 });
 

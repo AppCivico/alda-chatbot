@@ -702,7 +702,7 @@ module.exports = async (context) => {
 				await dialogs.denunciaMenu(context);
 				break;
 			case 'optDenun':
-				await dialogs.optDenun(context, appcivicoApi.postRecipientLabel);
+				await dialogs.optDenun(context);
 				break;
 			case 'denunciaNot':
 				await createIssue(context);

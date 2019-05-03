@@ -166,7 +166,7 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
 };
 
-module.exports.optDenun = async (context, postRecipientLabel) => {
+module.exports.optDenun = async (context) => {
 	if (context.state.optDenunNumber === '4') {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
 		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
@@ -176,7 +176,7 @@ module.exports.optDenun = async (context, postRecipientLabel) => {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber]);
 		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
 	}
-	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
+	await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 };
 
