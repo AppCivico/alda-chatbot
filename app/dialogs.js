@@ -1,9 +1,15 @@
+const googleMapsClient = require('@google/maps').createClient({
+	key: process.env.GOOGLE_MAPS_API_KEY,
+	Promise,
+});
+
 const flow = require('./flow');
 const attach = require('./attach');
 const db = require('./DB_helper');
 const metric = require('./DB_metrics');
 const events = require('./events');
 const help = require('./helpers');
+const geoHelp = require('./geo_aux');
 const appcivicoApi = require('./chatbot_api');
 
 
@@ -367,4 +373,67 @@ module.exports.sendResults = async (context) => {
 	}
 
 	await events.addCustomAction(context.session.user.id, 'Usuario ve Resultados');
+};
+
+module.exports.findGeoLocation = async (context) => {
+	await context.setState({ municipiosFound: '', bairro: '' });
+	try {
+		await context.setState({
+			mapsResultsFull: await googleMapsClient.reverseGeocode({
+				latlng: [context.state.geoLocation.lat, context.state.geoLocation.long],
+				language: 'pt-BR',
+			}).asPromise(),
+		});
+		if (context.state.mapsResultsFull.status === 200) {
+			await context.setState({ mapsResults: context.state.mapsResultsFull.json.results });
+			await context.setState({ mapsResultsFull: '' });
+			console.log(JSON.stringify(context.state.mapsResults));
+
+			if (await geoHelp.checkIfInRio(context.state.mapsResults) === true) { // we are in rio
+				await context.setState({ mapsCity: await geoHelp.getCityFromGeo(context.state.mapsResults) });
+				if (!context.state.mapsCity) {
+					await context.sendText(flow.foundLocation.noFindGeo); // Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu
+					await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+				} else if (context.state.mapsCity.toLowerCase() === 'rio de janeiro') {
+					await context.setState({ mapsBairro: await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components) });
+					await context.setState({ mapsResults: '' });
+					if (context.state.mapsBairro) {
+						if (context.state.mapsBairro === 'Paquetá') {
+							await context.sendText('Hmm, você está querendo saber sobre o bairro Paquetá na Ilha de Paquetá? 🤔', await attach.getQR(flow.checkPaqueta));
+						} else if (context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio') {
+							// await await context.setState({ mapsBairro: 'Centro' }); // for testing, we can change the above conditional to !== 'centro'
+							await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.mapsBairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
+							// confirmation here sends user to 'checkBairroFromGeo'
+						} else { // not colegio nor centro
+							await context.setState({ CCSGeo: await db.getCCSsFromBairroExact(await help.formatString(context.state.mapsBairro)) });
+							await context.sendText(`Encontrei o bairro ${context.state.mapsBairro} na cidade ${context.state.mapsCity}.`);
+							await context.sendText(flow.foundLocation.secondMessage, await attach.getQRLocation2(flow.foundLocation));
+							// confirmation here sends user to 'nearestCouncil'
+						}
+					} else { // error on mapsBairro
+						await context.sendText(flow.foundLocation.noFindGeo); // Desculpe, não consegui encontrar nenhum endereço. Parece que um erro aconteceu.
+						await context.sendText(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
+						await events.addCustomAction(context.session.user.id, 'Erro com a localizacao');
+					}
+				} else { // not rio de janeiro
+					await context.setState({ CCSGeo: await db.getCCSsFromMunicipio(await help.formatString(context.state.mapsCity)) });
+					await context.sendText(`${flow.foundLocation.firstMessage} ${context.state.mapsCity}`);
+					await context.sendText(flow.foundLocation.secondMessage, await attach.getQRLocation2(flow.foundLocation));
+				}
+			} else { // not in rio
+				await context.sendText(flow.sendLocation.notInRioState, await attach.getQRLocation(flow.geoMenu));
+				await events.addCustomAction(context.session.user.id, 'Usuario-Geo Nao esta no RJ');
+			}
+		} else { // unexpected response from googlemaps api
+			await context.sendText(flow.foundLocation.noFindGeo);
+			await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
+			await events.addCustomAction(context.session.user.id, 'Erro com a localizacao');
+		}
+	} catch (error) {
+		console.log('Error at findLocation => ', error);
+		await context.sendText(flow.foundLocation.noFindGeo);
+		await context.sendText(flow.foundLocation.noSecond, await attach.getQRLocation(flow.geoMenu));
+		await events.addCustomAction(context.session.user.id, 'Erro com a localizacao');
+		throw error;
+	}
 };

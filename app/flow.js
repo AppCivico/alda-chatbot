@@ -54,6 +54,8 @@ module.exports = {
 		thirdMessage: 'Clique em "Enviar Localização" para enviar sua localização ⬇️',
 		menuOptions: ['Voltar'],
 		menuPostback: ['whichCCSMenu'],
+		notInRioState: 'Parece que você não se encontra no Rio de Janeiro. Nossos conselhos de segurança atuam apenas no Estado do Rio de Janeiro. '
+			+ 'Por favor, entre com outra localização ou digite sua região.',
 	},
 	wantToType: {
 		firstMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
