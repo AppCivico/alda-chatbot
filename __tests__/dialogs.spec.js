@@ -647,3 +647,63 @@ it('sendSubjects - with assuntos', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.pautas.txt1, await attach.getQR(flow.pautas));
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Assuntos');
 });
+
+it('sendResults - valid text and link, with subjects', async () => {
+	help.urlExists = async (date) => {
+		if (date) return true;
+		return false;
+	};
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	context.state.results = { texto: 'foobar', link_download: 'foobar.com' }; context.state.sent = true;
+	context.state.resultTexts = { firstString: 'foo', secondString: 'bar' };
+	context.state.QROptions = [{ content_type: 'text', title: 'Assuntos', payload: 'subjects' }];
+	await dialogs.sendResults(context);
+
+	await expect(context.setState).toBeCalledWith({ results: await db.getResults(context.state.CCS.id), sent: false });
+	await expect(context.state.results && context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length <= 2000).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ resultTexts: await help.separateString(context.state.results.texto) });
+	await expect(context.state.resultTexts && context.state.resultTexts.firstString).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(`Em resumo, o que discutimos foi o seguinte:\n${context.state.resultTexts.firstString}`);
+	await expect(context.state.resultTexts.secondString).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(context.state.resultTexts.secondString);
+	await expect(context.setState).toBeCalledWith({ sent: true });
+
+	await expect(context.state.results && context.state.results.link_download	&& await help.urlExists(context.state.results.link_download) === true).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
+		+ 'no arquivo que você pode baixar clicando abaixo. 👇');
+	await expect(attach.sendCardWithLink).toBeCalledWith(context, flow.results, context.state.results.link_download);
+	await expect(context.setState).toBeCalledWith({ sent: true });
+	await expect(context.state.sent === false).toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ sent: '' });
+
+	await expect(context.setState).toBeCalledWith({ QROptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.joinOpt], db) });
+	await expect(context.state.QROptions.find(obj => obj.payload === 'subjects')).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(flow.results.preMenuMsg, { quick_replies: context.state.QROptions });
+
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Resultados');
+});
+
+it('sendResults - no text, no subjects', async () => {
+	help.urlExists = async (date) => {
+		if (date) return true;
+		return false;
+	};
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	context.state.results = {}; context.state.sent = false;
+	context.state.QROptions = [];
+	await dialogs.sendResults(context);
+
+	await expect(context.setState).toBeCalledWith({ results: await db.getResults(context.state.CCS.id), sent: false });
+	await expect(context.state.results && context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length <= 2000).toBeFalsy();
+	await expect(context.state.results && context.state.results.link_download && await help.urlExists(context.state.results.link_download) === true).toBeFalsy();
+
+	await expect(context.state.sent === false).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(`Parece que o ${context.state.CCS.ccs} ainda não utiliza o formato de ata eletrônica. Que tal sugerir à diretoria do seu Conselho? 🙂`);
+	await expect(context.setState).toBeCalledWith({ sent: '' });
+
+	await expect(context.setState).toBeCalledWith({ QROptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.joinOpt], db) });
+	await expect(context.state.QROptions.find(obj => obj.payload === 'subjects')).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(flow.results.preMenuMsgExtra, { quick_replies: context.state.QROptions });
+
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Resultados');
+});

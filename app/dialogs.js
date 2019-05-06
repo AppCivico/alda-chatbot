@@ -330,3 +330,41 @@ module.exports.sendSubjects = async (context) => {
 	await context.sendText(flow.pautas.txt1, await attach.getQR(flow.pautas));
 	await events.addCustomAction(context.session.user.id, 'Usuario ve Assuntos');
 };
+
+module.exports.sendResults = async (context) => {
+	// If we have an agenda but no results for that agenda we show the results from the most recent agenda (see query)
+	await context.setState({ results: await db.getResults(context.state.CCS.id), sent: false });
+	// check if we have a valid text to send
+	if (context.state.results && context.state.results.texto && context.state.results.texto.length > 0 && context.state.results.texto.length <= 2000) {
+		await context.setState({ resultTexts: await help.separateString(context.state.results.texto) });
+		if (context.state.resultTexts && context.state.resultTexts.firstString) {
+			await context.sendText(`Em resumo, o que discutimos foi o seguinte:\n${context.state.resultTexts.firstString}`);
+
+			if (context.state.resultTexts.secondString) {
+				await context.sendText(context.state.resultTexts.secondString);
+			}
+		}
+		await context.setState({ sent: true });
+	}
+	if (context.state.results && context.state.results.link_download && await help.urlExists(context.state.results.link_download) === true) { // check if link exists and is valid
+		await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
+			+ 'no arquivo que você pode baixar clicando abaixo. 👇');
+		await attach.sendCardWithLink(context, flow.results, context.state.results.link_download);
+		await context.setState({ sent: true });
+	}
+
+	if (context.state.sent === false) { // in case we couldn't send neither the text nor the link
+		await context.sendText(`Parece que o ${context.state.CCS.ccs} ainda não utiliza o formato de ata eletrônica. Que tal sugerir à diretoria do seu Conselho? 🙂`);
+	}
+	await context.setState({ sent: '' });
+
+	// sending menu options
+	await context.setState({ QROptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.joinOpt], db) });
+	if (context.state.QROptions.find(obj => obj.payload === 'subjects')) { // check if we can send subjects (this whole part is necessary because the text changes)
+		await context.sendText(flow.results.preMenuMsg, { quick_replies: context.state.QROptions });
+	} else { // send text for no subjects
+		await context.sendText(flow.results.preMenuMsgExtra, { quick_replies: context.state.QROptions });
+	}
+
+	await events.addCustomAction(context.session.user.id, 'Usuario ve Resultados');
+};
