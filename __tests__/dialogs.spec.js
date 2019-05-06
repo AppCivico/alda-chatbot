@@ -595,3 +595,55 @@ it('sendCalendario - agenda, didnt happen, with result, not on blacklist, on tab
 	await expect(help.linkUserToCustomLabel).toBeCalledWith(context.session.user.id, `agenda${context.state.agenda.id}`);
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, `agenda${context.state.agenda.id}`);
 });
+
+it('sendSubjects - no assuntos, no agenda in the future', async () => {
+	help.dateComparison = async date => date;
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+	context.state.agenda = { foo: 'bar', data: yesterday };
+	await dialogs.sendSubjects(context);
+
+	await expect(context.setState).toBeCalledWith({ assuntos: await db.getAssuntos(context.state.CCS.id) });
+	await expect(!context.state.assuntos || context.state.assuntos.length === 0).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+
+	await expect(await help.dateComparison(context.state.agenda.data) >= await help.dateComparison(new Date())).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(flow.subjects.noReunion);
+	await expect(context.sendText).toBeCalledWith(flow.subjects.novidades, await attach.getQR(flow.subjects));
+
+	await expect(context.sendText).toBeCalledWith(flow.pautas.txt1, await attach.getQR(flow.pautas));
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Assuntos');
+});
+
+it('sendSubjects - no assuntos, with agenda in the future', async () => {
+	help.dateComparison = async date => date;
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+	context.state.agenda = { foo: 'bar', data: tomorrow };
+	await dialogs.sendSubjects(context);
+
+	await expect(context.setState).toBeCalledWith({ assuntos: await db.getAssuntos(context.state.CCS.id) });
+	await expect(!context.state.assuntos || context.state.assuntos.length === 0).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ agenda: await db.getAgenda(context.state.CCS.id) });
+
+	await expect(await help.dateComparison(context.state.agenda.data) >= await help.dateComparison(new Date())).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(`${flow.subjects.firstMessage} \n- ${['Leitura e Aprovação da ATA anterior',
+		'Comunicações Diversas', 'Assuntos Administrativos'].join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+
+	await expect(context.sendText).toBeCalledWith(flow.pautas.txt1, await attach.getQR(flow.pautas));
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Assuntos');
+});
+
+it('sendSubjects - with assuntos', async () => {
+	help.dateComparison = async date => date;
+	const context = cont.quickReplyContext(); context.state.CCS = templateCCS;
+	context.state.assuntos = ['foo', 'bar'];
+	await dialogs.sendSubjects(context);
+
+	await expect(context.setState).toBeCalledWith({ assuntos: await db.getAssuntos(context.state.CCS.id) });
+	await expect(!context.state.assuntos || context.state.assuntos.length === 0).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(`${flow.subjects.firstMessage} \n- ${context.state.assuntos.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+
+	await expect(context.sendText).toBeCalledWith(flow.pautas.txt1, await attach.getQR(flow.pautas));
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario ve Assuntos');
+});
