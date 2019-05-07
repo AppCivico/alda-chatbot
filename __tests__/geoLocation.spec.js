@@ -1,18 +1,14 @@
 require('dotenv').config();
 
 const cont = require('./context');
+const geoResults = require('./geoResults');
 const flow = require('../app/flow');
 const attach = require('../app/attach');
 const events = require('../app/events');
 const help = require('../app/helpers');
 const geoHelp = require('../app/geo_aux');
-const metric = require('../app/DB_metrics');
-const appcivicoApi = require('../app/chatbot_api');
 const db = require('../app/DB_helper');
 const dialogs = require('../app/dialogs');
-const { postRecipient } = require('../app/chatbot_api');
-const geoResults = require('./geoResults');
-
 
 jest.mock('../app/attach');
 jest.mock('../app/chatbot_api');
@@ -76,8 +72,8 @@ it('findGeoLocation - in rio, no city found', async () => {
 it('findGeoLocation - in rio, not Rio de Janeiro city', async () => {
 	const context = cont.quickReplyContext();
 	context.state.mapsResultsFull = { status: 200, json: {} };
-	context.state.mapsResults = geoResults.inRJ;
-	context.state.mapsCity = 'Niterói';
+	context.state.mapsResults = geoResults.inNiteroi;
+	context.state.mapsCity = await geoHelp.getCityFromGeo(context.state.mapsResults);
 	await dialogs.findGeoLocation(context);
 
 	await expect(context.setState).toBeCalledWith({ municipiosFound: '', bairro: '' });
@@ -116,4 +112,80 @@ it('findGeoLocation - in rio, Rio de Janeiro city, no bairro', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.foundLocation.noFindGeo);
 	await expect(context.sendText).toBeCalledWith(flow.foundLocation.noSecond, await attach.getQR(flow.notFound));
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Erro com a localizacao');
+});
+
+it('findGeoLocation - in rio, Rio de Janeiro city, regular bairro', async () => {
+	const context = cont.quickReplyContext();
+	context.state.mapsResultsFull = { status: 200, json: {} };
+	context.state.mapsResults = geoResults.inRJ;
+	context.state.mapsCity = await geoHelp.getCityFromGeo(context.state.mapsResults);
+	context.state.mapsBairro = await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components);
+	await dialogs.findGeoLocation(context);
+
+	await expect(context.setState).toBeCalledWith({ municipiosFound: '', bairro: '' });
+	await expect(context.state.mapsResultsFull.status === 200).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsResults: context.state.mapsResultsFull.json.results });
+	await expect(context.setState).toBeCalledWith({ mapsResultsFull: '' });
+	await expect(await geoHelp.checkIfInRio(context.state.mapsResults) === true).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsCity: await geoHelp.getCityFromGeo(context.state.mapsResults) });
+
+	await expect(!context.state.mapsCity).toBeFalsy();
+	await expect(context.state.mapsCity.toLowerCase() === 'rio de janeiro').toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsBairro: await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components) });
+	await expect(context.setState).toBeCalledWith({ mapsResults: '' });
+	await expect(context.state.mapsBairro).toBeTruthy();
+	await expect(context.state.mapsBairro === 'Paquetá').toBeFalsy();
+	await expect(context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio').toBeFalsy();
+	await expect(context.setState).toBeCalledWith({ CCSGeo: await db.getCCSsFromBairroExact(await help.formatString(context.state.mapsBairro)) });
+	await expect(context.sendText).toBeCalledWith(`Encontrei o bairro ${context.state.mapsBairro} na cidade ${context.state.mapsCity}.`);
+	await expect(context.sendText).toBeCalledWith(flow.foundLocation.secondMessage, await attach.getQRLocation2(flow.foundLocation));
+});
+
+it('findGeoLocation - in rio, Rio de Janeiro city, Paquetá bairro', async () => {
+	const context = cont.quickReplyContext();
+	context.state.mapsResultsFull = { status: 200, json: {} };
+	context.state.mapsResults = geoResults.inPaqueta;
+	context.state.mapsCity = await geoHelp.getCityFromGeo(context.state.mapsResults);
+	context.state.mapsBairro = await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components);
+	await dialogs.findGeoLocation(context);
+
+	await expect(context.setState).toBeCalledWith({ municipiosFound: '', bairro: '' });
+	await expect(context.state.mapsResultsFull.status === 200).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsResults: context.state.mapsResultsFull.json.results });
+	await expect(context.setState).toBeCalledWith({ mapsResultsFull: '' });
+	await expect(await geoHelp.checkIfInRio(context.state.mapsResults) === true).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsCity: await geoHelp.getCityFromGeo(context.state.mapsResults) });
+
+	await expect(!context.state.mapsCity).toBeFalsy();
+	await expect(context.state.mapsCity.toLowerCase() === 'rio de janeiro').toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsBairro: await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components) });
+	await expect(context.setState).toBeCalledWith({ mapsResults: '' });
+	await expect(context.state.mapsBairro).toBeTruthy();
+	await expect(context.state.mapsBairro === 'Paquetá').toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(flow.sendLocation.inPaqueta, await attach.getQR(flow.checkPaqueta));
+});
+
+it('findGeoLocation - in rio, Rio de Janeiro city, Centro bairro', async () => {
+	const context = cont.quickReplyContext();
+	context.state.mapsResultsFull = { status: 200, json: {} };
+	context.state.mapsResults = geoResults.inColegio;
+	context.state.mapsCity = await geoHelp.getCityFromGeo(context.state.mapsResults);
+	context.state.mapsBairro = await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components);
+	await dialogs.findGeoLocation(context);
+
+	await expect(context.setState).toBeCalledWith({ municipiosFound: '', bairro: '' });
+	await expect(context.state.mapsResultsFull.status === 200).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsResults: context.state.mapsResultsFull.json.results });
+	await expect(context.setState).toBeCalledWith({ mapsResultsFull: '' });
+	await expect(await geoHelp.checkIfInRio(context.state.mapsResults) === true).toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsCity: await geoHelp.getCityFromGeo(context.state.mapsResults) });
+
+	await expect(!context.state.mapsCity).toBeFalsy();
+	await expect(context.state.mapsCity.toLowerCase() === 'rio de janeiro').toBeTruthy();
+	await expect(context.setState).toBeCalledWith({ mapsBairro: await geoHelp.getNeighborhood(context.state.mapsResults[0].address_components) });
+	await expect(context.setState).toBeCalledWith({ mapsResults: '' });
+	await expect(context.state.mapsBairro).toBeTruthy();
+	await expect(context.state.mapsBairro === 'Paquetá').toBeFalsy();
+	await expect(context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio').toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(`Hmm, você está querendo saber sobre o bairro ${context.state.mapsBairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));
 });

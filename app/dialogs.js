@@ -387,7 +387,6 @@ module.exports.findGeoLocation = async (context) => {
 		if (context.state.mapsResultsFull.status === 200) {
 			await context.setState({ mapsResults: context.state.mapsResultsFull.json.results });
 			await context.setState({ mapsResultsFull: '' });
-			console.log(JSON.stringify(context.state.mapsResults));
 
 			if (await geoHelp.checkIfInRio(context.state.mapsResults) === true) { // we are in rio
 				await context.setState({ mapsCity: await geoHelp.getCityFromGeo(context.state.mapsResults) });
@@ -399,7 +398,7 @@ module.exports.findGeoLocation = async (context) => {
 					await context.setState({ mapsResults: '' });
 					if (context.state.mapsBairro) {
 						if (context.state.mapsBairro === 'Paquetá') {
-							await context.sendText('Hmm, você está querendo saber sobre o bairro Paquetá na Ilha de Paquetá? 🤔', await attach.getQR(flow.checkPaqueta));
+							await context.sendText(flow.sendLocation.inPaqueta, await attach.getQR(flow.checkPaqueta));
 						} else if (context.state.mapsBairro.toLowerCase() === 'centro' || context.state.mapsBairro.toLowerCase() === 'colégio') {
 							// await await context.setState({ mapsBairro: 'Centro' }); // for testing, we can change the above conditional to !== 'centro'
 							await context.sendText(`Hmm, você está querendo saber sobre o bairro ${context.state.mapsBairro} na Capital do Rio? 🤔`, await attach.getQR(flow.checkBairro));

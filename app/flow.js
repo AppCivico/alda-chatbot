@@ -56,6 +56,7 @@ module.exports = {
 		menuPostback: ['whichCCSMenu'],
 		notInRioState: 'Parece que você não se encontra no Rio de Janeiro. Nossos conselhos de segurança atuam apenas no Estado do Rio de Janeiro. '
 			+ 'Por favor, entre com outra localização ou digite sua região.',
+		inPaqueta: 'Hmm, você está querendo saber sobre o bairro Paquetá na Ilha de Paquetá? 🤔',
 	},
 	wantToType: {
 		firstMessage: 'Digite a *cidade* do Rio de Janeiro que você gostaria de ver.',
