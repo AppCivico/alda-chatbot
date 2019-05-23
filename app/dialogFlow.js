@@ -1,7 +1,7 @@
 const { getknowledgeBase } = require('./chatbot_api.js');
 const { createIssue } = require('./send_issue');
 const { sendAnswer } = require('./sendAnswer');
-// const { denunciaStart } = require('./dialogs');
+const { denunciaStart } = require('./dialogs');
 const dialogs = require('./dialogs');
 
 async function checkTextContext(context) {
@@ -45,10 +45,10 @@ module.exports.checkPosition = async (context) => {
 	case 'Greetings': // user said hi
 		await context.setState({ dialog: 'greetings' });
 		break;
-		// case 'denuncia':
-		// 	await context.setState({ denunciaText: context.state.whatWasTyped });
-		// 	await denunciaStart(context);
-		// break;
+	case 'denuncia':
+		await context.setState({ denunciaText: context.state.whatWasTyped });
+		await denunciaStart(context);
+		break;
 	case 'Fallback': // didn't understand what was typed
 		await checkTextContext(context);
 		break;

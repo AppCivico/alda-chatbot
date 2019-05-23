@@ -157,6 +157,7 @@ module.exports.sequence = async (context) => {
 };
 
 module.exports.denunciaStart = async (context) => { // denunciaMenu
+	await context.setState({ dialog: '' });
 	await context.sendText(flow.denunciaStart.txt1.replace('<nome>', context.session.user.first_name));
 	await context.sendText(flow.denunciaStart.txt2);
 	if (context.state.CCS && context.state.CCS.bairro) { // if user has ccs and bairro show "confirmar" option
@@ -173,6 +174,7 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 };
 
 module.exports.optDenun = async (context) => {
+	console.log('context.state.denunciaCCS', context.state.denunciaCCS);
 	if (context.state.optDenunNumber === '4') {
 		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
 		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
