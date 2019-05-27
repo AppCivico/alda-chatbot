@@ -29,6 +29,21 @@ async function sendCouncilMenu(context) {
 
 module.exports.sendCouncilMenu = sendCouncilMenu;
 
+async function sendCouncilMenuTimeout(context, options) {
+	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
+		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
+	} else { // "Escolha uma das opções"
+		await context.sendText(
+			flow.councilMenu.firstMessage,
+			{ quick_replies: options },
+		);
+		await metric.userAddOrUpdate(context);
+	}
+	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
+}
+
+module.exports.sendCouncilMenuTimeout = sendCouncilMenuTimeout;
+
 module.exports.sendGreetings = async (context) => {
 	await context.typingOn();
 	await context.sendImage(flow.greetings.greetImage);
@@ -66,13 +81,15 @@ module.exports.wannaKnowMembers = async (context) => {
 
 		if (context.state.membrosNatos && context.state.membrosNatos.length !== 0) { // check if there was any results
 			await context.setState({ mapsResults: '', dialog: 'councilMenu' }); // this should happen inside of sendCouncilMenu but it doesnt work inside of a timeout
-			await setTimeout(async (membrosNatos) => {
+			await context.setState({ QRoptions: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db) });
+
+			await setTimeout(async (membrosNatos, QRoptions) => {
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				await attach.sendCarouselMembrosNatos(context, membrosNatos);
 				await context.sendText(flow.wannaKnowMembers.thirdMessage);
-				await sendCouncilMenu(context);
-			}, 5000, context.state.membrosNatos);
-			await context.setState({ membrosNatos: '' }); // cleaning up
+				await sendCouncilMenuTimeout(context, QRoptions);
+			}, 5000, context.state.membrosNatos, context.state.QRoptions);
+			await context.setState({ membrosNatos: '', QRoptions: '' }); // cleaning up
 		} else { // no membrosNatos
 			await sendCouncilMenu(context);
 		}

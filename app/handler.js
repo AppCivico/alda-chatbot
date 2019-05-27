@@ -263,8 +263,6 @@ module.exports = async (context) => {
 				await context.setState({ dialog: 'mainMenu' });
 			}
 
-			await context.setState({ dialog: 'wannaKnowMembers' });
-
 			switch (context.state.dialog) {
 			case 'start':
 				await dialogs.sendGreetings(context);
