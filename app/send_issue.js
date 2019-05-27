@@ -26,6 +26,7 @@ async function createIssue(context) {
 		}
 	}
 
+	await context.setState({ dialog: 'createIssue' });
 	await context.sendText(text);
 	await context.sendText('Agora, me diga o que...', await attach.getQR(flow.error));
 }

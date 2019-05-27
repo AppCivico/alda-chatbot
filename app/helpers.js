@@ -156,6 +156,10 @@ module.exports.listBairros = function listBairros(ccs) {
 };
 
 async function formatString(text) {
+	if (!text || text.length === 0) {
+		return undefined;
+	}
+
 	let result = text.toLowerCase();
 	result = await result.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF])/g, '');
 	// result = await result.replace(/ç/g, 'c');
@@ -217,6 +221,17 @@ module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipie
 	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, newLabel); // create new ccs label
 };
 
+async function buildDelegaciaMsg(delegacia) {
+	let text = '';
+
+	if (delegacia && delegacia.delegacia) { text += `🛡️️ Delegacia: ${delegacia.delegacia}\n`; }
+	if (delegacia && delegacia.endereco) { text += `📍 Endereço: ${delegacia.endereco}\n`; }
+	if (delegacia && delegacia.telefone) { text += `📞 Telefone: ${delegacia.telefone.replace('Telefones:', '')}`; }
+
+	return text;
+}
+
+module.exports.buildDelegaciaMsg = buildDelegaciaMsg;
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;

@@ -98,6 +98,7 @@ module.exports.wantToTypeCidade = async (context) => {
 			await context.setState({ dialog: 'municipioNotFound' });
 		} else if (context.state.municipiosFound.length === 1) { // we found exactly one municipio with what was typed by the user
 			await context.setState({ CCS: context.state.municipiosFound[0] });
+			await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 			await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 		} else { // more than one municipio was found
 			await context.sendText(`Hmm, encontrei ${context.state.municipiosFound.length} municípios na minha pesquisa. 🤔 `
@@ -128,6 +129,7 @@ module.exports.wantToTypeBairro = async (context) => {
 		await context.setState({ dialog: 'confirmBairro' });
 	} else if ('paqueta'.includes(context.state.userInput)) { // paqueta case
 		await context.setState({ CCS: await db.getCCSsFromID(1043) });
+		await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 		await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 	} else { // regular case
 		await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
@@ -135,6 +137,7 @@ module.exports.wantToTypeBairro = async (context) => {
 			await context.setState({ dialog: 'bairroNotFound' });
 		} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
 			await context.setState({ CCS: context.state.bairro[0] });
+			await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 			await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 		} else { // more than one bairro was found
 			await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 `
@@ -175,14 +178,42 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 
 module.exports.optDenun = async (context) => {
 	console.log('context.state.denunciaCCS', context.state.denunciaCCS);
+	// load delegacia for all cases
+	await context.setState({
+		delegacias: await db.getDelegacias(await help.formatString(context.state.denunciaCCS.municipio),
+			await help.formatString(context.state.denunciaCCS.bairro), await help.formatString(context.state.denunciaCCS.meta_regiao)),
+	});
+	console.log(context.state.delegacias);
+	await context.setState({ delegaciaMsg: await help.buildDelegaciaMsg(context.state.delegacias) });
+	console.log(context.state.delegaciaMsg);
+
 	if (context.state.optDenunNumber === '4') {
-		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
-		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
-		await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
-		await context.sendText(`<Outro endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
+		if (context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0) {
+			await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
+			await context.sendText(context.state.delegaciaMsg, { quick_replies: flow.goBackMenu });
+		} else {
+			await context.sendText('Não achei delegacia');
+		}
+
+		// load DEAM
+		await context.setState({
+			deam: await db.getDeam(await help.formatString(context.state.denunciaCCS.municipio), await help.formatString(context.state.denunciaCCS.bairro)),
+		});
+		console.log(context.state.deam);
+		await context.setState({ deamMg: await help.buildDelegaciaMsg(context.state.deam) });
+		console.log(context.state.deam);
+
+		if (context.state.deamMg && context.state.deamMg.length > 0) {
+			await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
+			await context.sendText(context.state.deamMg, { quick_replies: flow.goBackMenu });
+		}
 	} else {
-		await context.sendText(flow.optDenun[context.state.optDenunNumber]);
-		await context.sendText(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
+		if (context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0) { // eslint-disable-line no-lonely-if
+			await context.sendText(flow.optDenun[context.state.optDenunNumber]);
+			await context.sendText(context.state.delegaciaMsg, { quick_replies: flow.goBackMenu });
+		} else {
+			await context.sendText('Não achei delegacia');
+		}
 	}
 	await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);

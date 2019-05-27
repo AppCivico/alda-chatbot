@@ -42,14 +42,12 @@ module.exports = async (context) => {
 			} else if (context.event.isPostback) {
 				await context.setState({ questionNumber: '' });
 				if (context.event.postback.payload.slice(0, 9) === 'confirmBa') { // from confirmBairro
-					await context.setState({
-						CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmBa', ''), 10)),
-					});
+					await context.setState({ CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmBa', ''), 10)) });
+					await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 					await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 				} else if (context.event.postback.payload.slice(0, 9) === 'confirmMu') { // from confirmMunicipio
-					await context.setState({
-						CCS: context.state.municipiosFound.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmMu', ''), 10)),
-					});
+					await context.setState({ CCS: context.state.municipiosFound.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmMu', ''), 10))	});
+					await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 					await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 				} else {
 					await context.setState({ dialog: context.event.postback.payload });
@@ -75,6 +73,7 @@ module.exports = async (context) => {
 						await context.setState({ dialog: 'notFoundFromGeo' });
 					} else if (context.state.CCSGeo.length === 1) {
 						await context.setState({ CCS: context.state.CCSGeo[0] });
+						await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 						await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 					} else { // more than one bairro was found
 						await context.sendText(`Hmm, encontrei ${context.state.CCSGeo.length} bairros na minha pesquisa. 🤔 `
@@ -121,6 +120,7 @@ module.exports = async (context) => {
 					break;
 				case 'checkPaqueta':
 					await context.setState({ CCS: await db.getCCSsFromID(1043) });
+					await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 					await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 					break;
 				case 'denunciaType':

@@ -608,7 +608,7 @@ async function getYesterdayAgenda() {
 }
 
 // denuncia --------------------------------------------------------------------------------
-module.exports.saveDenuncia = async (UserID, CCSID, botaoID, texto) => {
+async function saveDenuncia(UserID, CCSID, botaoID, texto) {
 	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 	const result = await sequelize.query(`
 	INSERT INTO denuncia(user_id, conselho_id, botao_id,  texto, created_at, updated_at)
@@ -620,17 +620,45 @@ module.exports.saveDenuncia = async (UserID, CCSID, botaoID, texto) => {
 		console.error('Error on saveDenuncia => ', err);
 	});
 	return result;
-};
+}
 
-async function getDelegacias(municipio, abrangencia, meta) {
+async function getDeam(municipio, abrangencia) { // CCS.municipio, CCS.bairro, get only DEAM
 	let query = '';
-	if (municipio && !abrangencia && !meta) {
-		query = `SELECT * FROM delegacias WHERE municipio = '${municipio}';`;
-	} else if (municipio && abrangencia && !meta) {
-		query = `SELECT * FROM delegacias WHERE municipio = '${municipio}' AND abrangencia LIKE '%' || '${abrangencia}' || '%';`;
-	} else if (municipio && abrangencia && meta) {
-		query = `SELECT * FROM delegacias WHERE municipio = '${municipio}' AND abrangencia LIKE '%' || '${abrangencia}' || '%' AND meta_abrangencia LIKE '%' || '${meta}' || '%';`;
+	if (!municipio) { return []; }
+
+	if (municipio && !abrangencia) { // check what we know and query accordingly
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio))  = '${municipio}'`;
+	} else if (municipio && abrangencia) {
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio)) = '${municipio}' AND UNACCENT(LOWER(abrangencia)) LIKE '%' || '${abrangencia}' || '%'`;
 	}
+
+	query += ' AND delegacia LIKE \'%\' || \'DEAM\' || \' %\';'; // we want only the DEAM
+
+	const result = await sequelize.query(query)
+		.spread((results) => { // eslint-disable-line no-unused-vars
+			console.log('getDeam was successful!');
+			return results;
+		}).catch((err) => {
+			console.error('Error on getDeam => ', err);
+		});
+
+	console.log(result);
+
+	return result && result[0] ? result[0] : [];
+}
+
+async function getDelegacias(municipio, abrangencia, meta) { // CCS.municipio, CCS.bairro, CCS.meta_regiao, ignores DEAM
+	let query = '';
+	if (!municipio) { return []; }
+	if (municipio && !abrangencia && !meta) { // check what we know and query accordingly
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio))  = '${municipio}'`;
+	} else if (municipio && abrangencia && !meta) {
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio)) = '${municipio}' AND UNACCENT(LOWER(abrangencia)) LIKE '%' || '${abrangencia}' || '%'`;
+	} else if (municipio && abrangencia && meta) {
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio)) = '${municipio}' AND UNACCENT(LOWER(abrangencia)) LIKE '%' || '${abrangencia}' || '%' AND UNACCENT(LOWER(meta_abrangencia)) LIKE '%' || '${meta}' || '%'`;
+	}
+
+	query += ' AND delegacia NOT LIKE \'%\' || \'DEAM\' || \' %\';';
 
 	const result = await sequelize.query(query)
 		.spread((results) => { // eslint-disable-line no-unused-vars
@@ -639,9 +667,13 @@ async function getDelegacias(municipio, abrangencia, meta) {
 		}).catch((err) => {
 			console.error('Error on getDelegacias => ', err);
 		});
-	return result[0] ? result[0] : [];
+
+	console.log(result);
+
+	return result && result[0] ? result[0] : [];
 }
 
+getDelegacias('Rio de Janeiro');
 
 /*
 	creating unaccent dictionary funcion
@@ -798,5 +830,7 @@ module.exports = {
 	getAgendaNotificationFromID,
 	saveSeqAnswer,
 	getYesterdayAgenda,
+	saveDenuncia,
+	getDeam,
 	getDelegacias,
 };
