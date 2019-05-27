@@ -53,10 +53,8 @@ it('sendCouncilMenu - no CCS', async () => {
 	await dialogs.sendCouncilMenu(context);
 
 	await expect(context.setState).toBeCalledWith({ mapsResults: '', dialog: 'councilMenu' });
-	await expect(context.typingOn).toBeCalled();
 	await expect(!context.state.CCS).toBeTruthy();
 	await expect(context.sendText).toBeCalledWith(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
-	await expect(context.typingOff).toBeCalled();
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario no Menu do Conselho');
 });
 
@@ -66,12 +64,10 @@ it('sendCouncilMenu - with CCS', async () => {
 	await dialogs.sendCouncilMenu(context);
 
 	await expect(context.setState).toBeCalledWith({ mapsResults: '', dialog: 'councilMenu' });
-	await expect(context.typingOn).toBeCalled();
 	await expect(!context.state.CCS).toBeFalsy();
 	await expect(context.sendText).toBeCalledWith(flow.councilMenu.firstMessage,
 		{ quick_replies: await help.checkMenu(context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db) });
 	await expect(metric.userAddOrUpdate).toBeCalledWith(context);
-	await expect(context.typingOff).toBeCalled();
 	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario no Menu do Conselho');
 });
 
@@ -134,12 +130,20 @@ it('wannaKnowMembers - membrosNatos and bairro', async () => {
 	await expect((context.state.CCS.municipio && context.state.CCS.municipio.length > 0) && (!context.state.membrosNatos || context.state.membrosNatos.length === 0)).toBeFalsy();
 
 	await expect(context.state.membrosNatos && context.state.membrosNatos.length !== 0).toBeTruthy();
-	await expect(context.setState).toBeCalledWith({ membrosNatos: '' }); // before the timer
+	await expect(context.setState).toBeCalledWith({ mapsResults: '', dialog: 'councilMenu' }); // before the timeout set
+	await expect(context.setState).toBeCalledWith({
+		QRoptions: await help.checkMenu(
+			context.state.CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db,
+		),
+	}); // before the timeout set
+	// -- set timeout
+	await expect(context.setState).toBeCalledWith({ membrosNatos: '', QRoptions: '' }); // before the timer
+
 	jest.runAllTimers();
 	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.secondMessage);
 	await expect(attach.sendCarouselMembrosNatos).toBeCalledWith(context, context.state.membrosNatos);
 	await expect(context.sendText).toBeCalledWith(flow.wannaKnowMembers.thirdMessage);
-	await expect(context.setState).toBeCalledWith({ mapsResults: '', dialog: 'councilMenu' }); // sendCouncilMenu
+	await expect(events.addCustomAction).toBeCalledWith(context.session.user.id, 'Usuario no Menu do Conselho');
 });
 
 it('wannaKnowMembers - no membrosNatos and no bairro', async () => {
@@ -262,30 +266,62 @@ it('sequence - not question 3', async () => {
 
 it('optDenun - option 4', async () => {
 	const context = cont.quickReplyContext();
-	context.state.optDenunNumber = '4'; context.state.denunciaCCS = { bairro: 'foobar' };
+	context.state.optDenunNumber = '4'; context.state.denunciaCCS = { bairro: 'foobar' }; context.state.delegaciaMsg = 'foobar'; context.state.deamMsg = 'foobar';
 
 	await dialogs.optDenun(context);
-	await expect(context.state.optDenunNumber === '4').toBeTruthy();
-	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber].txt1);
-	await expect(context.sendText).toBeCalledWith(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`);
-	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber].txt2);
-	await expect(context.sendText).toBeCalledWith(`<Outro endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
 
+	await expect(context.setState).toBeCalledWith({
+		delegacias: await db.getDelegacias(await help.formatString(context.state.denunciaCCS.municipio),
+			await help.formatString(context.state.denunciaCCS.bairro), await help.formatString(context.state.denunciaCCS.meta_regiao)),
+	});
+	await expect(context.setState).toBeCalledWith({ delegaciaMsg: await help.buildDelegaciaMsg(context.state.delegacias) });
+
+
+	await expect(context.state.optDenunNumber === '4').toBeTruthy();
+
+	await expect(context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber].txt1);
+	await expect(context.sendText).toBeCalledWith(context.state.delegaciaMsg, { quick_replies: flow.goBackMenu });
+
+	await expect(context.setState).toBeCalledWith({
+		deam: await db.getDeam(await help.formatString(context.state.denunciaCCS.municipio), await help.formatString(context.state.denunciaCCS.bairro)),
+	});
+	await expect(context.setState).toBeCalledWith({ deamMsg: await help.buildDelegaciaMsg(context.state.deam) });
+
+	await expect(context.state.deamMsg && context.state.deamMsg.length > 0).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber].txt2);
+	await expect(context.sendText).toBeCalledWith(context.state.deamMsg, { quick_replies: flow.goBackMenu });
+	// end if --
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
+	await expect(context.setState).toBeCalledWith({
+		delegacias: '', delegaciaMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
+	});
 });
 
 it('optDenun - not option 4', async () => {
 	const context = cont.quickReplyContext();
-	context.state.optDenunNumber = '3'; context.state.denunciaCCS = { bairro: 'foobar' };
+	context.state.optDenunNumber = '3'; context.state.denunciaCCS = { municipio: 'foobar', bairro: 'foobar', meta_regiao: 'foobar' };
+	context.state.delegaciaMsg = 'foobar'; context.state.delegacias = { foo: 'bar' };
 
 	await dialogs.optDenun(context);
+
+	await expect(context.setState).toBeCalledWith({
+		delegacias: await db.getDelegacias(await help.formatString(context.state.denunciaCCS.municipio),
+			await help.formatString(context.state.denunciaCCS.bairro), await help.formatString(context.state.denunciaCCS.meta_regiao)),
+	});
+	await expect(context.setState).toBeCalledWith({ delegaciaMsg: await help.buildDelegaciaMsg(context.state.delegacias) });
+
 	await expect(context.state.optDenunNumber === '4').toBeFalsy();
+	await expect(context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0).toBeTruthy();
 	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber]);
-	await expect(context.sendText).toBeCalledWith(`<Um endereço relativo ao CCS do bairro ${context.state.denunciaCCS.bairro}>`, { quick_replies: flow.goBackMenu });
+	await expect(context.sendText).toBeCalledWith(context.state.delegaciaMsg, { quick_replies: flow.goBackMenu });
 
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
+	await expect(context.setState).toBeCalledWith({
+		delegacias: '', delegaciaMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
+	});
 });
 
 it('wantToTypeCidade - less than 3 chars less than 3 tries', async () => {
