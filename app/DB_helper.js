@@ -673,8 +673,6 @@ async function getDelegacias(municipio, abrangencia, meta) { // CCS.municipio, C
 	return result && result[0] ? result[0] : [];
 }
 
-getDelegacias('Rio de Janeiro');
-
 /*
 	creating unaccent dictionary funcion
 	user=> CREATE EXTENSION unaccent;
