@@ -15,7 +15,6 @@ const appcivicoApi = require('./chatbot_api');
 
 async function sendCouncilMenu(context) {
 	await context.setState({ mapsResults: '', dialog: 'councilMenu' });
-	await context.typingOn();
 	if (!context.state.CCS) { // Quer saber sobre o Conselho mais próximo de você?
 		await context.sendText(flow.whichCCS.thirdMessage, await attach.getQR(flow.whichCCS));
 	} else { // "Escolha uma das opções"
@@ -25,7 +24,6 @@ async function sendCouncilMenu(context) {
 		);
 		await metric.userAddOrUpdate(context);
 	}
-	await context.typingOff();
 	await events.addCustomAction(context.session.user.id, 'Usuario no Menu do Conselho');
 }
 
@@ -67,6 +65,7 @@ module.exports.wannaKnowMembers = async (context) => {
 		}
 
 		if (context.state.membrosNatos && context.state.membrosNatos.length !== 0) { // check if there was any results
+			await context.setState({ mapsResults: '', dialog: 'councilMenu' }); // this should happen inside of sendCouncilMenu but it doesnt work inside of a timeout
 			await setTimeout(async (membrosNatos) => {
 				await context.sendText(flow.wannaKnowMembers.secondMessage);
 				await attach.sendCarouselMembrosNatos(context, membrosNatos);
@@ -98,7 +97,6 @@ module.exports.wantToTypeCidade = async (context) => {
 			await context.setState({ dialog: 'municipioNotFound' });
 		} else if (context.state.municipiosFound.length === 1) { // we found exactly one municipio with what was typed by the user
 			await context.setState({ CCS: context.state.municipiosFound[0] });
-			await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 			await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 		} else { // more than one municipio was found
 			await context.sendText(`Hmm, encontrei ${context.state.municipiosFound.length} municípios na minha pesquisa. 🤔 `
@@ -129,7 +127,6 @@ module.exports.wantToTypeBairro = async (context) => {
 		await context.setState({ dialog: 'confirmBairro' });
 	} else if ('paqueta'.includes(context.state.userInput)) { // paqueta case
 		await context.setState({ CCS: await db.getCCSsFromID(1043) });
-		await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 		await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 	} else { // regular case
 		await context.setState({ bairro: await help.findCCSBairro(context.state.municipiosFound, context.state.userInput) });
@@ -137,7 +134,6 @@ module.exports.wantToTypeBairro = async (context) => {
 			await context.setState({ dialog: 'bairroNotFound' });
 		} else if (context.state.bairro.length === 1) { // we found exactly one bairro with what was typed by the user
 			await context.setState({ CCS: context.state.bairro[0] });
-			await context.setState({ oldCCS: context.state.CCS }); // update old ccs for denuncia
 			await context.setState({ dialog: 'nearestCouncil' }); // asked: false
 		} else { // more than one bairro was found
 			await context.sendText(`Hmm, encontrei ${context.state.bairro.length} bairros na minha pesquisa. 🤔 `
@@ -160,11 +156,12 @@ module.exports.sequence = async (context) => {
 };
 
 module.exports.denunciaStart = async (context) => { // denunciaMenu
-	await context.setState({ dialog: '' });
+	await context.setState({ dialog: '', originalCCS: '', denunciaCCS: '' });
 	await context.sendText(flow.denunciaStart.txt1.replace('<nome>', context.session.user.first_name));
 	await context.sendText(flow.denunciaStart.txt2);
 	if (context.state.CCS && context.state.CCS.bairro) { // if user has ccs and bairro show "confirmar" option
 		await context.sendText(flow.denunciaHasBairro.txt1.replace('<bairro>', context.state.CCS.bairro), await attach.getQR(flow.denunciaHasBairro));
+		await context.setState({ originalCCS: context.state.CCS });
 	} else {
 		await context.sendText(flow.denunciaNoBairro.txt1, await attach.getQR(flow.denunciaNoBairro));
 	}
@@ -172,17 +169,18 @@ module.exports.denunciaStart = async (context) => { // denunciaMenu
 
 module.exports.denunciaMenu = async (context) => { // denunciaMenu
 	await context.setState({ denunciaCCS: context.state.CCS, onDenuncia: false }); // denunciaCCS is only used in the context of denuncia
-	await context.setState({ CCS: context.state.oldCCS }); // if user had a CCS before he's not gonna lose it
+	await context.setState({ CCS: context.state.originalCCS }); // if user had a CCS before he's not gonna lose it
 	await context.sendText(flow.denunciaMenu.txt1, await attach.getQR(flow.denunciaMenu));
 };
 
 module.exports.optDenun = async (context) => {
-	console.log('context.state.denunciaCCS', context.state.denunciaCCS);
+	// console.log('context.state.denunciaCCS', context.state.denunciaCCS);
 	// load delegacia for all cases
 	await context.setState({
 		delegacias: await db.getDelegacias(await help.formatString(context.state.denunciaCCS.municipio),
 			await help.formatString(context.state.denunciaCCS.bairro), await help.formatString(context.state.denunciaCCS.meta_regiao)),
 	});
+
 	console.log(context.state.delegacias);
 	await context.setState({ delegaciaMsg: await help.buildDelegaciaMsg(context.state.delegacias) });
 	console.log(context.state.delegaciaMsg);
@@ -200,12 +198,12 @@ module.exports.optDenun = async (context) => {
 			deam: await db.getDeam(await help.formatString(context.state.denunciaCCS.municipio), await help.formatString(context.state.denunciaCCS.bairro)),
 		});
 		console.log(context.state.deam);
-		await context.setState({ deamMg: await help.buildDelegaciaMsg(context.state.deam) });
-		console.log(context.state.deam);
+		await context.setState({ deamMsg: await help.buildDelegaciaMsg(context.state.deam) });
+		console.log(context.state.deamMsg);
 
-		if (context.state.deamMg && context.state.deamMg.length > 0) {
+		if (context.state.deamMsg && context.state.deamMsg.length > 0) {
 			await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
-			await context.sendText(context.state.deamMg, { quick_replies: flow.goBackMenu });
+			await context.sendText(context.state.deamMsg, { quick_replies: flow.goBackMenu });
 		}
 	} else {
 		if (context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0) { // eslint-disable-line no-lonely-if
@@ -217,6 +215,9 @@ module.exports.optDenun = async (context) => {
 	}
 	await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
+	await context.setState({
+		delegacias: '', delegaciaMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
+	});
 };
 
 module.exports.loadintentQR = async (context) => {

@@ -642,8 +642,6 @@ async function getDeam(municipio, abrangencia) { // CCS.municipio, CCS.bairro, g
 			console.error('Error on getDeam => ', err);
 		});
 
-	console.log(result);
-
 	return result && result[0] ? result[0] : [];
 }
 
@@ -667,8 +665,6 @@ async function getDelegacias(municipio, abrangencia, meta) { // CCS.municipio, C
 		}).catch((err) => {
 			console.error('Error on getDelegacias => ', err);
 		});
-
-	console.log(result);
 
 	return result && result[0] ? result[0] : [];
 }
