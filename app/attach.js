@@ -4,6 +4,7 @@
 
 const { capitalizeWords } = require('./helpers');
 const { checkMenu } = require('./helpers');
+const db = require('./DB_helper');
 
 module.exports.sendCarouselMembrosNatos = async (context, items) => {
 	const elements = [];
@@ -196,7 +197,7 @@ module.exports.getCouncilMenuQR = async (CCS, flow) => {
 		result = await getQR(flow.whichCCS);
 		result = result.quick_replies;
 	} else {
-		result = await checkMenu(CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]);
+		result = await checkMenu(CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db);
 	}
 	console.log(result);
 
