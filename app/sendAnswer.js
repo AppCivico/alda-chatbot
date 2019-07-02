@@ -8,9 +8,10 @@ module.exports.sendAnswer = async (context) => { // send answer from posicioname
 
 	// console.log('currentTheme', currentTheme);
 	if (context.state.currentTheme && (context.state.currentTheme.answer
-        || (context.state.currentTheme.saved_attachment_type !== null && context.state.currentTheme.saved_attachment_id !== null))) {
+		|| (context.state.currentTheme.saved_attachment_type !== null && context.state.currentTheme.saved_attachment_id !== null))) {
 		await MaAPI.setIntentStatus(context.state.politicianData.user_id, context.session.user.id, context.state.currentIntent, 1);
 		await MaAPI.logAskedEntity(context.session.user.id, context.state.politicianData.user_id, context.state.currentTheme.entities[0].id);
+		await context.setState({ dialog: 'prompt' });
 
 		if (context.state.currentTheme.answer) { // if there's a text asnwer we send it
 			await context.sendText(context.state.currentTheme.answer, context.state.intentQR);
