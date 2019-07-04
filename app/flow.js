@@ -209,9 +209,12 @@ module.exports = {
 	optDenun: {
 		1: 'Poxa, sinto muito! 😕 Eu vou te passar o endereço da Delegacia de Polícia mais próxima pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? ',
 		2: 'Poxa, sinto muito! 😕 Eu vou te passar o endereço da Delegacia de Polícia mais próxima pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? ',
-		3: 'Sinto muito por você ter passado por isso. 😞 Eu vou te passar o endereço da Delegacia de Atendimento à Mulher mais próxima da sua casa. Não deixe de ir lá, tudo bem? É super importante para que isso não aconteça novamente. Qualquer coisa, fale comigo de novo!  ',
+		3: {
+			txt1: 'Sinto muito por você ter passado por isso. 😞 Eu vou te passar o endereço de hospitais de emergência próximos do seu local. ',
+			txt2: 'Depois você precisa ir em uma Delegacia de Atendimento à Mulher e contar o que aconteceu. Fique tranquila que você vai poder falar com outra mulher lá. Não deixe de ir lá, tudo bem? É super importante para que isso não aconteça novamente. Qualquer coisa, fale comigo de novo! Aqui o endereço: ',
+		},
 		4: {
-			txt1: 'Sinto muito por você ter passado por isso. 😞 Não vou dizer que imagino o que você possa estar sentindo e passando neste momento, mas posso te ajudar nos primeiros passos. A primeira coisa é você ir em um hospital de emergência para vítimas de violência sexual, tudo bem? Vou te passar o endereço mais próximo.',
+			txt1: 'Sinto muito por você ter passado por isso. 😞 Não vou dizer que imagino o que você possa estar sentindo e passando neste momento, mas posso te ajudar nos primeiros passos. A primeira coisa é você ir em um hospital de emergência para vítimas de violência sexual, tudo bem? Vou te passar endereços mais próximos.',
 			txt2: 'Depois você precisa ir em uma Delegacia de Atendimento à Mulher e contar o que aconteceu. Fique tranquila que você vai poder falar com outra mulher lá. Aqui o endereço: ',
 		},
 		5: 'Eita, sinto muito que você esteja passando por isso. 😓 Eu vou te passar o endereço da Delegacia de Polícia mais próxima da sua casa pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? Se for algo mais específico, eles poderão te orientar melhor.',

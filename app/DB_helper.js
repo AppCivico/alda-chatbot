@@ -669,6 +669,32 @@ async function getDelegacias(municipio, abrangencia, meta) { // CCS.municipio, C
 	return result && result[0] ? result[0] : [];
 }
 
+async function getHospitals(bairro) { // CCS.bairro
+	const result = await sequelize.query(
+		`SELECT * FROM hospitais WHERE UNACCENT(LOWER(abrangencia)) LIKE '%' || '${bairro}' || '%';`,
+	).spread((results) => { // eslint-disable-line no-unused-vars
+		console.log('getHospitals was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getHospitals => ', err);
+	});
+
+	return result || [];
+}
+async function getMPS(municipio) { // CCS.bairro
+	const result = await sequelize.query(
+		`SELECT * FROM mps WHERE UNACCENT(LOWER(municipio)) LIKE '%' || '${municipio}' || '%';`,
+	).spread((results) => { // eslint-disable-line no-unused-vars
+		console.log('getMPS was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getMPS => ', err);
+	});
+
+	return result || [];
+}
+
+
 /*
 	creating unaccent dictionary funcion
 	user=> CREATE EXTENSION unaccent;
@@ -827,4 +853,6 @@ module.exports = {
 	saveDenuncia,
 	getDeam,
 	getDelegacias,
+	getHospitals,
+	getMPS,
 };

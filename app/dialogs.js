@@ -192,48 +192,56 @@ module.exports.denunciaMenu = async (context) => { // denunciaMenu
 
 module.exports.optDenun = async (context) => {
 	// console.log('context.state.denunciaCCS', context.state.denunciaCCS);
-	// load delegacia for all cases
-	await context.setState({
-		delegacias: await db.getDelegacias(await help.formatString(context.state.denunciaCCS.municipio),
-			await help.formatString(context.state.denunciaCCS.bairro), await help.formatString(context.state.denunciaCCS.meta_regiao)),
-	});
+	// await context.setState({ optDenunNumber: '6' });
+	// await context.setState({ denunciaCCS: context.state.CCS, onDenuncia: false }); // denunciaCCS is only used in the context of denuncia
 
-	console.log(context.state.delegacias);
-	await context.setState({ delegaciaMsg: await help.buildDelegaciaMsg(context.state.delegacias) });
-	console.log(context.state.delegaciaMsg);
-
-	if (context.state.optDenunNumber === '4') {
-		if (context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0) {
+	if (context.state.optDenunNumber === '3' || context.state.optDenunNumber === '4') {
+		// violencia doméstica and violencia sexual, show hospitals and DEAM
+		// load hospitals and send cards
+		await context.setState({ loadedHospitals: await db.getHospitals(await help.formatString(context.state.denunciaCCS.bairro)) });
+		if (context.state.loadedHospitals && context.state.loadedHospitals[0] && context.state.loadedHospitals[0].nome && context.state.loadedHospitals[0].endereco) {
 			await context.sendText(flow.optDenun[context.state.optDenunNumber].txt1);
-			await context.sendText(context.state.delegaciaMsg, { quick_replies: flow.goBackMenu });
-		} else {
-			await context.sendText('Não achei delegacia');
+			await attach.sendCarousel(context, context.state.loadedHospitals, 'nome', 'endereco');
 		}
 
 		// load DEAM
 		await context.setState({
 			deam: await db.getDeam(await help.formatString(context.state.denunciaCCS.municipio), await help.formatString(context.state.denunciaCCS.bairro)),
 		});
-		console.log(context.state.deam);
 		await context.setState({ deamMsg: await help.buildDelegaciaMsg(context.state.deam) });
-		console.log(context.state.deamMsg);
-
 		if (context.state.deamMsg && context.state.deamMsg.length > 0) {
 			await context.sendText(flow.optDenun[context.state.optDenunNumber].txt2);
 			await context.sendText(context.state.deamMsg, { quick_replies: flow.goBackMenu });
 		}
+	} else if (context.state.optDenunNumber === '6') { // case violencia policial
+		// load mps
+		await context.setState({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
+		if (context.state.loadedMPS && context.state.loadedMPS[0] && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco) {
+			await context.sendText(flow.optDenun[context.state.optDenunNumber]);
+			await attach.sendCarousel(context, context.state.loadedMPS, 'nome', 'endereco');
+			await sendCouncilMenu(context);
+		} else {
+			await context.sendText(`Não achei ministério no ${context.state.denunciaCCS.municipio}`, { quick_replies: flow.goBackMenu });
+		}
 	} else {
+		// load regular delegacia
+		await context.setState({
+			delegacias: await db.getDelegacias(await help.formatString(context.state.denunciaCCS.municipio),
+				await help.formatString(context.state.denunciaCCS.bairro), await help.formatString(context.state.denunciaCCS.meta_regiao)),
+		});
+
+		await context.setState({ delegaciaMsg: await help.buildDelegaciaMsg(context.state.delegacias) });
 		if (context.state.delegaciaMsg && context.state.delegaciaMsg.length > 0) { // eslint-disable-line no-lonely-if
 			await context.sendText(flow.optDenun[context.state.optDenunNumber]);
 			await context.sendText(context.state.delegaciaMsg, { quick_replies: flow.goBackMenu });
 		} else {
-			await context.sendText('Não achei delegacia');
+			await context.sendText(`Não achei delegacia no ${context.state.denunciaCCS.municipio}`, { quick_replies: flow.goBackMenu });
 		}
 	}
 	await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await context.setState({
-		delegacias: '', delegaciaMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
 	});
 };
 

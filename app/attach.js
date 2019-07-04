@@ -56,6 +56,27 @@ module.exports.sendCarouselDiretoria = async (context, items) => {
 	});
 };
 
+module.exports.sendCarousel = async (context, items, title, subtitle) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		if (element[title] && element[subtitle]) {
+			elements.push({
+				title: element[title],
+				subtitle: element[subtitle],
+				// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			});
+		}
+	});
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
 // sends one card with an image and link
 module.exports.sendCardWithLink = async function sendCardWithLink(context, cardData, url, text) {
 	if (!text || text === '') { text = 'Veja o resultado dos nossos esforços!'; } // eslint-disable-line no-param-reassign
