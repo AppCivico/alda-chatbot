@@ -369,3 +369,28 @@ module.exports.sendColegioConfirmation = async (context, items) => {
 		},
 	});
 };
+
+// same as sendConselhoConfirmation but using bairros from the mps found during the denuncia flow
+module.exports.sendMPSBairroConfirmation = async (context, items) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `${element.nome}`,
+			subtitle: `Bairro ${element.bairro}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É essa!',
+				payload: `confirmDen${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};

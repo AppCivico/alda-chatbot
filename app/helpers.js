@@ -221,7 +221,7 @@ module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipie
 	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, newLabel); // create new ccs label
 };
 
-async function buildDelegaciaMsg(delegacia) {
+module.exports.buildDelegaciaMsg = async (delegacia) => {
 	let text = '';
 
 	if (delegacia && delegacia.delegacia) { text += `🛡️️ Delegacia: ${delegacia.delegacia}\n`; }
@@ -229,9 +229,19 @@ async function buildDelegaciaMsg(delegacia) {
 	if (delegacia && delegacia.telefone) { text += `📞 Telefone: ${delegacia.telefone.replace('Telefones:', '')}`; }
 
 	return text;
-}
+};
 
-module.exports.buildDelegaciaMsg = buildDelegaciaMsg;
+module.exports.buildMpsMsg = async (mps) => {
+	let text = '';
+
+	if (mps && mps.nome) { text += `🏢 Ministério: ${mps.nome}\n`; }
+	if (mps && mps.endereco) { text += `📍 Endereço: ${mps.endereco}\n`; }
+	if (mps && mps.cep) { text += `🛑 ${mps.cep}\n`; }
+	if (mps && mps.telefone) { text += `📞 Telefone: ${mps.telefone.replace('Tel.:', '').replace('Tels:', '')}`; }
+
+	return text;
+};
+
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;

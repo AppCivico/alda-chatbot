@@ -31,13 +31,6 @@ module.exports = async (context) => {
 				// session: JSON.stringify(context.state),
 			});
 
-			console.log('--------------------------');
-			console.log('CCS', context.state.CCS);
-			console.log('originalCCS', context.state.originalCCS);
-			console.log('denunciaCCS', context.state.denunciaCCS);
-			console.log('--------------------------');
-
-
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
 					await context.sendText(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
@@ -48,7 +41,9 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isPostback) {
 				await context.setState({ questionNumber: '' });
-				if (context.event.postback.payload.slice(0, 9) === 'confirmBa') { // from confirmBairro
+				if (context.event.postback.payload.slice(0, 10) === 'confirmDen') {
+					await context.setState({ mpsBairroId: context.event.postback.payload.replace('confirmDen', ''), dialog: 'showMPSBairro' });
+				} else if (context.event.postback.payload.slice(0, 9) === 'confirmBa') { // from confirmBairro
 					await context.setState({ CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmBa', ''), 10)) });
 					await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 				} else if (context.event.postback.payload.slice(0, 9) === 'confirmMu') { // from confirmMunicipio
@@ -153,7 +148,7 @@ module.exports = async (context) => {
 				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'calendar' });
+					await context.setState({ dialog: 'optDenun' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -582,6 +577,15 @@ module.exports = async (context) => {
 				break;
 			case 'optDenun':
 				await dialogs.optDenun(context);
+				break;
+			case 'showMPSBairro':
+				await context.setState({ currentMps: context.state.loadedMPS ? context.state.loadedMPS.find(x => x.id.toString() === context.state.mpsBairroId) : '' });
+				if (context.state.currentMps && context.state.currentMps.nome && context.state.currentMps.endereco) {
+					await context.sendText(await help.buildMpsMsg(context.state.currentMps));
+					await dialogs.sendCouncilMenu(context);
+				} else {
+					await dialogs.sendCouncilMenu(context);
+				}
 				break;
 			case 'denunciaNot':
 				await createIssue(context);

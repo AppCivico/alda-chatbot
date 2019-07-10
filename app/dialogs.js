@@ -215,13 +215,22 @@ module.exports.optDenun = async (context) => {
 		}
 	} else if (context.state.optDenunNumber === '6') { // case violencia policial
 		// load mps
-		await context.setState({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
-		if (context.state.loadedMPS && context.state.loadedMPS[0] && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco) {
-			await context.sendText(flow.optDenun[context.state.optDenunNumber]);
-			await attach.sendCarousel(context, context.state.loadedMPS, 'nome', 'endereco');
-			await sendCouncilMenu(context);
-		} else {
+		// await context.setState({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
+		await context.setState({ loadedMPS: await db.getMPS(await help.formatString('Rio Bonito')) });
+
+		if (!context.state.loadedMPS || context.state.loadedMPS.length === 0) {
 			await context.sendText(`Não achei ministério no ${context.state.denunciaCCS.municipio}`, { quick_replies: flow.goBackMenu });
+		} else {
+			await context.sendText(flow.optDenun[context.state.optDenunNumber]);
+			if (context.state.loadedMPS.length === 1 && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco) { // eslint-disable-line no-lonely-if
+				await context.sendText(await help.buildMpsMsg(context.state.loadedMPS[0]));
+				await sendCouncilMenu(context);
+			} else {
+				// more than one mps on that municipio, ask user to confirm bairro
+				await context.sendText(`Hmm, encontrei ${context.state.loadedMPS.length} ministérios no seu município. `
+					+ 'Me ajude a confirmar qual ministério é o mais apropriado escolhendo o seu bairro abaixo.');
+				await attach.sendMPSBairroConfirmation(context, context.state.loadedMPS);
+			}
 		}
 	} else {
 		// load regular delegacia
@@ -241,7 +250,7 @@ module.exports.optDenun = async (context) => {
 	await appcivicoApi.postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await db.saveDenuncia(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await context.setState({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 };
 

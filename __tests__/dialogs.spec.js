@@ -288,7 +288,7 @@ it('optDenun - option 4 with hospitals and deam', async () => {
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await expect(context.setState).toBeCalledWith({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 });
 
@@ -312,11 +312,11 @@ it('optDenun - option 3 without hospitals nor deam', async () => {
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await expect(context.setState).toBeCalledWith({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 });
 
-it('optDenun - option 6 with mps', async () => {
+it('optDenun - option 6 with one mps', async () => {
 	const context = cont.quickReplyContext();
 	context.state.optDenunNumber = '6'; context.state.denunciaCCS = { municipio: 'foobar', bairro: 'foobar', meta_regiao: 'foobar' };
 	context.state.loadedMPS = [{ nome: 'Ministério Foobar', endereco: 'Rua Foobar' }];
@@ -327,15 +327,43 @@ it('optDenun - option 6 with mps', async () => {
 	await expect(context.state.optDenunNumber === '6').toBeTruthy();
 
 	await expect(context.setState).toBeCalledWith({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
-	await expect(context.state.loadedMPS && context.state.loadedMPS[0] && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco).toBeTruthy();
+	await expect(!context.state.loadedMPS || context.state.loadedMPS.length === 0).toBeFalsy();
+
 	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber]);
-	await expect(attach.sendCarousel).toBeCalledWith(context, context.state.loadedMPS, 'nome', 'endereco');
+	await expect(context.state.loadedMPS.length === 1 && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco).toBeTruthy();
+	await expect(context.sendText).toBeCalledWith(await help.buildMpsMsg(context.state.loadedMPS[0]));
 	await expect(context.setState).toBeCalledWith({ mapsResults: '', dialog: 'councilMenu' }); // sendCouncilMenu
 
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await expect(context.setState).toBeCalledWith({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
+	});
+});
+
+it('optDenun - option 6 with multiple mps', async () => {
+	const context = cont.quickReplyContext();
+	context.state.optDenunNumber = '6'; context.state.denunciaCCS = { municipio: 'foobar', bairro: 'foobar', meta_regiao: 'foobar' };
+	context.state.loadedMPS = [{ nome: 'Ministério Foobar', endereco: 'Rua Foobar' }, { nome: 'Ministério Barfoo', endereco: 'Rua Barfoo' }];
+
+	await dialogs.optDenun(context);
+
+	await expect(context.state.optDenunNumber === '3' || context.state.optDenunNumber === '4').toBeFalsy();
+	await expect(context.state.optDenunNumber === '6').toBeTruthy();
+
+	await expect(context.setState).toBeCalledWith({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
+	await expect(!context.state.loadedMPS || context.state.loadedMPS.length === 0).toBeFalsy();
+	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber]);
+	await expect(context.state.loadedMPS.length === 1 && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco).toBeFalsy();
+
+	await expect(context.sendText).toBeCalledWith(`Hmm, encontrei ${context.state.loadedMPS.length} ministérios no seu município. `
+		+ 'Me ajude a confirmar qual ministério é o mais apropriado escolhendo o seu bairro abaixo.');
+	await expect(attach.sendMPSBairroConfirmation).toBeCalledWith(context, context.state.loadedMPS);
+
+	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
+	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
+	await expect(context.setState).toBeCalledWith({
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 });
 
@@ -356,7 +384,7 @@ it('optDenun - option 6 without mps', async () => {
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await expect(context.setState).toBeCalledWith({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 });
 
@@ -383,7 +411,7 @@ it('optDenun - regular case with delegacia', async () => {
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await expect(context.setState).toBeCalledWith({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 });
 
@@ -409,7 +437,7 @@ it('optDenun - regular case without delegacia', async () => {
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
 	await expect(db.saveDenuncia).toBeCalledWith(context.session.user.id, context.state.denunciaCCS.id, context.state.optDenunNumber, context.state.denunciaText);
 	await expect(context.setState).toBeCalledWith({
-		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', loadedMPS: '', originalCCS: '', denunciaCCS: '',
+		delegacias: '', delegaciaMsg: '', loadedHospitals: '', hospitalsMsg: '', deam: '', deamMsg: '', originalCCS: '', denunciaCCS: '',
 	});
 });
 
