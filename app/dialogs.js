@@ -215,8 +215,7 @@ module.exports.optDenun = async (context) => {
 		}
 	} else if (context.state.optDenunNumber === '6') { // case violencia policial
 		// load mps
-		// await context.setState({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
-		await context.setState({ loadedMPS: await db.getMPS(await help.formatString('Rio Bonito')) });
+		await context.setState({ loadedMPS: await db.getMPS(await help.formatString(context.state.denunciaCCS.municipio)) });
 
 		if (!context.state.loadedMPS || context.state.loadedMPS.length === 0) {
 			await context.sendText(`Não achei ministério no ${context.state.denunciaCCS.municipio}`, { quick_replies: flow.goBackMenu });
