@@ -31,6 +31,8 @@ module.exports = async (context) => {
 				// session: JSON.stringify(context.state),
 			});
 
+			await appcivicoApi.getRecipient(context.state.politicianData.user_id, context.session.user.id);
+
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
 					await context.sendText(`Olá, ${context.session.user.first_name}! ${flow.greetings.comeBack}`);
