@@ -21,17 +21,17 @@ module.exports = async (context) => {
 		try {
 			// we reload politicianData on every useful event
 			await context.setState({ politicianData: await appcivicoApi.getPoliticianData(context.event.rawEvent.recipient.id) });
-			// we update context data at every interaction (post ony on the first time)
-			await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
-				fb_id: context.session.user.id,
-				name: `${context.session.user.first_name} ${context.session.user.last_name}`,
-				gender: context.session.user.gender === 'male' ? 'M' : 'F',
-				origin_dialog: 'greetings',
-				picture: context.session.user.profile_pic,
-				// session: JSON.stringify(context.state),
-			});
-
-			await appcivicoApi.getRecipient(context.state.politicianData.user_id, context.session.user.id);
+			if (context.state.politicianData && context.state.politicianData.user_id) {
+				// we update context data at every interaction (post ony on the first time)
+				await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
+					fb_id: context.session.user.id,
+					name: `${context.session.user.first_name} ${context.session.user.last_name}`,
+					gender: context.session.user.gender === 'male' ? 'M' : 'F',
+					origin_dialog: 'greetings',
+					picture: context.session.user.profile_pic,
+					// session: JSON.stringify(context.state),
+				});
+			}
 
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
@@ -369,6 +369,8 @@ module.exports = async (context) => {
 						await help.linkUserToCustomLabel(context.session.user.id, `ccs${context.state.CCS.id}`);
 						await help.addConselhoLabel(context, appcivicoApi.postRecipientLabel, appcivicoApi.getRecipient, appcivicoApi.deleteRecipientLabel, `ccs${context.state.CCS.id}`);
 					}
+
+
 					await metric.userAddOrUpdate(context);
 					if (context.state.CCS.bairro === 'Paquetá') { // check if user is on Paquetá (island) to show the correct related bairros
 						await context.setState({ otherBairros: ['Paquetá'] });

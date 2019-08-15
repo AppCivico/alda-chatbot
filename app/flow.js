@@ -143,7 +143,7 @@ module.exports = {
 	calendar: {
 		firstMessage: 'A data da próxima reunião do seu CCS é Y e vai acontecer no local Z.',
 		preMenuMsg: 'Você pode ver o que será discutido na próxima reunião, clicando em "Assuntos" ou ver o que foi discutido na reunião anterior, '
-			+ 'clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			+ 'clicando em "Resultados". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Assuntos', 'Resultados', 'Fazer parte'],
 		menuPostback: ['subjects', 'results', 'join'],
@@ -156,7 +156,7 @@ module.exports = {
 		sub: 'Baixe para ficar por dentro dos assuntos tratatos.',
 		link: 'http://www.africau.edu/images/default/sample.pdf',
 		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, '
-			+ ' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			+ ' clicando em "Resultados". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		emptyAssuntos: 'Esse CCS ainda não disponibilizou os assuntos discutidos na última reunião.',
 		// menu --
@@ -178,7 +178,7 @@ module.exports = {
 		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 		// link: 'http://www.africau.edu/images/default/sample.pdf',
 		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, '
-		+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+		+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
@@ -229,8 +229,8 @@ module.exports = {
 	},
 	join: {
 		firstMessage: 'É bom saber que você quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
-		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
-		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
+		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'followMedia', 'goBackMenu'],
 	},
 	keepMe: {
 		firstMessage: 'Que legal! 😀\nComo você quer fazer isso: E-mail, WhatsApp ou aqui pelo Face mesmo?',
@@ -243,8 +243,8 @@ module.exports = {
 		sucess: 'Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
-		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
-		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
+		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'followMedia', 'goBackMenu'],
 	},
 	share: {
 		firstMessage: 'Muito bom! 😍',
@@ -262,8 +262,8 @@ module.exports = {
 		sub: 'Junte-se a nós! 🤖',
 		link: 'https://www.facebook.com/aldaconselhos/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
-		menuOptions: ['Me manter informado', 'Compartilhar', 'Voltar para o Menu'],
-		menuPostback: ['keepMe', 'share', 'goBackMenu'],
+		menuOptions: ['Me manter informado', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'goBackMenu'],
 		imageLink: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/f9f014a2-56de-4bc8-a201-538b2b6300cd.png',
 	},
 	error: {

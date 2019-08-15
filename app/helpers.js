@@ -214,7 +214,7 @@ module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipie
 		const oldConselho = await user.extra_fields.labels.find(e => e.name.slice(0, 3) === 'ccs'); // search for a label that starts with 'ccs'
 
 		if (oldConselho && oldConselho.name && oldConselho.name.length > 0) { // check if we have the ccs label
-			await deleteRecipientLabel(context.state.politicianData.user_id, context.session.user.id, oldConselho.name); // delete old ccs label
+			// await deleteRecipientLabel(context.state.politicianData.user_id, context.session.user.id, oldConselho.name); // delete old ccs label
 		}
 	}
 
