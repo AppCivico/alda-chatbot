@@ -3,6 +3,8 @@
 // links is the object from flow.js from the respective dialog
 
 const { capitalizeWords } = require('./helpers');
+const { checkMenu } = require('./helpers');
+const db = require('./DB_helper');
 
 module.exports.sendCarouselMembrosNatos = async (context, items) => {
 	const elements = [];
@@ -44,6 +46,27 @@ module.exports.sendCarouselDiretoria = async (context, items) => {
 			subtitle: element.cargo,
 			// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
 		});
+	});
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+module.exports.sendCarousel = async (context, items, title, subtitle) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		if (element[title] && element[subtitle]) {
+			elements.push({
+				title: element[title],
+				subtitle: element[subtitle],
+				// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			});
+		}
 	});
 	await context.sendAttachment({
 		type: 'template',
@@ -103,7 +126,7 @@ module.exports.sendCardWithout = async function sendCardWithLink(context, cardDa
 
 // get quick_replies opject with elements array
 // supossed to be used with menuOptions and menuPostback for each dialog on flow.js
-module.exports.getQR = async (opt) => {
+async function getQR(opt) {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -116,8 +139,8 @@ module.exports.getQR = async (opt) => {
 	});
 
 	return { quick_replies: elements };
-};
-
+}
+module.exports.getQR = getQR;
 
 module.exports.getQRLocation = async (opt) => {
 	const elements = [];
@@ -153,7 +176,24 @@ module.exports.getQRLocation2 = async (opt) => {
 	return { quick_replies: elements };
 };
 
-module.exports.getErrorQR = async (opt, lastPostback) => {
+async function getVoltarQR(lastDialog) {
+	let lastPostback = '';
+
+	if (lastDialog === 'optDenun') {
+		lastPostback = 'goBackMenu';
+	} else {
+		lastPostback = lastDialog;
+	}
+
+	return {
+		content_type: 'text',
+		title: 'Voltar',
+		payload: lastPostback,
+	};
+}
+
+module.exports.getVoltarQR = getVoltarQR;
+module.exports.getErrorQR = async (opt, lastDialog) => {
 	const elements = [];
 	const firstArray = opt.menuOptions;
 
@@ -165,13 +205,24 @@ module.exports.getErrorQR = async (opt, lastPostback) => {
 		});
 	});
 
-	elements.push({
-		content_type: 'text',
-		title: 'Voltar',
-		payload: lastPostback,
-	});
+	elements.push(await getVoltarQR(lastDialog));
+
+	console.log('ERRORQR', elements);
 
 	return { quick_replies: elements };
+};
+
+module.exports.getCouncilMenuQR = async (CCS, flow) => {
+	let result = '';
+	if (!CCS) {
+		result = await getQR(flow.whichCCS);
+		result = result.quick_replies;
+	} else {
+		result = await checkMenu(CCS.id, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt], db);
+	}
+	console.log(result);
+
+	return result;
 };
 
 module.exports.getConditionalQR = async (options, useSecond) => {
@@ -306,6 +357,31 @@ module.exports.sendColegioConfirmation = async (context, items) => {
 				type: 'postback',
 				title: 'É essa!',
 				payload: `confirmBa${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+// same as sendConselhoConfirmation but using bairros from the mps found during the denuncia flow
+module.exports.sendMPSBairroConfirmation = async (context, items) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `${element.nome}`,
+			subtitle: `Bairro ${element.bairro}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É essa!',
+				payload: `confirmDen${element.id}`,
 			}],
 		});
 	});

@@ -1,11 +1,10 @@
 const Cron = require('cron');
+const { MessengerClient } = require('messaging-api-messenger');
+
 const db = require('./DB_helper');
 const help = require('./helpers');
 const { Sentry } = require('./helpers');
-
 const broadcast = require('./broadcast');
-
-const { MessengerClient } = require('messaging-api-messenger');
 const config = require('./bottender.config').messenger;
 
 const client = MessengerClient.connect({
@@ -30,11 +29,11 @@ const activatedCCS = new Cron.CronJob(
 						bairros: await db.getEveryBairro(notifications[0].conselho_id),
 					};
 
-			for (const element of notifications) { // eslint-disable-line
+		for (const element of notifications) { // eslint-disable-line
 						if (element.conselho_id !== currentCCS.cod_ccs) { // check if we are not on the same CCS as before
-						// If we are not warning on the same CCS as before we have to reload the data
-						// This is an assurance in case more than one ccs gets activated
-						// Obs: the getActivatedNotification query orders results by the conselho_id
+							// If we are not warning on the same CCS as before we have to reload the data
+							// This is an assurance in case more than one ccs gets activated
+							// Obs: the getActivatedNotification query orders results by the conselho_id
 							currentCCS = { // loading data from the new ccs
 								cod_ccs: element.conselho_id,
 								nome: await db.getNamefromCCS(element.conselho_id),
@@ -57,10 +56,8 @@ const activatedCCS = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	false,
 );
-
-module.exports.activatedCCS = activatedCCS;
 
 // Cronjob to notificate  users that there was a change in the agenda("calendário") they saw
 const agendaChange = new Cron.CronJob(
@@ -89,8 +86,8 @@ const agendaChange = new Cron.CronJob(
 							let message = ''; // the message that will be sent to the user depending on the case
 							switch (element.status_id) {
 							case 1: // reunion was canceled
-								message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no local` +
-										`${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
+								message = `A reunião do ${element.ccs} agendada para ${help.formatDate(element.old_datahora).toLocaleString()} no local`
+							+ `${element.endereco}, ${element.bairro} foi cancelada. Ainda não há nova data, mas você será notificado quando houver.`;
 								// adding new entry to the table notificacao_agenda because user will be informed when this reunion is rescheduled (status_id agenda must be 2)
 								await db.addAgenda(element.user_id, element.agendas_id, element.old_endereco, element.old_datahora.toLocaleString());
 								break;
@@ -124,14 +121,12 @@ const agendaChange = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	false,
 );
-
-module.exports.agendaChange = agendaChange;
 
 // Cronjob to notificate users that there was a change in the agenda("calendário") they saw
 const newAgenda = new Cron.CronJob(
-	'00 30 8-22/2 * * 1-5', async () => { // every two hours from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
+	'00 30 8-22/2 * * 1-5', async () => { // every two hours and 30m from 8h to 22h from monday through friday 00 30 8-22/2 * * 1-5
 		let notifications = 'not loaded';
 		await Sentry.configureScope(async (scope) => {
 			notifications = await db.getNovaAgenda();
@@ -143,8 +138,8 @@ const newAgenda = new Cron.CronJob(
 						const agenda = await db.getAgenda(element.conselho_id); // getting most recent agenda
 						// if: the newest agenda is the one the user saw, so there's nothing to do -> agenda.id !== element.ultima_agenda
 						if (agenda && agenda.id && agenda.id !== element.ultima_agenda) {
-							const message = `Temos uma nova reunião agendada para o *${element.ccs}*! Atenção para data e local:\n\n` +
-							`${await help.getAgendaMessage(agenda)}`;
+							const message = `Temos uma nova reunião agendada para o *${element.ccs}*! Atenção para data e local:\n\n`
+							+ `${await help.getAgendaMessage(agenda)}`;
 							if (await broadcast.sendAgendaNotification(element.user_id, message) === true) {
 								await db.updateNovaAgenda(element.id, 'TRUE'); // table boolean gets updated if the message was sent succesfully
 							}
@@ -160,7 +155,36 @@ const newAgenda = new Cron.CronJob(
 	'America/Sao_Paulo',
 	false, // context
 	// Below: runOnInit => true is useful only for tests
-	false // eslint-disable-line comma-dangle
+	false,
 );
 
+// Cronjob to send the follow up enquete to the users
+const enqueteParticipacao = new Cron.CronJob(
+	'00 00 15 * * *', async () => { // at the fithteenth hour from monday through sunday 00 30 15 * * 1-5
+		let notifications;
+		await Sentry.configureScope(async (scope) => {
+			notifications = await db.getYesterdayAgenda();
+			scope.setExtra('notifications', notifications);
+
+			if (notifications && notifications.length !== 0) { // checking if there is any notification to send
+			for (const element of notifications) { // eslint-disable-line
+					await broadcast.sendEnqueteParticipacao(element.user_id, element.agendas_id, element.user_name);
+				}
+			}
+		});
+	}, (() => {
+		console.log('Crontab \'enqueteParticipacao\' stopped.');
+	}),
+	true, /* Starts the job right now (no need for MissionTimer.start()) */
+	'America/Sao_Paulo',
+	false, // context
+	// Below: runOnInit => true is useful only for tests
+	false,
+);
+
+module.exports.activatedCCS = activatedCCS;
+module.exports.agendaChange = agendaChange;
 module.exports.newAgenda = newAgenda;
+module.exports.enqueteParticipacao = enqueteParticipacao;
+
+// */5 * * * * *

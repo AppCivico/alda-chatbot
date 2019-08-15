@@ -11,11 +11,13 @@ const client = MessengerClient.connect({
 	appSecret: config.appSecret,
 });
 
+const { sequencia } = require('./flow');
+
 // sends to the user a notification warning him that one non-active ccs he once searched is now active
 // USER_ID = context-id of user
 // ccs_name = name of said ccs
 // bairros = array of bairros that are also part of this ccs (maybe there's only one bairro)
-module.exports.sendActivatedNotification = async function sendActivatedNotification(USER_ID, ccsName, bairros) {
+module.exports.sendActivatedNotification = async (USER_ID, ccsName, bairros) => {
 	let textMsg = '';
 	const textTwo = 'se encontra agora ativo. Quando você buscou informações sobre este conselho ele não estava ativo mas agora ele está pronto para te ouvir.';
 	if (bairros.length === 0) { // just to be safe
@@ -38,13 +40,12 @@ module.exports.sendActivatedNotification = async function sendActivatedNotificat
 				payload: 'councilMenu',
 			},
 		],
-	}).then(resp => // eslint-disable-line no-unused-vars
-		true).catch((error) => {
+	}).then(resp => true).catch((error) => { // eslint-disable-line no-unused-vars
+		console.log(error.stack); // error stack trace
 		// console.log(error); // formatted error message
-		// console.log(error.stack); // error stack trace
 		// console.log(error.config); // axios request config
 		// console.log(error.request); // HTTP request
-		console.log(error.response); // HTTP response
+		// console.log(error.response); // HTTP response
 		return false;
 	});
 
@@ -57,7 +58,7 @@ module.exports.sendActivatedNotification = async function sendActivatedNotificat
 // dataHora = The new date-time for the reunion/agenda
 // address = The new place the reunion will take place
 // ccsName = the name of said CCS
-module.exports.sendAgendaNotification = async function sendAgendaNotification(USER_ID, message) {
+module.exports.sendAgendaNotification = async (USER_ID, message) => {
 	const response = await client.sendText(USER_ID, message, {
 		quick_replies: [
 			{
@@ -66,8 +67,7 @@ module.exports.sendAgendaNotification = async function sendAgendaNotification(US
 				payload: 'councilMenu',
 			},
 		],
-	}).then(resp => // eslint-disable-line no-unused-vars
-		true).catch((error) => {
+	}).then(resp => true).catch((error) => { // eslint-disable-line no-unused-vars
 		console.log(error.response); // HTTP response
 		return false;
 	});
@@ -76,7 +76,7 @@ module.exports.sendAgendaNotification = async function sendAgendaNotification(US
 };
 
 // creates and send an admin broadcast
-async function sendAdminBroadcast(text, label) {
+module.exports.sendAdminBroadcast = async (text, label) => {
 	const labelID = await getLabelID(label);
 	const results = await client.createMessageCreative([
 		{
@@ -96,8 +96,40 @@ async function sendAdminBroadcast(text, label) {
 		return results;
 	}
 	return results; // error
-}
-module.exports.sendAdminBroadcast = sendAdminBroadcast;
+};
 
 // sendAdminBroadcast('test', process.env.LABEL_ADMIN);
 
+// creates and send an admin broadcast
+module.exports.sendEnqueteParticipacao = async (USER_ID, agendaID, userName) => {
+	let textToSend = sequencia[1].question;
+	if (userName && userName.length > 0) { // if we have an user name, replace <nome> with the username but only what comes before the first whitespace (he first name)
+		textToSend = textToSend.replace('<nome>', userName.split(' ')[0]);
+	} else {
+		textToSend = textToSend.replace(', <nome>', ''); // else remove <nome> and comma
+	}
+
+	const response = await client.sendText(USER_ID, textToSend, {
+		quick_replies: [
+			{
+				content_type: 'text',
+				title: sequencia[1].menuOptions[0],
+				payload: `${sequencia[1].menuPostback[0]}${agendaID}`,
+			},
+			{
+				content_type: 'text',
+				title: sequencia[1].menuOptions[1],
+				payload: `${sequencia[1].menuPostback[1]}${agendaID}`,
+			},
+		],
+	}).then(resp => true).catch((error) => { // eslint-disable-line no-unused-vars
+		console.log(error.stack); // error stack trace
+		// console.log(error); // formatted error message
+		// console.log(error.config); // axios request config
+		// console.log(error.request); // HTTP request
+		// console.log(error.response); // HTTP response
+		return false;
+	});
+
+	return response;
+};

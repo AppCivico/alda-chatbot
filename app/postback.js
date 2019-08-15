@@ -1,9 +1,9 @@
 require('dotenv').config();
+const { MessengerClient } = require('messaging-api-messenger');
 
 const req = require('requisition');
 const flow = require('./flow');
 
-const { MessengerClient } = require('messaging-api-messenger');
 const config = require('./bottender.config').messenger;
 
 const client = MessengerClient.connect({

@@ -1,16 +1,16 @@
 const { sequelize } = require('./server/index.js');
 const { moment } = require('./helpers');
 
-sequelize
-	.authenticate()
-	.then(() => {
-		console.log('Connection has been established successfully.');
-	})
-	.catch((err) => {
-		console.error('Unable to connect to the database:', err);
-	});
-
-module.exports.sequelize = sequelize;
+if (process.env.TEST !== 'true') {
+	sequelize
+		.authenticate()
+		.then(() => {
+			console.log('Connection has been established successfully.');
+		})
+		.catch((err) => {
+			console.error('Unable to connect to the database:', err);
+		});
+}
 
 // module.exports.getCCS = async function getCCS() { // unused
 // 	const result = await sequelize.query(`
@@ -62,7 +62,6 @@ async function getCCSsFromMunicipio(Municipio) {
 
 	return result;
 }
-module.exports.getCCSsFromMunicipio = getCCSsFromMunicipio;
 
 // get ccs using bairro
 async function getCCSsFromBairro(Bairro) {
@@ -90,7 +89,7 @@ async function getCCSsFromBairro(Bairro) {
 
 	return result;
 }
-module.exports.getCCSsFromBairro = getCCSsFromBairro;
+
 // get ccs using bairro
 async function getCCSsFromBairroExact(Bairro) {
 	let result = await sequelize.query(`
@@ -117,7 +116,6 @@ async function getCCSsFromBairroExact(Bairro) {
 
 	return result;
 }
-module.exports.getCCSsFromBairroExact = getCCSsFromBairroExact;
 
 async function getCCSsFromID(CCSID) {
 	const result = await sequelize.query(`
@@ -146,10 +144,9 @@ async function getCCSsFromID(CCSID) {
 	}
 	return result[0];
 }
-module.exports.getCCSsFromID = getCCSsFromID;
 
 // get every bairro on the same CCS
-module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
+async function getEveryBairro(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT bairro, municipio
 	FROM abrangencias
@@ -169,9 +166,9 @@ module.exports.getEveryBairro = async function getEveryBairro(CCS_ID) {
 		console.error('Error on getEveryBairro => ', err);
 	});
 	return result;
-};
+}
 
-module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
+async function getNamefromCCS(CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT ccs
 	FROM conselhos
@@ -184,7 +181,7 @@ module.exports.getNamefromCCS = async function getNamefromCCS(CCS_ID) {
 		console.error('Error on getNamefromCCS => ', err);
 	});
 	return result[0].ccs;
-};
+}
 
 async function getDiretoria(CCS_ID) {
 	const result = await sequelize.query(`
@@ -213,7 +210,6 @@ ORDER BY
 	});
 	return result;
 }
-module.exports.getDiretoria = getDiretoria;
 
 async function getMembrosNatosBairro(bairro, ccsID) {
 	const result = await sequelize.query(`
@@ -230,7 +226,6 @@ async function getMembrosNatosBairro(bairro, ccsID) {
 
 	return result;
 }
-module.exports.getMembrosNatosBairro = getMembrosNatosBairro;
 
 async function getMembrosNatosMunicipio(bairro, ccsID) {
 	const result = await sequelize.query(`
@@ -247,7 +242,6 @@ async function getMembrosNatosMunicipio(bairro, ccsID) {
 
 	return result;
 }
-module.exports.getMembrosNatosMunicipio = getMembrosNatosMunicipio;
 
 // gets the next agenda from the CCS. This means the closest data after the present day.
 async function getAgenda(CCS_ID) { // also known as calendário
@@ -269,9 +263,8 @@ async function getAgenda(CCS_ID) { // also known as calendário
 	}
 	return result[0];
 }
-module.exports.getAgenda = getAgenda;
 
-module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
+async function getAssuntos(CCS_ID) {
 	// uses CCS_ID to get the newest agenda, with this agenda we get the subject_id that were discuted and with these is we get the text
 	// Remember: closest agenda after today
 	let date = new Date();
@@ -301,7 +294,24 @@ module.exports.getAssuntos = async function getAssuntos(CCS_ID) {
 		console.error('Error on getAssuntos => ', err);
 	});
 	return result;
-};
+}
+
+async function savePautaSugestao(UserID, CCS_ID, pauta) {
+	let date = new Date();
+	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	const agenda = await sequelize.query(`SELECT id from agendas WHERE conselho_id = '${CCS_ID}' ORDER BY data DESC NULLS LAST LIMIT 1;`);
+
+	if (agenda && agenda[0] && agenda[0][0] && agenda[0][0].id) {
+		await sequelize.query(`
+		INSERT INTO pautas_sugeridas(user_id, agenda_id, sugestao, created_at, updated_at)
+		VALUES (${UserID}, ${agenda[0][0].id}, '${pauta}', '${date}', '${date}');
+		`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+			console.log(`Added ${UserID}'s suggestion on agenda ${agenda[0][0].id} successfully!`);
+		}).catch((err) => {
+			console.error('Error on savePautaSugestao => ', err);
+		});
+	}
+}
 
 async function getResults(CCS_ID) { // get most recent results from before the current day
 	let date = new Date();
@@ -326,8 +336,6 @@ async function getResults(CCS_ID) { // get most recent results from before the c
 	}
 	return result[0];
 }
-
-module.exports.getResults = getResults;
 
 async function getResultsAssuntos(resultsID) {
 	const result = await sequelize.query(`
@@ -357,12 +365,10 @@ async function getResultsAssuntos(resultsID) {
 	return result;
 }
 
-module.exports.getResultsAssuntos = getResultsAssuntos;
-
 // notificar_ativacao -------------------------------------------------------------------------------
 
 // check if notification_ativacao with UserID, CCS_ID exists already
-module.exports.checkNotificationAtivacao = async function checkNotificationAtivacao(UserID, CCS_ID) {
+async function checkNotificationAtivacao(UserID, CCS_ID) {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM notificar_ativacao WHERE user_id = ${UserID} AND conselho_id = ${CCS_ID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -372,7 +378,7 @@ module.exports.checkNotificationAtivacao = async function checkNotificationAtiva
 		console.error('Error on checkNotificationAtivacao => ', err);
 	});
 	return result[0].exists;
-};
+}
 
 // adds a future notification if the user searched for a not-active ccs
 async function addNotActive(UserID, CCS_COD) {
@@ -388,11 +394,10 @@ async function addNotActive(UserID, CCS_COD) {
 		console.error('Error on addNotActive => ', err);
 	});
 }
-module.exports.addNotActive = addNotActive;
 // addNotActive('1864330513659814', 1017); // to test: change status of ccs_1017 to ativo and then back to inativo
 
 // get every notification that wasn't already sent but only if the status of the ccs is now 'Ativo'
-module.exports.getActivatedNotification = async function getActivatedNotification() {
+async function getActivatedNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.conselho_id, CCS.id, CCS.status
 	FROM notificar_ativacao AS NOTIFICATION
@@ -406,10 +411,10 @@ module.exports.getActivatedNotification = async function getActivatedNotificatio
 		console.error('Error on getActivatedNotification => ', err);
 	});
 	return result;
-};
+}
 
 // updates value of notificado from PK
-module.exports.updateNotification = async function updateNotification(PK) {
+async function updateNotification(PK) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -422,12 +427,12 @@ module.exports.updateNotification = async function updateNotification(PK) {
 	}).catch((err) => {
 		console.error('Error on updateNotification => ', err);
 	});
-};
+}
 
 // notificar_agenda -------------------------------------------------------------------------------
 
 // check if notification_agenda with UserID, CCS_ID exists already
-module.exports.checkNotificationAgenda = async function checkNotificationAgenda(UserID, agendaID) {
+async function checkNotificationAgenda(UserID, agendaID) {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM notificar_agenda WHERE user_id = ${UserID} AND agendas_id = ${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -437,7 +442,7 @@ module.exports.checkNotificationAgenda = async function checkNotificationAgenda(
 		console.error('Error on checkNotificationAgenda => ', err);
 	});
 	return result[0].exists;
-};
+}
 
 // adds a future notification_agenda if the user searched the agenda for that ccs
 async function addAgenda(UserID, agendaID, endereco, dataHora) {
@@ -453,11 +458,10 @@ async function addAgenda(UserID, agendaID, endereco, dataHora) {
 		console.error('Error on addAgenda => ', err);
 	});
 }
-module.exports.addAgenda = addAgenda;
 // addAgenda('1864330513659814', '1', 'Na rua tal e tal', '2018-04-10 00:00:00'); // test
 
 // get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
-module.exports.getAgendaNotification = async function getActivatedNotification() {
+async function getAgendaNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
 	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
@@ -473,10 +477,10 @@ module.exports.getAgendaNotification = async function getActivatedNotification()
 		console.error('Error on getAgendaNotification => ', err);
 	});
 	return result;
-};
+}
 
 // updates value of notificado from PK
-module.exports.updateAgenda = async function updateAgenda(PK, boolean) {
+async function updateAgenda(PK, boolean) {
 	let date = new Date();
 	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
@@ -489,11 +493,11 @@ module.exports.updateAgenda = async function updateAgenda(PK, boolean) {
 	}).catch((err) => {
 		console.error('Error on updateNovaAgenda => ', err);
 	});
-};
+}
 
 // notificar_nova_agenda -------------------------------------------------------------------------------
 // check if notificar_nova_agenda with UserID, CCS_ID exists already
-module.exports.checkNovaAgenda = async function checkNovaAgenda(UserID, agendaID) {
+async function checkNovaAgenda(UserID, agendaID) {
 	const result = await sequelize.query(`
 	SELECT EXISTS(SELECT 1 FROM notificar_nova_agenda WHERE user_id = ${UserID} AND ultima_agenda = ${agendaID})
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -503,7 +507,7 @@ module.exports.checkNovaAgenda = async function checkNovaAgenda(UserID, agendaID
 		console.error('Error on checkNovaAgenda => ', err);
 	});
 	return result[0].exists;
-};
+}
 
 // adds a future notification_agenda if the user searched the agenda for that ccs
 async function addNovaAgenda(UserID, agendaID) {
@@ -519,10 +523,9 @@ async function addNovaAgenda(UserID, agendaID) {
 		console.error('Error on addNovaAgenda => ', err);
 	});
 }
-module.exports.addNovaAgenda = addNovaAgenda;
 
 // get every notification that wasn't already sent (including when the agendas.status_id is 1 or 4)
-module.exports.getNovaAgenda = async function getNovaAgenda() {
+async function getNovaAgenda() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.ultima_agenda, AGENDAS.conselho_id, CONSELHOS.ccs
 	FROM notificar_nova_agenda AS NOTIFICATION
@@ -537,12 +540,11 @@ module.exports.getNovaAgenda = async function getNovaAgenda() {
 		console.error('Error on getNovaAgenda => ', err);
 	});
 	return result;
-};
+}
 
 // updates value of notificado from PK
-module.exports.updateNovaAgenda = async function updateNovaAgenda(PK, boolean) {
-	let date = new Date();
-	date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+async function updateNovaAgenda(PK, boolean) {
+	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
 
 	await sequelize.query(`
 	UPDATE notificar_nova_agenda
@@ -553,15 +555,15 @@ module.exports.updateNovaAgenda = async function updateNovaAgenda(PK, boolean) {
 	}).catch((err) => {
 		console.error('Error on updateNovaAgenda => ', err);
 	});
-};
+}
 
 // broadcast -------------------------------------------------------------------------------
 
 // get every open agenda to warn with a broadcast
-module.exports.getAgendaNotificationFromID = async function getAgendaNotificationFromID(PK) {
+async function getAgendaNotificationFromID(PK) {
 	const result = await sequelize.query(`
 	SELECT user_id, data_hora, agendas_id, endereco, updated_at
-	FROM notificar_agenda
+	FROM notificar_agenda 
 	WHERE agendas_id = ${PK} AND NOT notificado;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`getAgendaNotificationFromID from ${PK} was successful!`);
@@ -571,9 +573,130 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	});
 
 	return result;
-};
+}
 
-/* creating unaccent dictionary funcion
+// sequencia --------------------------------------------------------------------------------
+async function saveSeqAnswer(UserID, agendaID, answers, input) {
+	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	const result = await sequelize.query(`
+	INSERT INTO enquete_participacao(user_id, agenda_id, foi_ao_conselho, gostou, constuma_ir, input, created_at, updated_at)
+	VALUES ('${UserID}', '${agendaID}', ${answers.foiConselho},  ${answers.gostou},  ${answers.costumaIr}, NULLIF ('${input}', ''), '${date}', '${date}');
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`saveSeqAnswer from user ${UserID} and agenda ${agendaID} was successful!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on getAgendaNotificationFromID => ', err);
+	});
+
+	return result;
+}
+
+async function getYesterdayAgenda() {
+	// get ids and name rom users that are linked to one agenda that happened the day before
+	const result = await sequelize.query(`
+	SELECT AGENDA.agendas_id, AGENDA.user_id, USERS.user_name
+	FROM notificar_agenda as AGENDA
+	INNER JOIN chatbot_users USERS ON AGENDA.user_id = USERS.user_id
+	WHERE date_trunc('day', AGENDA.data_hora) = CURRENT_DATE - interval '1 day';
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log('getYesterdayAgenda was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getYesterdayAgenda => ', err);
+	});
+	return result;
+}
+
+// denuncia --------------------------------------------------------------------------------
+async function saveDenuncia(UserID, CCSID, botaoID, texto) {
+	let date = new Date(); date = await moment(date).format('YYYY-MM-DD HH:mm:ss');
+	const result = await sequelize.query(`
+	INSERT INTO denuncia(user_id, conselho_id, botao_id,  texto, created_at, updated_at)
+	VALUES (${UserID}, ${CCSID}, ${botaoID}, '${texto}', '${date}', '${date}');
+	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
+		console.log(`saveDenuncia from user ${UserID} and CCSID ${CCSID} was successful!`);
+		return results;
+	}).catch((err) => {
+		console.error('Error on saveDenuncia => ', err);
+	});
+	return result;
+}
+
+async function getDeam(municipio, abrangencia) { // CCS.municipio, CCS.bairro, get only DEAM
+	let query = '';
+	if (!municipio) { return []; }
+
+	if (municipio && !abrangencia) { // check what we know and query accordingly
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio))  = '${municipio}'`;
+	} else if (municipio && abrangencia) {
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio)) = '${municipio}' AND UNACCENT(LOWER(abrangencia)) LIKE '%' || '${abrangencia}' || '%'`;
+	}
+
+	query += ' AND delegacia LIKE \'%\' || \'DEAM\' || \' %\';'; // we want only the DEAM
+
+	const result = await sequelize.query(query)
+		.spread((results) => { // eslint-disable-line no-unused-vars
+			console.log('getDeam was successful!');
+			return results;
+		}).catch((err) => {
+			console.error('Error on getDeam => ', err);
+		});
+
+	return result && result[0] ? result[0] : [];
+}
+
+async function getDelegacias(municipio, abrangencia, meta) { // CCS.municipio, CCS.bairro, CCS.meta_regiao, ignores DEAM
+	let query = '';
+	if (!municipio) { return []; }
+	if (municipio && !abrangencia && !meta) { // check what we know and query accordingly
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio))  = '${municipio}'`;
+	} else if (municipio && abrangencia && !meta) {
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio)) = '${municipio}' AND UNACCENT(LOWER(abrangencia)) LIKE '%' || '${abrangencia}' || '%'`;
+	} else if (municipio && abrangencia && meta) {
+		query = `SELECT * FROM delegacias WHERE UNACCENT(LOWER(municipio)) = '${municipio}' AND UNACCENT(LOWER(abrangencia)) LIKE '%' || '${abrangencia}' || '%' AND UNACCENT(LOWER(meta_abrangencia)) LIKE '%' || '${meta}' || '%'`;
+	}
+
+	query += ' AND delegacia NOT LIKE \'%\' || \'DEAM\' || \' %\';';
+
+	const result = await sequelize.query(query)
+		.spread((results) => { // eslint-disable-line no-unused-vars
+			console.log('getDelegacias was successful!');
+			return results;
+		}).catch((err) => {
+			console.error('Error on getDelegacias => ', err);
+		});
+
+	return result && result[0] ? result[0] : [];
+}
+
+async function getHospitals(bairro) { // CCS.bairro
+	const result = await sequelize.query(
+		`SELECT * FROM hospitais WHERE UNACCENT(LOWER(abrangencia)) LIKE '%' || '${bairro}' || '%';`,
+	).spread((results) => { // eslint-disable-line no-unused-vars
+		console.log('getHospitals was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getHospitals => ', err);
+	});
+
+	return result || [];
+}
+async function getMPS(municipio) { // CCS.bairro
+	const result = await sequelize.query(
+		`SELECT * FROM mps WHERE UNACCENT(LOWER(municipio)) LIKE '%' || '${municipio}' || '%';`,
+	).spread((results) => { // eslint-disable-line no-unused-vars
+		console.log('getMPS was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getMPS => ', err);
+	});
+
+	return result || [];
+}
+
+
+/*
+	creating unaccent dictionary funcion
 	user=> CREATE EXTENSION unaccent;
 	CREATE EXTENSION
 	user=> select unaccent('Cajú');
@@ -581,16 +704,16 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	----------
 	Caju
 	(1 row)
-
 */
+
 /*
 	CREATE TABLE notificar_ativacao(
 	ID SERIAL PRIMARY KEY,
-	user_id BIGINT  NOT NULL,
-	conselho_id INT     NOT NULL,
+	user_id BIGINT NOT NULL,
+	conselho_id INT NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	created_at timestamp without time zone NOT NULL,
-  	updated_at timestamp without time zone NOT NULL
+  updated_at timestamp without time zone NOT NULL
 	);
 */
 
@@ -600,8 +723,8 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	user_id BIGINT NOT NULL,
 	notificado BOOLEAN NOT NULL DEFAULT FALSE,
 	agendas_id integer NOT NULL,
-    endereco text NOT NULL,
-    data_hora timestamp without time zone NOT NULL,
+  endereco text NOT NULL,
+  data_hora timestamp without time zone NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
 	);
@@ -615,6 +738,55 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 	ultima_agenda integer NOT NULL,
 	created_at timestamp without time zone NOT NULL,
 	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE pautas_sugeridas (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	agenda_id INTEGER NOT NULL,
+	sugestao text NOT NULL,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE enquete_participacao (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	agenda_id INTEGER NOT NULL,
+	foi_ao_conselho boolean,
+	gostou boolean,
+	constuma_ir boolean,
+	input text,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE denuncia (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT NOT NULL,
+	conselho_id INT NOT NULL,
+	botao_id INTEGER NOT NULL,
+	texto text,
+	created_at timestamp without time zone NOT NULL,
+	updated_at timestamp without time zone NOT NULL
+	);
+*/
+
+/*
+	CREATE TABLE delegacias (
+	id SERIAL PRIMARY KEY,
+	delegacia TEXT,
+	municipio TEXT,
+	abrangencia TEXT,
+	meta_abrangencia TEXT,
+	endereco TEXT,
+	telefone TEXT
 	);
 */
 
@@ -647,3 +819,40 @@ module.exports.getAgendaNotificationFromID = async function getAgendaNotificatio
 		a quem possui essa tag que houve um cancelamento/mudança na reunião. Isso também não deleta a tag.
 */
 
+module.exports = {
+	getCCSsFromMunicipio,
+	getCCSsFromBairro,
+	getCCSsFromBairroExact,
+	getNamefromCCS,
+	getCCSsFromID,
+	sequelize,
+	getEveryBairro,
+	getDiretoria,
+	getMembrosNatosBairro,
+	getMembrosNatosMunicipio,
+	getAgenda,
+	getAssuntos,
+	savePautaSugestao,
+	getResults,
+	getResultsAssuntos,
+	checkNotificationAtivacao,
+	addNotActive,
+	getActivatedNotification,
+	updateNotification,
+	checkNotificationAgenda,
+	addAgenda,
+	getAgendaNotification,
+	updateAgenda,
+	checkNovaAgenda,
+	addNovaAgenda,
+	getNovaAgenda,
+	updateNovaAgenda,
+	getAgendaNotificationFromID,
+	saveSeqAnswer,
+	getYesterdayAgenda,
+	saveDenuncia,
+	getDeam,
+	getDelegacias,
+	getHospitals,
+	getMPS,
+};

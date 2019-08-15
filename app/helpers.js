@@ -1,8 +1,10 @@
 const util = require('util');
 const moment = require('moment');
 const accents = require('remove-accents');
-const postback = require('./postback');
 const Sentry = require('@sentry/node');
+const dialogFlow = require('apiai-promise');
+const flow = require('./flow');
+const postback = require('./postback');
 
 Sentry.init({
 	dsn: process.env.SENTRY_DSN, environment: process.env.ENV, captureUnhandledRejections: false,
@@ -12,23 +14,50 @@ module.exports.Sentry = Sentry;
 moment.locale('pt-BR');
 module.exports.moment = moment;
 
+
+async function formatDialogFlow(text) {
+	let result = text.toLowerCase();
+	result = await result.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF])/g, '');
+	result = await accents.remove(result);
+	if (result.length >= 250) {
+		result = result.slice(0, 250);
+	}
+	return result.trim();
+}
+
 module.exports.urlExists = util.promisify(require('url-exists'));
 
 function formatDate(date) {
 	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
 }
-module.exports.formatDate = formatDate;
-
-module.exports.formatDateDay = function formatDateDay(date) {
-	return `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
-};
-
-module.exports.dateComparison = function formatDateDay(date) {
-	return `${moment(date).format('YYYY-MM-DD')}`;
-};
-
+module.exports.formatDateDay = date => `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
+async function dateComparison(date) { return `${moment(date).format('YYYY-MM-DD')}`; }
 module.exports.capitalizeWords = str => str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 
+module.exports.dateComparison = dateComparison;
+module.exports.formatDate = formatDate;
+module.exports.checkMenu = async (CCSID, oldOptions, db) => {
+	// cheking which quick_reply options we can show in the menu
+	// { quick_replies: await checkMenu(context, [flow.calendarOpt, flow.subjectsOpt, flow.resultsOpt, flow.joinOpt]) }
+	// each flow._opt passed will be added to the final options if it's present and matches the requirements (like having an agenda to show subjects)
+	const options = [];
+
+	if (oldOptions.find(obj => obj.payload === 'calendar')) { options.push(flow.calendarOpt); }
+	if (oldOptions.find(obj => obj.payload === 'subjects')) { // before checking the database we can check if we would have sent this optins in the first pplace
+		const agenda = await db.getAgenda(CCSID); // getting agenda to check if we should send "subjects" option
+		if (agenda && dateComparison(agenda.data) >= dateComparison(new Date())) { // we can send it
+			options.push(flow.subjectsOpt);
+		}
+	}
+	if (oldOptions.find(obj => obj.payload === 'results')) {
+		const resuts = await db.getResults(CCSID); // check if we have a valid text to send
+		if (resuts && resuts.texto && resuts.texto.length > 0 && resuts.texto.length <= 2000) {
+			options.push(flow.resultsOpt); // we can send it
+		}
+	}
+	if (oldOptions.find(obj => obj.payload === 'join')) { options.push(flow.joinOpt); }
+	return options;
+};
 // find every object on municipios array with the same bairro (remove duplicated bairros)
 module.exports.findCCSBairro = async function findCCSBairro(sameMunicipio, bairroTyped) {
 	const theBairros = [];
@@ -106,33 +135,6 @@ module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agen
 	return message;
 };
 
-module.exports.getNeighborhood = async (results) => {
-	let neighborhood = results.find(x => x.types.includes('sublocality'));
-	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_1')); }
-	if (!neighborhood) { neighborhood = results.find(x => x.types.includes('sublocality_level_2')); }
-	return neighborhood.long_name;
-};
-module.exports.checkIfInRio = async (results) => {
-	let state = await results.find(x => x.types.includes('administrative_area_level_1')); // administrative_area_level_1 -> state
-	if (!state) { state = await results.find(x => x.types.includes('administrative_area_level_2')); }
-
-	let place = 'rio de janeiro';
-	if (state.formatted_address) { place = state.formatted_address; }
-
-	if ('rio de janeiro'.includes(place.toLowerCase()) || place.toLowerCase().includes('rio de janeiro')) { return true; }
-	return false;
-};
-
-module.exports.getCityFromGeo = async (results) => {
-	let state = await results.find(x => x.types.includes('administrative_area_level_2')); // administrative_area_level_2 -> city
-	if (state) {
-		state = await state.address_components.find(x => x.types.includes('administrative_area_level_2')); // administrative_area_level_2 -> city
-		if (state.long_name) { return state.long_name; }
-		return undefined;
-	}
-	return undefined;
-};
-
 module.exports.getRememberComplement = async (ccs) => {
 	if (!ccs.bairro || ccs.bairro.length === 0) {
 		return `município ${ccs.municipio}`;
@@ -154,6 +156,10 @@ module.exports.listBairros = function listBairros(ccs) {
 };
 
 async function formatString(text) {
+	if (!text || text.length === 0) {
+		return undefined;
+	}
+
 	let result = text.toLowerCase();
 	result = await result.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF])/g, '');
 	// result = await result.replace(/ç/g, 'c');
@@ -166,7 +172,7 @@ module.exports.formatString = formatString;
 // link an user to an agendaLabel
 // each angendaLabel is 'agenda' + 'ID of the CCS' -> agenda1110
 // All of the are going to be created and associated
-async function linkUserToCustomLabel(labelName, UserID) { // eslint-disable-line no-unused-vars
+async function linkUserToCustomLabel(UserID, labelName) { // eslint-disable-line no-unused-vars
 	const ourLabels = await postback.listAllLabels(); // get all labels we have
 	const theOneLabel = await ourLabels.data.find(x => x.name === labelName); // find the one label with the name same (we need the id)
 
@@ -180,9 +186,63 @@ async function linkUserToCustomLabel(labelName, UserID) { // eslint-disable-line
 	}
 	return newLabel;
 }
+module.exports.buildSeqAnswers = async (context) => {
+	// check if button clicked came from the broadcast (length > 1 -> questionNumber + agendaId) containing the agendaID after the question number
+	if (context.state.questionNumber.length > 1) {
+		await context.setState({ agendaId: context.state.questionNumber.slice(1) }); // set which agenda (comes from the broadcast)
+		await context.setState({ questionNumber: context.state.questionNumber.slice(0, 1) });
+	}
+
+	// if it's the first or second question, reset all the values
+	if (context.state.questionNumber === '2' || context.state.questionNumber === '1') { // === '1' can only happen through the text test, not from the broadcast
+		await context.setState({ seqAnswers: { foiConselho: null, gostou: null, costumaIr: null }, seqInput: '' }); // resetting values
+	}
+	const aux = context.state.seqAnswers; // for each questionNumber reached, we store which option was chosen by the user
+	if (context.state.questionNumber === '2') { aux.foiConselho = true; } // Foi ao conselho - sim
+	if (context.state.questionNumber === '5') { aux.foiConselho = false; } // não
+	if (context.state.questionNumber === '3') { aux.gostou = true; } // gostou - sim
+	if (context.state.questionNumber === '4') { aux.gostou = false; } // não
+	if (context.state.questionNumber === '6') { aux.costumaIr = true; } // Costuma ir - sim
+	if (context.state.questionNumber === '7') { aux.costumaIr = false; } // não
+	await context.setState({ seqAnswers: aux });
+};
+
+module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipient, deleteRecipientLabel, newLabel) => {
+	const user = await getRecipient(context.state.politicianData.user_id, context.session.user.id);
+	// check if user has any labels and if one of those labels is "conselho"
+	if (user && user.extra_fields && user.extra_fields.labels && user.extra_fields.labels.length > 0) {
+		const oldConselho = await user.extra_fields.labels.find(e => e.name.slice(0, 3) === 'ccs'); // search for a label that starts with 'ccs'
+
+		if (oldConselho && oldConselho.name && oldConselho.name.length > 0) { // check if we have the ccs label
+			// await deleteRecipientLabel(context.state.politicianData.user_id, context.session.user.id, oldConselho.name); // delete old ccs label
+		}
+	}
+
+	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, newLabel); // create new ccs label
+};
+
+module.exports.buildDelegaciaMsg = async (delegacia) => {
+	let text = '';
+
+	if (delegacia && delegacia.delegacia) { text += `🛡️️ Delegacia: ${delegacia.delegacia}\n`; }
+	if (delegacia && delegacia.endereco) { text += `📍 Endereço: ${delegacia.endereco}\n`; }
+	if (delegacia && delegacia.telefone) { text += `📞 Telefone: ${delegacia.telefone.replace('Telefones:', '')}`; }
+
+	return text;
+};
+
+module.exports.buildMpsMsg = async (mps) => {
+	let text = '';
+
+	if (mps && mps.nome) { text += `🏢 Ministério: ${mps.nome}\n`; }
+	if (mps && mps.endereco) { text += `📍 Endereço: ${mps.endereco}\n`; }
+	if (mps && mps.cep) { text += `🛑 ${mps.cep}\n`; }
+	if (mps && mps.telefone) { text += `📞 Telefone: ${mps.telefone.replace('Tel.:', '').replace('Tels:', '')}`; }
+
+	return text;
+};
 
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
-
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
@@ -190,6 +250,7 @@ module.exports.addUserToBlackList = postback.addUserToBlackList;
 module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
 module.exports.checkUserOnLabel = postback.checkUserOnLabel;
 module.exports.getLabelID = postback.getLabelID;
-
+module.exports.formatDialogFlow = formatDialogFlow;
+module.exports.apiai = dialogFlow(process.env.DIALOGFLOW_TOKEN);
+module.exports.calendarQROpt = [flow.subjectsOpt, flow.resultsOpt, flow.joinOpt];
 module.exports.restartList = ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'ooi', 'comecar', 'começar', 'start', 'iniciar conversa', 'iniciar'];
-
