@@ -227,7 +227,7 @@ module.exports.optDenun = async (context) => {
 			} else {
 				// more than one mps on that municipio, ask user to confirm bairro
 				await context.sendText(`Hmm, encontrei ${context.state.loadedMPS.length} endereços no seu município. `
-					+ 'Me ajude a confirmar qual é o mais perto de você, escolhendo o bairro abaixo. ');
+					+ 'Me ajude a confirmar qual é o mais perto de você, escolhendo o bairro abaixo.');
 				await attach.sendMPSBairroConfirmation(context, context.state.loadedMPS);
 			}
 		}
