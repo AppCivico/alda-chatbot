@@ -356,8 +356,8 @@ it('optDenun - option 6 with multiple mps', async () => {
 	await expect(context.sendText).toBeCalledWith(flow.optDenun[context.state.optDenunNumber]);
 	await expect(context.state.loadedMPS.length === 1 && context.state.loadedMPS[0].nome && context.state.loadedMPS[0].endereco).toBeFalsy();
 
-	await expect(context.sendText).toBeCalledWith(`Hmm, encontrei ${context.state.loadedMPS.length} ministérios no seu município. `
-		+ 'Me ajude a confirmar qual ministério é o mais apropriado escolhendo o seu bairro abaixo.');
+	await expect(context.sendText).toBeCalledWith(`Hmm, encontrei ${context.state.loadedMPS.length} endereços no seu município. `
+		+ 'Me ajude a confirmar qual é o mais perto de você, escolhendo o bairro abaixo.');
 	await expect(attach.sendMPSBairroConfirmation).toBeCalledWith(context, context.state.loadedMPS);
 
 	await expect(appcivicoApi.postRecipientLabel).toBeCalledWith(context.state.politicianData.user_id, context.session.user.id, 'denunciam');
