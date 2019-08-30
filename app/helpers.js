@@ -120,18 +120,21 @@ function getRandom(arr, n) {
 
 module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
 	let message = '';
-	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `🗓️ *Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
-	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Bairro*: ${agenda.bairro}\n`; }
-	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Local*: ${agenda.endereco}\n`; }
-	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	if (agenda.data && agenda.hora) { message = `🗓️ *Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.hora_fim) { message += `🕒️ *Término*: ${agenda.hora_fim.slice(0, -3)}\n`; }
+	if (agenda.bairro) { message += `🏘️ *Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco) { message += `🏠 *Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia) { message += `📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
 	return message;
 };
+
 module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agenda, initialMessage) {
-	let message = initialMessage;
-	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `${message}🗓️ *Nova Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
-	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Novo Bairro*: ${agenda.bairro}\n`; }
-	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Novo Local*: ${agenda.endereco}\n`; }
-	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	let message = initialMessage || '';
+	if (agenda.data && agenda.hora) { message += `\n🗓️ *Nova Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.hora_fim) { message += `🕒️ *Término*: ${agenda.hora_fim.slice(0, -3)}\n`; }
+	if (agenda.bairro) { message += `🏘️ *Novo Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco) { message += `🏠 *Novo Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia) { message += `📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
 	return message;
 };
 

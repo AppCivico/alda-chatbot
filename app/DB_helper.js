@@ -246,7 +246,7 @@ async function getMembrosNatosMunicipio(bairro, ccsID) {
 // gets the next agenda from the CCS. This means the closest data after the present day.
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
+	SELECT id, data, hora, hora_fim, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
 	WHERE conselho_id = '${CCS_ID}'
 	ORDER BY data DESC, hora DESC
@@ -464,7 +464,7 @@ async function addAgenda(UserID, agendaID, endereco, dataHora) {
 async function getAgendaNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.hora_fim, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	INNER JOIN conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
