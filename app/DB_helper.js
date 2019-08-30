@@ -248,7 +248,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
 	SELECT id, data, hora, hora_fim, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
-	WHERE conselho_id = '${CCS_ID}'
+	WHERE conselho_id = '${CCS_ID}' AND realizada IS NOT TRUE
 	ORDER BY data DESC, hora DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -258,9 +258,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 		console.error('Error on getAgenda => ', err);
 	});
 
-	if (result.length === 0) {
-		return undefined;
-	}
+	if (!result || result.length === 0) { return undefined;	}
 	return result[0];
 }
 
@@ -358,9 +356,6 @@ async function getResultsAssuntos(resultsID) {
 	}).catch((err) => {
 		console.error('Error on getResults => ', err);
 	});
-	console.log('Resultados');
-
-	console.log(result);
 
 	return result;
 }
