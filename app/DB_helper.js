@@ -209,6 +209,10 @@ ORDER BY
 		console.error('Error on getDiretoria => ', err);
 	});
 
+	result.forEach((element) => {
+		if (element.nome && element.nome.toLowerCase() === 'nc' || element.nome === '') element.nome = 'Não Consta'; // eslint-disable-line
+	});
+
 	return result;
 }
 
@@ -262,7 +266,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 		console.error('Error on getAgenda => ', err);
 	});
 
-	if (!result || result.length === 0) { return undefined;	}
+	if (!result || result.length === 0) { return undefined; }
 	return result[0];
 }
 

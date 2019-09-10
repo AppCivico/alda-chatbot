@@ -28,7 +28,7 @@ async function formatDialogFlow(text) {
 module.exports.urlExists = util.promisify(require('url-exists'));
 
 function formatDate(date) {
-	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
+	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('HH:mm')}`;
 }
 module.exports.formatDateDay = date => `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 async function dateComparison(date) { return `${moment(date).format('YYYY-MM-DD')}`; }
