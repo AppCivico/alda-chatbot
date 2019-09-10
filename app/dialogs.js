@@ -419,6 +419,13 @@ module.exports.sendResults = async (context) => {
 		}
 		await context.setState({ sent: true });
 	}
+
+	await context.setState({ resultsAssunto: await db.getResultsAssuntos(context.state.results.id) });
+	if (context.state.resultsAssunto && context.state.resultsAssunto.length > 0) {
+		await context.sendText(`${flow.results.assuntos} \n- ${context.state.resultsAssunto.join('\n- ').replace(/,(?=[^,]*$)/, ' e')}.`);
+	}
+
+
 	if (context.state.results && context.state.results.link_download && await help.urlExists(context.state.results.link_download) === true) { // check if link exists and is valid
 		await context.sendText(`Disponibilizamos o resultado da última reunião do dia ${help.formatDateDay(context.state.results.data)} `
 			+ 'no arquivo que você pode baixar clicando abaixo. 👇');
