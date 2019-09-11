@@ -41,11 +41,13 @@ module.exports.sendCarouselDiretoria = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {
-		elements.push({
-			title: element.nome,
-			subtitle: element.cargo,
-			// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
-		});
+		if (element.nome && element.nome.toLowerCase() !== 'nc') {
+			elements.push({
+				title: element.nome,
+				subtitle: element.cargo,
+				// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			});
+		}
 	});
 	await context.sendAttachment({
 		type: 'template',
