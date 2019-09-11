@@ -209,10 +209,6 @@ ORDER BY
 		console.error('Error on getDiretoria => ', err);
 	});
 
-	result.forEach((element) => {
-		if (element.nome && element.nome.toLowerCase() === 'nc' || element.nome === '') element.nome = 'Não Consta'; // eslint-disable-line
-	});
-
 	return result;
 }
 
