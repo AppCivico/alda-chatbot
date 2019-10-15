@@ -29,7 +29,7 @@ module.exports = {
 	},
 	whichCCS: {
 		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e pensam soluções para reduzir '
-	+ 'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
+			+ 'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
 		CCSImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/0001bb88-a1b3-4c54-a3e3-f512e4262acb.png',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
@@ -178,7 +178,7 @@ module.exports = {
 		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 		// link: 'http://www.africau.edu/images/default/sample.pdf',
 		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, '
-		+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
@@ -268,8 +268,8 @@ module.exports = {
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). '
-	+ '\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser? '
-	+ '\nSe você não tiver vendo nenhum botão abaixo dessa mensagem você deve estar usando o "Messenger Lite", por favor, tente conversar comigo com o app normal ou pelo computador',
+			+ '\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser? '
+			+ '\nSe você não tiver vendo nenhum botão abaixo dessa mensagem você deve estar usando o "Messenger Lite", por favor, tente conversar comigo com o app normal ou pelo computador',
 		menuOptions: ['Ver meu Conselho', 'Trocar Conselho'],
 		menuPostback: ['councilMenu', 'whichCCSMenu'],
 	},
@@ -360,6 +360,10 @@ module.exports = {
 		title: 'Voltar para o menu',
 		payload: 'goBackMenu',
 	}],
+	notifications: {
+		on: 'Vou te chamando conforme vou sabendo de mais bafos!',
+		off: 'Sem problemas, beibe. Não te enviarei mais nenhuma notificação.',
+	},
 	sequencia: {
 		1: {
 			question: 'Oi, <nome>! Perguntinha rápida, você conseguiu ir na reunião do seu Conselho que aconteceu ontem?',
