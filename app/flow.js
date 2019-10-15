@@ -361,8 +361,8 @@ module.exports = {
 		payload: 'goBackMenu',
 	}],
 	notifications: {
-		on: 'Vou te chamando conforme vou sabendo de mais bafos!',
-		off: 'Sem problemas, beibe. Não te enviarei mais nenhuma notificação.',
+		on: 'Legal! Estarei te interando das novidades! Se quiser parar de receber nossas novidades, clique na opção "Parar Notificações 🛑" no menu abaixo. ⬇️',
+		off: 'Você quem manda. Não estarei mais te enviando nenhuma notificação. Se quiser voltar a receber nossas novidades, clique na opção "Ligar Notificações 👌" no menu abaixo. ⬇️',
 	},
 	sequencia: {
 		1: {
