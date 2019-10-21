@@ -2,7 +2,6 @@ const util = require('util');
 const moment = require('moment');
 const accents = require('remove-accents');
 const Sentry = require('@sentry/node');
-const dialogFlow = require('apiai-promise');
 const flow = require('./flow');
 const postback = require('./postback');
 
@@ -254,6 +253,5 @@ module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
 module.exports.checkUserOnLabel = postback.checkUserOnLabel;
 module.exports.getLabelID = postback.getLabelID;
 module.exports.formatDialogFlow = formatDialogFlow;
-module.exports.apiai = dialogFlow(process.env.DIALOGFLOW_TOKEN);
 module.exports.calendarQROpt = [flow.subjectsOpt, flow.resultsOpt, flow.joinOpt];
 module.exports.restartList = ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'ooi', 'comecar', 'começar', 'start', 'iniciar conversa', 'iniciar'];

@@ -1,8 +1,54 @@
+const dialogflow = require('dialogflow');
 const { getknowledgeBase } = require('./chatbot_api.js');
 const { createIssue } = require('./send_issue');
 const { sendAnswer } = require('./sendAnswer');
 const { denunciaStart } = require('./dialogs');
 const dialogs = require('./dialogs');
+const help = require('./helpers');
+
+/* Initialize DialogFlow agent */
+/* set GOOGLE_APPLICATION_CREDENTIALS on .env */
+const sessionClient = new dialogflow.SessionsClient();
+const projectId = process.env.GOOGLE_PROJECT_ID;
+
+/**
+ * Send a text query to the dialogflow agent, and return the query result.
+ * @param {string} text The text to be queried
+ * @param {string} sessionId A unique identifier for the given session
+ */
+async function textRequestDF(text, sessionId) {
+	const sessionPath = sessionClient.sessionPath(projectId, sessionId);
+	const request = { session: sessionPath, queryInput: { text: { text, languageCode: 'pt-BR' } } };
+	const responses = await sessionClient.detectIntent(request);
+	return responses;
+}
+
+async function getExistingRes(res) {
+	let result = null;
+	res.forEach((e) => { if (e !== null && result === null) result = e; });
+	return result;
+}
+
+/**
+ * Build object with the entity name and it's values from the dialogflow response
+ * @param {string} res result from dialogflow request
+ */
+async function getEntity(res) {
+	const result = {};
+	const entities = res[0] && res[0].queryResult && res[0].queryResult.parameters ? res[0].queryResult.parameters.fields : [];
+	if (entities) {
+		Object.keys(entities).forEach((e) => {
+			const aux = [];
+			if (entities[e] && entities[e].listValue && entities[e].listValue.values) {
+				entities[e].listValue.values.forEach((name) => { aux.push(name.stringValue); });
+			}
+			result[e] = aux;
+		});
+	}
+
+	return result || {};
+}
+
 
 async function checkTextContext(context) {
 	console.log('context.state.dialog', context.state.dialog);
@@ -32,9 +78,9 @@ async function checkTextContext(context) {
 		await dialogs.checkPhoneInput(context);
 		break;
 	default:
-		await context.setState({ knowledge: await getknowledgeBase(context.state.politicianData.user_id, context.state.apiaiResp, context.session.user.id) });
+		await context.setState({ knowledge: await getknowledgeBase(context.state.politicianData.user_id, await getExistingRes(context.state.apiaiResp), context.session.user.id) });
 		// console.log('knowledge', context.state.knowledge);
-		if (context.state.knowledge && context.state.knowledge.knowledge_base && context.state.knowledge.knowledge_base.length >= 1) { // check if there's at least one answer in knowledge_base
+		if (context.state.knowledge && context.state.knowledge.knowledge_base && context.state.knowledge.knowledge_base.length >= 1) {
 			console.log('Vai enviar a resposta');
 			await context.setState({ intentQR: await dialogs.loadintentQR(context) });
 			await sendAnswer(context);
@@ -44,7 +90,7 @@ async function checkTextContext(context) {
 	}
 }
 
-module.exports.checkPosition = async (context) => {
+async function checkPosition(context) {
 	console.log('chegou no checkPosition com', context.state.intentName);
 	// await context.setState({ dialog: '' });
 	console.log('Dialog', context.state.dialog);
@@ -65,6 +111,19 @@ module.exports.checkPosition = async (context) => {
 		await checkTextContext(context);
 		break;
 	}
-};
+}
 
-// agradecimento - voltar para o menu
+async function dialogFlow(context) {
+	console.log(`\n${context.session.user.name} digitou ${context.event.message.text} - DF Status: ${context.state.politicianData.use_dialogflow}`);
+	if (context.state.politicianData.use_dialogflow === 1) { // check if 'politician' is using dialogFlow
+		await context.setState({ apiaiResp: await textRequestDF(await help.formatDialogFlow(context.state.whatWasTyped), context.session.user.id) });
+		await context.setState({ intentName: context.state.apiaiResp[0].queryResult.intent.displayName || '' }); // intent name
+		await context.setState({ resultParameters: await getEntity(context.state.apiaiResp) }); // entities
+		await context.setState({ apiaiTextAnswer: context.state.apiaiResp[0].queryResult.fulfillmentText || '' }); // response text
+		await checkPosition(context);
+	} else {
+		await context.setState({ dialog: 'createIssueDirect' });
+	}
+}
+
+module.exports = { dialogFlow };
