@@ -7,9 +7,8 @@ const events = require('./events'); // eslint-disable-line
 const { Sentry } = require('./helpers'); // eslint-disable-line
 const { sendAdminBroadcast } = require('./broadcast');
 const appcivicoApi = require('./chatbot_api');
-const { apiai } = require('./helpers');
 const { createIssue } = require('./send_issue');
-const { checkPosition } = require('./dialogFlow');
+const DF = require('./dialogFlow');
 const dialogs = require('./dialogs');
 
 const { restartList } = require('./helpers');
@@ -228,22 +227,7 @@ module.exports = async (context) => {
 						} else if (context.event.message.text === process.env.DENUNCIA_KEY) {
 							await context.setState({ dialog: 'denunciaStart' });
 						} else {
-							console.log('Entrei aqui');
-
-							if (context.state.politicianData.use_dialogflow === 1) { // check if politician is using dialogFlow
-								console.log('Está usando df');
-
-								await context.setState({
-									apiaiResp: await apiai.textRequest(await help.formatDialogFlow(context.state.whatWasTyped),
-										{ sessionId: context.session.user.id }),
-								});
-								// await context.setState({ resultParameters: context.state.apiaiResp.result.parameters }); // getting the entities
-								await context.setState({ intentName: context.state.apiaiResp.result.metadata.intentName }); // getting the intent
-								await checkPosition(context);
-							} else { // not using dialogFlow
-								console.log('Não usando df');
-								await createIssue(context);
-							}
+							await DF.dialogFlow(context);
 							await events.addCustomAction(context.session.user.id, 'Texto nao interpretado');
 						}
 						break;

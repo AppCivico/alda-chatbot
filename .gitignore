@@ -73,6 +73,7 @@ run-container.sh
 
 # google api key 
 google-secret-key.json
+google_private_key.json
 
 # Documents for consultation
 *.pdf
