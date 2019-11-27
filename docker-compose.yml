@@ -4,6 +4,8 @@ services:
   alda-chatbot:
     image: alda-chatbot
     build: .
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
     restart: unless-stopped
