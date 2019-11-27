@@ -208,14 +208,16 @@ ORDER BY
 	}).catch((err) => {
 		console.error('Error on getDiretoria => ', err);
 	});
+
 	return result;
 }
 
 async function getMembrosNatosBairro(bairro, ccsID) {
 	const result = await sequelize.query(`
-  SELECT MEMBROS.cmd_bpm, MEMBROS.delegado
-	FROM membros_natos MEMBROS
-	INNER JOIN abrangencias LOCATION ON MEMBROS.id = LOCATION.membronato_id
+  SELECT COMANDANTE.nome as cmd_bpm, DELEGADO.nome as delegado
+	FROM comandantes COMANDANTE
+	INNER JOIN abrangencias LOCATION ON COMANDANTE.id = LOCATION.comandante_id
+	INNER JOIN delegados DELEGADO ON DELEGADO.id = LOCATION.delegado_id
 	WHERE LOCATION.bairro = '${bairro}' AND LOCATION.conselho_id = '${ccsID}';
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
 		console.log(`Loaded membros natos from abrangencia ${bairro} successfully!`);
@@ -227,14 +229,15 @@ async function getMembrosNatosBairro(bairro, ccsID) {
 	return result;
 }
 
-async function getMembrosNatosMunicipio(bairro, ccsID) {
+async function getMembrosNatosMunicipio(municipio, ccsID) {
 	const result = await sequelize.query(`
-  SELECT MEMBROS.cmd_bpm, MEMBROS.delegado
-	FROM membros_natos MEMBROS
-	INNER JOIN abrangencias LOCATION ON MEMBROS.id = LOCATION.membronato_id
-	WHERE LOCATION.municipio = '${bairro}' AND LOCATION.conselho_id = '${ccsID}';
+  SELECT COMANDANTE.nome as cmd_bpm, DELEGADO.nome as delegado
+	FROM comandantes COMANDANTE
+	INNER JOIN abrangencias LOCATION ON COMANDANTE.id = LOCATION.comandante_id
+	INNER JOIN delegados DELEGADO ON DELEGADO.id = LOCATION.delegado_id
+	WHERE LOCATION.municipio = '${municipio}' AND LOCATION.conselho_id = '${ccsID}';
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
-		console.log(`Loaded membros natos from abrangencia ${bairro} successfully!`);
+		console.log(`Loaded membros natos from abrangencia ${municipio} successfully!`);
 		return results;
 	}).catch((err) => {
 		console.error('Error on getMembrosNatosMunicipio => ', err);
@@ -243,12 +246,13 @@ async function getMembrosNatosMunicipio(bairro, ccsID) {
 	return result;
 }
 
+
 // gets the next agenda from the CCS. This means the closest data after the present day.
 async function getAgenda(CCS_ID) { // also known as calendário
 	const result = await sequelize.query(`
-	SELECT id, data, hora, endereco, bairro, ponto_referencia, updated_at
+	SELECT id, data, hora, hora_fim, endereco, bairro, ponto_referencia, updated_at
 	FROM agendas
-	WHERE conselho_id = '${CCS_ID}'
+	WHERE conselho_id = '${CCS_ID}' AND realizada IS NOT TRUE
 	ORDER BY data DESC, hora DESC
 	LIMIT 1;
 	`).spread((results, metadata) => { // eslint-disable-line no-unused-vars
@@ -258,9 +262,7 @@ async function getAgenda(CCS_ID) { // also known as calendário
 		console.error('Error on getAgenda => ', err);
 	});
 
-	if (result.length === 0) {
-		return undefined;
-	}
+	if (!result || result.length === 0) { return undefined; }
 	return result[0];
 }
 
@@ -318,7 +320,7 @@ async function getResults(CCS_ID) { // get most recent results from before the c
 	date = await moment(date).format('YYYY-MM-DD');
 
 	const result = await sequelize.query(`
-	SELECT RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data, RESULTADO.id
+	SELECT RESULTADO.id, RESULTADO.texto, RESULTADO.link_download, RESULTADO.agenda_id, AGENDAS.id, AGENDAS.data
 	FROM resultados RESULTADO
 	INNER JOIN agendas AGENDAS ON RESULTADO.agenda_id = AGENDAS.id
 	WHERE AGENDAS.conselho_id = '${CCS_ID}' AND AGENDAS.data <= '${date}'
@@ -358,9 +360,6 @@ async function getResultsAssuntos(resultsID) {
 	}).catch((err) => {
 		console.error('Error on getResults => ', err);
 	});
-	console.log('Resultados');
-
-	console.log(result);
 
 	return result;
 }
@@ -464,7 +463,7 @@ async function addAgenda(UserID, agendaID, endereco, dataHora) {
 async function getAgendaNotification() {
 	const result = await sequelize.query(`
 	SELECT NOTIFICATION.id, NOTIFICATION.user_id, NOTIFICATION.agendas_id, NOTIFICATION.endereco as old_endereco, NOTIFICATION.data_hora as old_datahora, 
-	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
+	AGENDAS.conselho_id, AGENDAS.status_id, AGENDAS.data, AGENDAS.hora, AGENDAS.hora_fim, AGENDAS.bairro, AGENDAS.endereco, AGENDAS.ponto_referencia, CONSELHOS.ccs
 	FROM notificar_agenda AS NOTIFICATION
 	INNER JOIN agendas AGENDAS ON NOTIFICATION.agendas_id = AGENDAS.id
 	INNER JOIN conselhos CONSELHOS on AGENDAS.conselho_id = CONSELHOS.id
@@ -669,6 +668,32 @@ async function getDelegacias(municipio, abrangencia, meta) { // CCS.municipio, C
 	return result && result[0] ? result[0] : [];
 }
 
+async function getHospitals(bairro) { // CCS.bairro
+	const result = await sequelize.query(
+		`SELECT * FROM hospitais WHERE UNACCENT(LOWER(abrangencia)) LIKE '%' || '${bairro}' || '%';`,
+	).spread((results) => { // eslint-disable-line no-unused-vars
+		console.log('getHospitals was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getHospitals => ', err);
+	});
+
+	return result || [];
+}
+async function getMPS(municipio) { // CCS.bairro
+	const result = await sequelize.query(
+		`SELECT * FROM mps WHERE UNACCENT(LOWER(municipio)) LIKE '%' || '${municipio}' || '%';`,
+	).spread((results) => { // eslint-disable-line no-unused-vars
+		console.log('getMPS was successful!');
+		return results;
+	}).catch((err) => {
+		console.error('Error on getMPS => ', err);
+	});
+
+	return result || [];
+}
+
+
 /*
 	creating unaccent dictionary funcion
 	user=> CREATE EXTENSION unaccent;
@@ -827,4 +852,6 @@ module.exports = {
 	saveDenuncia,
 	getDeam,
 	getDelegacias,
+	getHospitals,
+	getMPS,
 };

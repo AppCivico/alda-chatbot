@@ -41,11 +41,34 @@ module.exports.sendCarouselDiretoria = async (context, items) => {
 	const elements = [];
 
 	items.forEach((element) => {
-		elements.push({
-			title: element.nome,
-			subtitle: element.cargo,
-			// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
-		});
+		if (element.nome && element.nome.toLowerCase() !== 'nc') {
+			elements.push({
+				title: element.nome,
+				subtitle: element.cargo,
+				// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			});
+		}
+	});
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+module.exports.sendCarousel = async (context, items, title, subtitle) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		if (element[title] && element[subtitle]) {
+			elements.push({
+				title: element[title],
+				subtitle: element[subtitle],
+				// image_url: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/5c87a0a3-febf-40fa-bcbc-bbefee27b9c1.png',
+			});
+		}
 	});
 	await context.sendAttachment({
 		type: 'template',
@@ -336,6 +359,31 @@ module.exports.sendColegioConfirmation = async (context, items) => {
 				type: 'postback',
 				title: 'É essa!',
 				payload: `confirmBa${element.id}`,
+			}],
+		});
+	});
+
+	await context.sendAttachment({
+		type: 'template',
+		payload: {
+			template_type: 'generic',
+			elements,
+		},
+	});
+};
+
+// same as sendConselhoConfirmation but using bairros from the mps found during the denuncia flow
+module.exports.sendMPSBairroConfirmation = async (context, items) => {
+	const elements = [];
+
+	items.forEach((element) => {
+		elements.push({
+			title: `${element.nome}`,
+			subtitle: `Bairro ${element.bairro}`,
+			buttons: [{
+				type: 'postback',
+				title: 'É essa!',
+				payload: `confirmDen${element.id}`,
 			}],
 		});
 	});

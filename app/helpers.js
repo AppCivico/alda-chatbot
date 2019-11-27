@@ -2,7 +2,6 @@ const util = require('util');
 const moment = require('moment');
 const accents = require('remove-accents');
 const Sentry = require('@sentry/node');
-const dialogFlow = require('apiai-promise');
 const flow = require('./flow');
 const postback = require('./postback');
 
@@ -28,7 +27,7 @@ async function formatDialogFlow(text) {
 module.exports.urlExists = util.promisify(require('url-exists'));
 
 function formatDate(date) {
-	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('hh:mm')}`;
+	return `${moment(date).format('dddd')}, ${moment(date).format('D')} de ${moment(date).format('MMMM')} às ${moment(date).format('HH:mm')}`;
 }
 module.exports.formatDateDay = date => `${moment(date).format('D')} de ${moment(date).format('MMMM')}`;
 async function dateComparison(date) { return `${moment(date).format('YYYY-MM-DD')}`; }
@@ -120,18 +119,21 @@ function getRandom(arr, n) {
 
 module.exports.getAgendaMessage = async function getAgendaMessage(agenda) {
 	let message = '';
-	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `🗓️ *Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
-	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Bairro*: ${agenda.bairro}\n`; }
-	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Local*: ${agenda.endereco}\n`; }
-	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	if (agenda.data && agenda.hora) { message = `🗓️ *Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.hora_fim) { message += `🕒️ *Término*: ${agenda.hora_fim.slice(0, -3)}\n`; }
+	if (agenda.bairro) { message += `🏘️ *Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco) { message += `🏠 *Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia) { message += `📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
 	return message;
 };
+
 module.exports.getAgendaMessageTimer = async function getAgendaMessageTimer(agenda, initialMessage) {
-	let message = initialMessage;
-	if (agenda.data && agenda.data !== '' && agenda.hora && agenda.hora !== '') { message = `${message}🗓️ *Nova Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
-	if (agenda.bairro && agenda.bairro !== '') { message = `${message}🏘️ *Novo Bairro*: ${agenda.bairro}\n`; }
-	if (agenda.endereco && agenda.endereco !== '') { message = `${message}🏠 *Novo Local*: ${agenda.endereco}\n`; }
-	if (agenda.ponto_referencia && agenda.ponto_referencia !== '') { message = `${message}📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
+	let message = initialMessage || '';
+	if (agenda.data && agenda.hora) { message += `\n🗓️ *Nova Data*: ${formatDate(new Date(`${agenda.data} ${agenda.hora}`))}\n`; }
+	if (agenda.hora_fim) { message += `🕒️ *Término*: ${agenda.hora_fim.slice(0, -3)}\n`; }
+	if (agenda.bairro) { message += `🏘️ *Novo Bairro*: ${agenda.bairro}\n`; }
+	if (agenda.endereco) { message += `🏠 *Novo Local*: ${agenda.endereco}\n`; }
+	if (agenda.ponto_referencia) { message += `📍 *Ponto de Referência*: ${agenda.ponto_referencia}\n`; }
 	return message;
 };
 
@@ -214,14 +216,14 @@ module.exports.addConselhoLabel = async (context, postRecipientLabel, getRecipie
 		const oldConselho = await user.extra_fields.labels.find(e => e.name.slice(0, 3) === 'ccs'); // search for a label that starts with 'ccs'
 
 		if (oldConselho && oldConselho.name && oldConselho.name.length > 0) { // check if we have the ccs label
-			await deleteRecipientLabel(context.state.politicianData.user_id, context.session.user.id, oldConselho.name); // delete old ccs label
+			// await deleteRecipientLabel(context.state.politicianData.user_id, context.session.user.id, oldConselho.name); // delete old ccs label
 		}
 	}
 
 	await postRecipientLabel(context.state.politicianData.user_id, context.session.user.id, newLabel); // create new ccs label
 };
 
-async function buildDelegaciaMsg(delegacia) {
+module.exports.buildDelegaciaMsg = async (delegacia) => {
 	let text = '';
 
 	if (delegacia && delegacia.delegacia) { text += `🛡️️ Delegacia: ${delegacia.delegacia}\n`; }
@@ -229,9 +231,19 @@ async function buildDelegaciaMsg(delegacia) {
 	if (delegacia && delegacia.telefone) { text += `📞 Telefone: ${delegacia.telefone.replace('Telefones:', '')}`; }
 
 	return text;
-}
+};
 
-module.exports.buildDelegaciaMsg = buildDelegaciaMsg;
+module.exports.buildMpsMsg = async (mps) => {
+	let text = '';
+
+	if (mps && mps.nome) { text += `🏢 Ministério: ${mps.nome}\n`; }
+	if (mps && mps.endereco) { text += `📍 Endereço: ${mps.endereco}\n`; }
+	if (mps && mps.cep) { text += `🛑 ${mps.cep}\n`; }
+	if (mps && mps.telefone) { text += `📞 Telefone: ${mps.telefone.replace('Tel.:', '').replace('Tels:', '')}`; }
+
+	return text;
+};
+
 module.exports.linkUserToCustomLabel = linkUserToCustomLabel;
 module.exports.getBroadcastMetrics = postback.getBroadcastMetrics;
 module.exports.dissociateLabelsFromUser = postback.dissociateLabelsFromUser;
@@ -241,6 +253,5 @@ module.exports.removeUserFromBlackList = postback.removeUserFromBlackList;
 module.exports.checkUserOnLabel = postback.checkUserOnLabel;
 module.exports.getLabelID = postback.getLabelID;
 module.exports.formatDialogFlow = formatDialogFlow;
-module.exports.apiai = dialogFlow(process.env.DIALOGFLOW_TOKEN);
 module.exports.calendarQROpt = [flow.subjectsOpt, flow.resultsOpt, flow.joinOpt];
 module.exports.restartList = ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'ooi', 'comecar', 'começar', 'start', 'iniciar conversa', 'iniciar'];

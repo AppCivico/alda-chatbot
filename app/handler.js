@@ -7,9 +7,8 @@ const events = require('./events'); // eslint-disable-line
 const { Sentry } = require('./helpers'); // eslint-disable-line
 const { sendAdminBroadcast } = require('./broadcast');
 const appcivicoApi = require('./chatbot_api');
-const { apiai } = require('./helpers');
 const { createIssue } = require('./send_issue');
-const { checkPosition } = require('./dialogFlow');
+const DF = require('./dialogFlow');
 const dialogs = require('./dialogs');
 
 const { restartList } = require('./helpers');
@@ -21,22 +20,17 @@ module.exports = async (context) => {
 		try {
 			// we reload politicianData on every useful event
 			await context.setState({ politicianData: await appcivicoApi.getPoliticianData(context.event.rawEvent.recipient.id) });
-			// we update context data at every interaction (post ony on the first time)
-			await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
-				fb_id: context.session.user.id,
-				name: `${context.session.user.first_name} ${context.session.user.last_name}`,
-				gender: context.session.user.gender === 'male' ? 'M' : 'F',
-				origin_dialog: 'greetings',
-				picture: context.session.user.profile_pic,
-				// session: JSON.stringify(context.state),
-			});
-
-			console.log('--------------------------');
-			console.log('CCS', context.state.CCS);
-			console.log('originalCCS', context.state.originalCCS);
-			console.log('denunciaCCS', context.state.denunciaCCS);
-			console.log('--------------------------');
-
+			if (context.state.politicianData && context.state.politicianData.user_id) {
+				// we update context data at every interaction (post ony on the first time)
+				await appcivicoApi.postRecipient(context.state.politicianData.user_id, {
+					fb_id: context.session.user.id,
+					name: `${context.session.user.first_name} ${context.session.user.last_name}`,
+					gender: context.session.user.gender === 'male' ? 'M' : 'F',
+					origin_dialog: 'greetings',
+					picture: context.session.user.profile_pic,
+					// session: JSON.stringify(context.state),
+				});
+			}
 
 			if ((context.event.rawEvent.timestamp - context.session.lastActivity) >= timeLimit) {
 				if (context.session.user.first_name) { // check if first_name to avoid an 'undefined' value
@@ -48,7 +42,9 @@ module.exports = async (context) => {
 				}
 			} else if (context.event.isPostback) {
 				await context.setState({ questionNumber: '' });
-				if (context.event.postback.payload.slice(0, 9) === 'confirmBa') { // from confirmBairro
+				if (context.event.postback.payload.slice(0, 10) === 'confirmDen') {
+					await context.setState({ mpsBairroId: context.event.postback.payload.replace('confirmDen', ''), dialog: 'showMPSBairro' });
+				} else if (context.event.postback.payload.slice(0, 9) === 'confirmBa') { // from confirmBairro
 					await context.setState({ CCS: context.state.bairro.find(x => x.id === parseInt(context.event.postback.payload.replace('confirmBa', ''), 10)) });
 					await context.setState({ dialog: 'nearestCouncil' }); //  asked: false
 				} else if (context.event.postback.payload.slice(0, 9) === 'confirmMu') { // from confirmMunicipio
@@ -153,7 +149,6 @@ module.exports = async (context) => {
 				} else if (context.event.message.text === process.env.RESTART) { // for quick testing
 					// await context.setState({ dialog: 'whichCCSMenu' });
 					// await context.setState({ dialog: 'councilMenu' });
-					await context.setState({ dialog: 'calendar' });
 				} else if (context.event.message.text === process.env.ADMIN_MENU) { // for the admin menu
 					if (await help.checkUserOnLabel(context.session.user.id, process.env.LABEL_ADMIN) === true) { // check if user has label admin
 						await context.setState({ dialog: 'adminStart', labels: '', isAdmin: '' });
@@ -232,22 +227,7 @@ module.exports = async (context) => {
 						} else if (context.event.message.text === process.env.DENUNCIA_KEY) {
 							await context.setState({ dialog: 'denunciaStart' });
 						} else {
-							console.log('Entrei aqui');
-
-							if (context.state.politicianData.use_dialogflow === 1) { // check if politician is using dialogFlow
-								console.log('Está usando df');
-
-								await context.setState({
-									apiaiResp: await apiai.textRequest(await help.formatDialogFlow(context.state.whatWasTyped),
-										{ sessionId: context.session.user.id }),
-								});
-								// await context.setState({ resultParameters: context.state.apiaiResp.result.parameters }); // getting the entities
-								await context.setState({ intentName: context.state.apiaiResp.result.metadata.intentName }); // getting the intent
-								await checkPosition(context);
-							} else { // not using dialogFlow
-								console.log('Não usando df');
-								await createIssue(context);
-							}
+							await DF.dialogFlow(context);
 							await events.addCustomAction(context.session.user.id, 'Texto nao interpretado');
 						}
 						break;
@@ -372,6 +352,8 @@ module.exports = async (context) => {
 						await help.linkUserToCustomLabel(context.session.user.id, `ccs${context.state.CCS.id}`);
 						await help.addConselhoLabel(context, appcivicoApi.postRecipientLabel, appcivicoApi.getRecipient, appcivicoApi.deleteRecipientLabel, `ccs${context.state.CCS.id}`);
 					}
+
+
 					await metric.userAddOrUpdate(context);
 					if (context.state.CCS.bairro === 'Paquetá') { // check if user is on Paquetá (island) to show the correct related bairros
 						await context.setState({ otherBairros: ['Paquetá'] });
@@ -582,6 +564,15 @@ module.exports = async (context) => {
 				break;
 			case 'optDenun':
 				await dialogs.optDenun(context);
+				break;
+			case 'showMPSBairro':
+				await context.setState({ currentMps: context.state.loadedMPS ? context.state.loadedMPS.find(x => x.id.toString() === context.state.mpsBairroId) : '' });
+				if (context.state.currentMps && context.state.currentMps.nome && context.state.currentMps.endereco) {
+					await context.sendText(await help.buildMpsMsg(context.state.currentMps));
+					await dialogs.sendCouncilMenu(context);
+				} else {
+					await dialogs.sendCouncilMenu(context);
+				}
 				break;
 			case 'denunciaNot':
 				await createIssue(context);

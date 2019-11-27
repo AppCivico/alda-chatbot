@@ -29,7 +29,7 @@ module.exports = {
 	},
 	whichCCS: {
 		firstMessage: 'Os Conselhos Comunitários de Segurança são espaços onde as pessoas levam os problemas de segurança nos seus bairros e pensam soluções para reduzir '
-	+ 'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
+			+ 'a violência e a criminalidade. São debates entre os moradores e as polícias civil e militar do RJ.',
 		secondMessage: 'Veja os Conselhos que existem no estado:',
 		CCSImage: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/0001bb88-a1b3-4c54-a3e3-f512e4262acb.png',
 		thirdMessage: 'Quer saber sobre o Conselho mais próximo de você?',
@@ -143,7 +143,7 @@ module.exports = {
 	calendar: {
 		firstMessage: 'A data da próxima reunião do seu CCS é Y e vai acontecer no local Z.',
 		preMenuMsg: 'Você pode ver o que será discutido na próxima reunião, clicando em "Assuntos" ou ver o que foi discutido na reunião anterior, '
-			+ 'clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			+ 'clicando em "Resultados". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Assuntos', 'Resultados', 'Fazer parte'],
 		menuPostback: ['subjects', 'results', 'join'],
@@ -156,7 +156,7 @@ module.exports = {
 		sub: 'Baixe para ficar por dentro dos assuntos tratatos.',
 		link: 'http://www.africau.edu/images/default/sample.pdf',
 		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que foi discutido na reunião anterior, '
-			+ ' clicando em "Resultados". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			+ ' clicando em "Resultados". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		emptyAssuntos: 'Esse CCS ainda não disponibilizou os assuntos discutidos na última reunião.',
 		// menu --
@@ -178,7 +178,7 @@ module.exports = {
 		imageLink: 'https://1.bp.blogspot.com/-ZazOVcAWe7k/WfcH1gYvEsI/AAAAAAAAHVU/wJl3MDU0ZpsGfTOfkggkc9tv1HMp_JrqwCLcBGAs/s1600/RESULTADOS.png',
 		// link: 'http://www.africau.edu/images/default/sample.pdf',
 		preMenuMsg: 'Você pode ver quando e onde vai ocorrer a próxima reunião, clicando em "Calendário" ou ver o que será discutido na próxima reunião, '
-		+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode compartilhar que eu existo, se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
+			+ 'clicando em "Assuntos". 😉\nAlém disso, você também pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte".',
 		preMenuMsgExtra: 'Você pode se manter informado ou me seguir nas redes sociais clicando em "Fazer parte". 😉',
 		menuOptions: ['Calendário', 'Assuntos', 'Fazer parte'],
 		menuPostback: ['calendar', 'subjects', 'join'],
@@ -209,9 +209,12 @@ module.exports = {
 	optDenun: {
 		1: 'Poxa, sinto muito! 😕 Eu vou te passar o endereço da Delegacia de Polícia mais próxima pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? ',
 		2: 'Poxa, sinto muito! 😕 Eu vou te passar o endereço da Delegacia de Polícia mais próxima pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? ',
-		3: 'Sinto muito por você ter passado por isso. 😞 Eu vou te passar o endereço da Delegacia de Atendimento à Mulher mais próxima da sua casa. Não deixe de ir lá, tudo bem? É super importante para que isso não aconteça novamente. Qualquer coisa, fale comigo de novo!  ',
+		3: {
+			txt1: 'Sinto muito por você ter passado por isso. 😞 Eu vou te passar o endereço de hospitais de emergência próximos do seu local. ',
+			txt2: 'Depois você precisa ir em uma Delegacia de Atendimento à Mulher e contar o que aconteceu. Fique tranquila que você vai poder falar com outra mulher lá. Não deixe de ir lá, tudo bem? É super importante para que isso não aconteça novamente. Qualquer coisa, fale comigo de novo! Aqui o endereço: ',
+		},
 		4: {
-			txt1: 'Sinto muito por você ter passado por isso. 😞 Não vou dizer que imagino o que você possa estar sentindo e passando neste momento, mas posso te ajudar nos primeiros passos. A primeira coisa é você ir em um hospital de emergência para vítimas de violência sexual, tudo bem? Vou te passar o endereço mais próximo.',
+			txt1: 'Sinto muito por você ter passado por isso. 😞 Não vou dizer que imagino o que você possa estar sentindo e passando neste momento, mas posso te ajudar nos primeiros passos. A primeira coisa é você ir em um hospital de emergência para vítimas de violência sexual, tudo bem? Vou te passar endereços mais próximos.',
 			txt2: 'Depois você precisa ir em uma Delegacia de Atendimento à Mulher e contar o que aconteceu. Fique tranquila que você vai poder falar com outra mulher lá. Aqui o endereço: ',
 		},
 		5: 'Eita, sinto muito que você esteja passando por isso. 😓 Eu vou te passar o endereço da Delegacia de Polícia mais próxima da sua casa pra você ir até lá prestar queixa e fazer o Boletim de Ocorrência, tudo bem? Se for algo mais específico, eles poderão te orientar melhor.',
@@ -226,8 +229,8 @@ module.exports = {
 	},
 	join: {
 		firstMessage: 'É bom saber que você quer mostrar que eu existo para outras pessoas e ajudar na construção de uma vizinhança mais segura! Veja como você pode fazer parte!',
-		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
-		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
+		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'followMedia', 'goBackMenu'],
 	},
 	keepMe: {
 		firstMessage: 'Que legal! 😀\nComo você quer fazer isso: E-mail, WhatsApp ou aqui pelo Face mesmo?',
@@ -240,8 +243,8 @@ module.exports = {
 		sucess: 'Obrigada por fazer parte! Juntos podemos fazer a diferença. ❤️',
 		facebook: 'Combinado! 😉 Sempre que tiver novidades te avisarei por aqui!',
 		menuMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
-		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Compartilhar', 'Voltar para o Menu'],
-		menuPostback: ['keepMe', 'followMedia', 'share', 'goBackMenu'],
+		menuOptions: ['Me manter informado', 'Seguir redes sociais', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'followMedia', 'goBackMenu'],
 	},
 	share: {
 		firstMessage: 'Muito bom! 😍',
@@ -259,14 +262,14 @@ module.exports = {
 		sub: 'Junte-se a nós! 🤖',
 		link: 'https://www.facebook.com/aldaconselhos/',
 		secondMessage: 'Para o que você precisar, eu to sempre por aqui. Acesse o menu para conversar comigo ou escolha uma das opções: 😘',
-		menuOptions: ['Me manter informado', 'Compartilhar', 'Voltar para o Menu'],
-		menuPostback: ['keepMe', 'share', 'goBackMenu'],
+		menuOptions: ['Me manter informado', 'Voltar para o Menu'],
+		menuPostback: ['keepMe', 'goBackMenu'],
 		imageLink: 'https://gallery.mailchimp.com/926cb477483bcd8122304bc56/images/f9f014a2-56de-4bc8-a201-538b2b6300cd.png',
 	},
 	error: {
 		noText: '\nEu sou a Alda e sou uma robô novinha, meus algoritmos não entendem as mensagens (linguagem natural). '
-	+ '\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser? '
-	+ '\nSe você não tiver vendo nenhum botão abaixo dessa mensagem você deve estar usando o "Messenger Lite", por favor, tente conversar comigo com o app normal ou pelo computador',
+			+ '\n\nPosso te pedir um favor? Vamos começar a conversa novamente e você vai clicando nos botões. Pode ser? '
+			+ '\nSe você não tiver vendo nenhum botão abaixo dessa mensagem você deve estar usando o "Messenger Lite", por favor, tente conversar comigo com o app normal ou pelo computador',
 		menuOptions: ['Ver meu Conselho', 'Trocar Conselho'],
 		menuPostback: ['councilMenu', 'whichCCSMenu'],
 	},
@@ -357,6 +360,10 @@ module.exports = {
 		title: 'Voltar para o menu',
 		payload: 'goBackMenu',
 	}],
+	notifications: {
+		on: 'Legal! Estarei te interando das novidades! Se quiser parar de receber nossas novidades, clique na opção "Parar Notificações 🛑" no menu abaixo. ⬇️',
+		off: 'Você quem manda. Não estarei mais te enviando nenhuma notificação. Se quiser voltar a receber nossas novidades, clique na opção "Ligar Notificações 👌" no menu abaixo. ⬇️',
+	},
 	sequencia: {
 		1: {
 			question: 'Oi, <nome>! Perguntinha rápida, você conseguiu ir na reunião do seu Conselho que aconteceu ontem?',
