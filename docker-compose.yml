@@ -23,7 +23,7 @@ services:
     links:
       - postgres
     labels:
-     - "traefik.port=2049"
+     - "traefik.port=2300"
      - "traefik.frontend.rule=HostRegexp:{catchall:.*}"
       # traefik.frontend.redirect.replacement: https://$2
       # traefik.frontend.redirect.regex: ^https://www.(.*)
