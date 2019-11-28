@@ -13,8 +13,10 @@ USER node
 ADD package.json /src/
 WORKDIR /src
 
+RUN npm install libpq
 RUN npm install bottender dotenv
 RUN npm install
+RUN npm audit fix
 ADD . /src
 
 USER root
