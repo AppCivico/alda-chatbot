@@ -20,8 +20,6 @@ services:
     volumes:
       - "./volumes/data:/data"
       - "./:/src"
-    cpu_shares: 512
-    mem_limit: 1800m
     links:
       - postgres
     labels:
@@ -65,5 +63,5 @@ services:
      - web
 networks:
     web:
-            #      external: true
+      external: true
 
