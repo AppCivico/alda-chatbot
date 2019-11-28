@@ -1,13 +1,21 @@
-version: '2.1'
+version: '3'
 
 services:
   alda-chatbot:
     image: alda-chatbot
-    build: .
+    build:
+      context: .
+      args:
+        LISTEN_PORT: 2300
+        DOCKER_LAN_IP: 0.0.0.0
+        SOURCE_DIR: ./
     env_file:
       - .env
     environment:
       NODE_ENV: production
+      LISTEN_PORT: 2300
+      DOCKER_LAN_IP: 0.0.0.0
+      SOURCE_DIR: /src
     restart: unless-stopped
     volumes:
       - "./volumes/data:/data"
