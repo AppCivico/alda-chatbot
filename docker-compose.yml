@@ -1,10 +1,67 @@
-version: '2.1'
+version: '3'
 
 services:
   alda-chatbot:
     image: alda-chatbot
-    build: .
+    build:
+      context: .
+      args:
+        LISTEN_PORT: 2300
+        DOCKER_LAN_IP: 0.0.0.0
+        SOURCE_DIR: ./
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
+      LISTEN_PORT: 2300
+      DOCKER_LAN_IP: 0.0.0.0
+      SOURCE_DIR: /src
+    restart: unless-stopped
+    volumes:
+      - "./volumes/data:/data"
+      - "./:/src"
+    links:
+      - postgres
+    labels:
+     - "traefik.port=2300"
+     - "traefik.frontend.rule=HostRegexp:{catchall:.*}"
+      # traefik.frontend.redirect.replacement: https://$2
+      # traefik.frontend.redirect.regex: ^https://www.(.*)
+     - "traefik.frontend.priority=1"
+     - "traefik.enable=true"
+     - "traefik.docker.network=web"
+    networks:
+     - web
+     - default
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: some-pass
+    volumes:
+      - "./volumes/postgresql/data:/var/lib/postgresql/data"
+    restart: unless-stopped
+  traefik:
+    image: traefik:alpine
+    environment:
+      AWS_REGION: us-east-1
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./volumes/traefik/traefik.toml:/traefik.toml"
     ports:
-      - 2300:2300
+    - 80:80
+    - 8080:8080
+    - 443:443
+    command:
+    - --configfile=/traefik.toml
+    labels:
+      traefik.frontend.rule: Host:traefik.aldabot.local
+      traefik.alias: traefik
+      traefik.port: '8080'
+      traefik.enable: 'true'
+    restart: unless-stopped
+    networks:
+     - web
+networks:
+    web:
+      external: true
+

@@ -1,0 +1,33 @@
+debug = false 
+
+logLevel = "ERROR"
+defaultEntryPoints = ["https","http"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+#     [entryPoints.http.redirect]
+#     entryPoint = "https"
+ [entryPoints.https]
+   address = ":443"
+     [entryPoints.https.tls]
+
+[retry]
+[api]
+[ping]
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "traefik.aldabot.local"
+watch = true
+exposedbydefault = false
+
+[acme]
+email = "someone@aldabot.local"
+storage = "acme.json"
+entryPoint = "https"
+acmeLogging = true
+onHostRule = true
+[acme.tlsChallenge]
+  [acme.httpChallenge]
+  entryPoint = "http"
