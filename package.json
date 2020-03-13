@@ -10,7 +10,7 @@
   "dependencies": {
     "@google/maps": "^0.5.4",
     "@sentry/node": "^4.2.3",
-    "acorn": "^6.1.1",
+    "acorn": "^6.4.1",
     "apiai-promise": "^1.0.0",
     "bottender": "^0.15.17",
     "cron": "^1.4.1",
